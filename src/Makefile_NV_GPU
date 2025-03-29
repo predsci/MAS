@@ -1,0 +1,39 @@
+machine_name = $(shell uname -n | sed 's/\..*//')
+machine_type = $(shell uname -m)
+
+sed_args := -e 's/<MACHINE_NAME>/$(machine_name)/'\
+            -e 's/<MACHINE_TYPE>/$(machine_type)/'
+
+FC = mpif90
+
+FCFLAGS = -O3 -march=native -acc=gpu -stdpar=gpu -gpu=ccnative,mem:separate -Minfo=accel
+
+EXT_DEPS_HOME = ${PS_EXT_DEPS_HOME}
+
+INC_PATHS = -I${EXT_DEPS_HOME}/hdf5/include
+
+LIB_HDF5 = -L${EXT_DEPS_HOME}/hdf5/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5 -lhdf5_hl
+
+LDFLAGS = $(LIB_HDF5)
+
+all: pchip_module.o mas.o
+	$(FC) $(FCFLAGS) $(INC_PATHS) pchip_module.o mas.o $(LDFLAGS) -o mas
+	rm -f *.mod *.o
+	rm -f mas_sed.f
+
+clean:
+	rm -f *.mod *.o
+	rm -f mas_sed_expmac.f
+	rm -f mas_sed.f
+	rm -f mas
+	rm -f expmac 2>/dev/null
+
+mas.o: mas.f
+	sed $(sed_args) mas.f > mas_sed.f
+	$(FC) $(FCFLAGS) expmac.f -o expmac
+	./expmac mas_sed.f mas_sed_expmac.f
+	$(FC) $(FCFLAGS) $(INC_PATHS) -c mas_sed_expmac.f -o mas.o
+
+pchip_module.o : pchip_module_v1.0.0.f90
+	$(FC) $(FCFLAGS) -c pchip_module_v1.0.0.f90 -o pchip_module.o
+
