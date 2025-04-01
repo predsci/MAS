@@ -1,4 +1,4 @@
-<img width=350 src="mas_logo.png" alt="MAS" /> <img width=350 src="mas_logo_text.png" alt="MAS" />
+<img height=125 src="mas_logo.png" alt="MAS"/> <img height=125 src="mas_logo_text.png" alt="MAS"/>
   
 # MAS: Magnetohydrodynamic Algorithm outside a Sphere  
 
