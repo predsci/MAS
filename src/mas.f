@@ -93,20 +93,24 @@ c ****** Code name and version information.
 c-----------------------------------------------------------------------
 c
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.8.0.0'
-      character(*), parameter :: branch_vers='acc1.0'
-      character(*), parameter :: rev=
-     & '<SVN_REV>'
-      character(*), parameter :: update=
-     & '<REV_DATE>'
+      character(*), parameter :: vers='0.8.1.0'
+      character(*), parameter :: update='03/31/2025'
+      character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.f'
 c
 c-----------------------------------------------------------------------
 c ****** Machine name and type.
 c-----------------------------------------------------------------------
 c
-      character(*), parameter :: machname='<MACHINE_NAME>'
-      character(*), parameter :: machtype='<MACHINE_TYPE>'
+      character(512) :: machname=''
+      character(512) :: machtype=''
+c
+c-----------------------------------------------------------------------
+c ****** Compiler and flags.
+c-----------------------------------------------------------------------
+c
+      character(1024) :: compiler=''
+      character(1024) :: compiler_flags=''
 c
 c-----------------------------------------------------------------------
 c ****** Run ID.
@@ -5522,6 +5526,22 @@ c ****** Initialize MPI.
 c
       call init_mpi
 c
+      if (iamp0) then
+        write (*,*) ' '
+        write (*,*) '_|      _|     _|_|       _|_|_|'
+        write (*,*) '_|_|  _|_|   _|    _|   _|'
+        write (*,*) '_|  _|  _|   _|_|_|_|     _|_|'
+        write (*,*) '_|      _|   _|    _|         _|'
+        write (*,*) '_|      _|   _|    _|   _|_|_|'
+        write (*,*) ' '
+        write (*,*) 'Magnetohydrodynamic Algorithm outside a Sphere'
+        write (*,*) '                        Predictive Science Inc.'
+      end if
+c
+c ****** Get system infomration.
+c
+      if (iamp0) call get_system_info
+c
 c ****** Get the command-line arguments.
 c
       call get_cl_args (narg,arg)
@@ -5585,36 +5605,29 @@ c
       call datetime (chdate,chtime)
 c
       if (iamp0) then
-        write (*,*) ' '
-        write (*,*) '_|      _|     _|_|       _|_|_|'
-        write (*,*) '_|_|  _|_|   _|    _|   _|'
-        write (*,*) '_|  _|  _|   _|_|_|_|     _|_|'
-        write (*,*) '_|      _|   _|    _|         _|'
-        write (*,*) '_|      _|   _|    _|   _|_|_|'
-        write (*,*) ' '
-        write (*,*) 'Magnetohydrodynamic Algorithm outside a Sphere'
-        write (*,*) '                        Predictive Science Inc.'
         write (*,300) 'Code: ',idcode,
      &                'Version: ',vers//branch_vers,
      &                'Updated on: ',update,
-     &                'Repo revision: ',rev,
      &                'Source file: ',source,
      &                'Run ID: ',trim(runid),
      &                'Run started on: ',chdate,
      &                'Run started at: ',chtime,
-     &                'Ran on machine: ',machname,
-     &                'Machine type: ',machtype
+     &                'Ran on machine: ',trim(machname),
+     &                'Machine type: ',trim(machtype),
+     &                'Compiler: ',trim(compiler),
+     &                'Compiler Flags: ',trim(compiler_flags)
         write (IO_OUT,300) 'Code: ',idcode,
      &                'Version: ',vers//branch_vers,
      &                'Updated on: ',update,
-     &                'Repo revision: ',rev,
      &                'Source file: ',source,
      &                'Run ID: ',trim(runid),
      &                'Run started on: ',chdate,
      &                'Run started at: ',chtime,
-     &                'Ran on machine: ',machname,
-     &                'Machine type: ',machtype
-  300   format (10(/,a,a),/)
+     &                'Ran on machine: ',trim(machname),
+     &                'Machine type: ',trim(machtype),
+     &                'Compiler: ',trim(compiler),
+     &                'Compiler Flags: ',trim(compiler_flags)
+  300   format (11(/,a,a),/)
       end if
 c
 c ****** Read the input file.
@@ -5640,6 +5653,74 @@ c
         end if
       end if
       call check_error_on_p0 (ierr)
+c
+      end subroutine
+c#######################################################################
+      subroutine get_system_info
+c
+c-----------------------------------------------------------------------
+c
+c ****** Get information about the system MAS is running on.
+c
+c-----------------------------------------------------------------------
+c
+      use number_types
+      use ident
+      use iso_fortran_env
+c
+c-----------------------------------------------------------------------
+c
+      implicit none
+c
+c-----------------------------------------------------------------------
+c
+      integer :: ierr,ierrc
+      character(512) :: errmsg
+c
+c-----------------------------------------------------------------------
+c
+c ****** Get system hostname (machname).
+c
+      call EXECUTE_COMMAND_LINE('uname -n > tmp.txt',wait=.true.,
+     &                          exitstat=ierr,cmdstat=ierrc,
+     &                          cmdmsg=errmsg)
+      if (ierr==0) then
+        open(unit=10,file="tmp.txt",status="old")
+        read(10, '(A)') machname
+        close(10, status="delete")
+      else
+        write(*,*) "WARNING:  Failed to retrieve machine name"
+        write(*,*) " ERRMSG:  "//trim(errmsg)
+        machname = 'Unknown'
+        if (ierrc==0) then
+          open(unit=10,file="tmp.txt",status='old')
+          close(10, status="delete")
+        end if
+      end if
+c
+c ****** Get system type (machtype).
+c
+      call EXECUTE_COMMAND_LINE('uname -m > tmp.txt',wait=.true.,
+     &                          exitstat=ierr,cmdstat=ierrc,
+     &                          cmdmsg=errmsg)
+      if (ierr==0) then
+        open(unit=10,file="tmp.txt",status="old")
+        read(10, '(A)') machtype
+        close(10, status="delete")
+      else
+        write(*,*) "WARNING:  Failed to retrieve machine type"
+        write(*,*) " ERRMSG:  "//trim(errmsg)
+        machtype = 'Unknown'
+        if (ierrc==0) then
+          open(unit=10,file="tmp.txt",status='old')
+          close(10, status="delete")
+        end if
+      end if
+c
+c ****** Get compiler and compiler flags.
+c
+      compiler=compiler_version()
+      compiler_flags=compiler_options()
 c
       end subroutine
 c#######################################################################
@@ -5755,24 +5836,26 @@ c
         write (*,100) 'Code: ',idcode,
      &                'Version: ',vers//branch_vers,
      &                'Updated on: ',update,
-     &                'Repo revision: ',rev,
      &                'Source file: ',source,
      &                'Run ID: ',trim(runid),
      &                'Run ended on: ',chdate,
      &                'Run ended at: ',chtime,
-     &                'Ran on machine: ',machname,
-     &                'Machine type: ',machtype
+     &                'Ran on machine: ',trim(machname),
+     &                'Machine type: ',trim(machtype),
+     &                'Compiler: ',trim(compiler),
+     &                'Compiler Flags: ',trim(compiler_flags)
         write (9,100) 'Code: ',idcode,
      &                'Version: ',vers//branch_vers,
      &                'Updated on: ',update,
-     &                'Repo revision: ',rev,
      &                'Source file: ',source,
      &                'Run ID: ',trim(runid),
      &                'Run ended on: ',chdate,
      &                'Run ended at: ',chtime,
-     &                'Ran on machine: ',machname,
-     &                'Machine type: ',machtype
-  100   format (10(/,a,a),/)
+     &                'Ran on machine: ',trim(machname),
+     &                'Machine type: ',trim(machtype),
+     &                'Compiler: ',trim(compiler),
+     &                'Compiler Flags: ',trim(compiler_flags)
+  100   format (11(/,a,a),/)
       end if
 c
       if (iamp0) then
@@ -8081,10 +8164,11 @@ c
         write (*,*) 'Code: ',idcode
         write (*,*) 'Version: ',vers//branch_vers
         write (*,*) 'Updated on: ',update
-        write (*,*) 'Repo revision: ',rev
         write (*,*) 'Source file: ',source
-        write (*,*) 'Machine name: ',machname
-        write (*,*) 'Machine type: ',machtype
+        write (*,*) 'Machine name: ',trim(machname)
+        write (*,*) 'Machine type: ',trim(machtype)
+        write (*,*) 'Compiler: ',trim(compiler)
+        write (*,*) 'Compiler Flags: ',trim(compiler_flags)
         write (*,*)
         write (*,*) '### ERROR in MAS:'
         write (*,*) '### Command-line syntax error.'
@@ -17059,6 +17143,7 @@ c
       use constants
       use mpidefs
       use alfven_wave_params
+      use seam_interface
 c
 c-----------------------------------------------------------------------
 c
@@ -17240,7 +17325,9 @@ c
       ab%r0%p(:,:)=half*(a%p(1,:,:)+a%p(2,:,:))
       ab%r1%p(:,:)=half*(a%p(nr,:,:)+a%p(nrm1,:,:))
 c
-      call seam_vvec_cpu (v)
+      call seam (v%r)
+      call seam (v%t)
+      call seam (v%p)
       call set_pole_bc_vvec_cpu (v)
 c
       vb%r0%r(:,:)=0.
@@ -17291,6 +17378,7 @@ c
       use dissipation_profiles
       use constants
       use mpidefs
+      use seam_interface
 c
 c-----------------------------------------------------------------------
 c
@@ -17413,7 +17501,9 @@ c
       ab%r0%p(:,:)=half*(a%p(1,:,:)+a%p(2,:,:))
       ab%r1%p(:,:)=half*(a%p(nr,:,:)+a%p(nrm1,:,:))
 c
-      call seam_vvec_cpu (v)
+      call seam (v%r)
+      call seam (v%t)
+      call seam (v%p)
       call set_pole_bc_vvec_cpu (v)
 c
       vb%r0%r(:,:)=0.
@@ -17470,6 +17560,7 @@ c
       use s2c_interface
       use c2s_interface
       use sv2cv_interface
+      use seam_interface
 c
 c-----------------------------------------------------------------------
 c
@@ -17801,7 +17892,9 @@ c          9)
          enddo
        enddo
 c
-      call seam_vvec_cpu (v)
+      call seam (v%r)
+      call seam (v%t)
+      call seam (v%p)
       call set_pole_bc_vvec_cpu (v)
 c
       vb%r0%r(:,:)=0.
@@ -43549,252 +43642,6 @@ c
 c
       end subroutine
 c#######################################################################
-      subroutine seam_vvec_cpu (v)
-c
-c-----------------------------------------------------------------------
-c
-c ****** Seam the boundary points of a v vector between adjacent
-c ****** processors.
-c
-c-----------------------------------------------------------------------
-c
-      use number_types
-      use types, ONLY : vvec
-      use mpidefs
-      use timing
-c
-c-----------------------------------------------------------------------
-c
-      implicit none
-c
-c-----------------------------------------------------------------------
-c
-      type(vvec) :: v
-c
-c-----------------------------------------------------------------------
-c
-      real(r_typ),dimension(:,:),allocatable :: sbuf1r,rbuf1r
-      real(r_typ),dimension(:,:),allocatable :: sbuf2r,rbuf2r
-      real(r_typ),dimension(:,:),allocatable :: sbuf1t,rbuf1t
-      real(r_typ),dimension(:,:),allocatable :: sbuf2t,rbuf2t
-      real(r_typ),dimension(:,:),allocatable :: sbuf1p,rbuf1p
-      real(r_typ),dimension(:,:),allocatable :: sbuf2p,rbuf2p
-c
-c-----------------------------------------------------------------------
-c
-c ****** MPI error return.
-c
-      integer :: ierr
-c
-c ****** MPI tags for MPI_ISEND and MPI_IRECV.
-c
-      integer :: tagr=0
-      integer :: tagt=1
-      integer :: tagp=2
-c
-c-----------------------------------------------------------------------
-c
-      integer :: lbuf3r,lbuf3t,lbuf3p
-      integer :: lbuf1r,lbuf1t,lbuf1p
-      integer :: lbuf2r,lbuf2t,lbuf2p
-      integer :: n1r,n2r,n3r,n1t,n2t,n3t,n1p,n2p,n3p
-      integer :: req(12)
-c
-      if (use_timer) call timer (TIME_SEAM)
-c
-c-----------------------------------------------------------------------
-c
-c-----------------------------------------------------------------------
-c ****** Get the dimensions of the arrays and buffer sizes:
-c
-      n1r=size(v%r,1);   n2r=size(v%r,2);   n3r=size(v%r,3)
-      n1t=size(v%t,1);   n2t=size(v%t,2);   n3t=size(v%t,3)
-      n1p=size(v%p,1);   n2p=size(v%p,2);   n3p=size(v%p,3)
-c
-      lbuf3r=n1r*n2r;    lbuf3t=n1t*n2t;    lbuf3p=n1p*n2p
-      lbuf1r=n2r*n3r;    lbuf1t=n2t*n3t;    lbuf1p=n2p*n3p
-      lbuf2r=n1r*n3r;    lbuf2t=n1t*n3t;    lbuf2p=n1p*n3p
-c
-c ****** Seam the third (periodic) dimension. Since seam data
-c        is stride-1 in this case, no buffers are needed.
-c
-c ****** Launch async receives.
-c
-      call MPI_Irecv (v%r(:,:,  1),lbuf3r,ntype_real,iproc_pm,tagr,
-     &                comm_all,req(1),ierr)
-      call MPI_Irecv (v%r(:,:,n3r),lbuf3r,ntype_real,iproc_pp,tagr,
-     &                comm_all,req(2),ierr)
-      call MPI_Irecv (v%t(:,:,  1),lbuf3t,ntype_real,iproc_pm,tagt,
-     &                comm_all,req(3),ierr)
-      call MPI_Irecv (v%t(:,:,n3t),lbuf3t,ntype_real,iproc_pp,tagt,
-     &                comm_all,req(4),ierr)
-      call MPI_Irecv (v%p(:,:,  1),lbuf3p,ntype_real,iproc_pm,tagp,
-     &                comm_all,req(5),ierr)
-      call MPI_Irecv (v%p(:,:,n3p),lbuf3p,ntype_real,iproc_pp,tagp,
-     &                comm_all,req(6),ierr)
-c
-c ****** Launch async sends.
-c
-      call MPI_Isend (v%r(:,:,n3r-1),lbuf3r,ntype_real,iproc_pp,tagr,
-     &                comm_all,req(7),ierr)
-      call MPI_Isend (v%r(:,:,    2),lbuf3r,ntype_real,iproc_pm,tagr,
-     &                comm_all,req(8),ierr)
-      call MPI_Isend (v%t(:,:,n3t-1),lbuf3t,ntype_real,iproc_pp,tagt,
-     &                comm_all,req(9),ierr)
-      call MPI_Isend (v%t(:,:,    2),lbuf3t,ntype_real,iproc_pm,tagt,
-     &                comm_all,req(10),ierr)
-      call MPI_Isend (v%p(:,:,n3p-1),lbuf3p,ntype_real,iproc_pp,tagp,
-     &                comm_all,req(11),ierr)
-      call MPI_Isend (v%p(:,:,    2),lbuf3p,ntype_real,iproc_pm,tagp,
-     &                comm_all,req(12),ierr)
-c
-c ****** Wait for all seams to complete.
-c
-      call MPI_Waitall (12,req,MPI_STATUSES_IGNORE,ierr)
-c
-c ****** Seam the first dimension.
-c
-      if (nproc_r.gt.1) then
-c
-c ****** Load buffers.
-c
-        allocate (sbuf1r(n2r,n3r),rbuf1r(n2r,n3r),
-     &            sbuf2r(n2r,n3r),rbuf2r(n2r,n3r),
-     &            sbuf1t(n2t,n3t),rbuf1t(n2t,n3t),
-     &            sbuf2t(n2t,n3t),rbuf2t(n2t,n3t),
-     &            sbuf1p(n2p,n3p),rbuf1p(n2p,n3p),
-     &            sbuf2p(n2p,n3p),rbuf2p(n2p,n3p))
-c
-        sbuf1r(:,:)=v%r(n1r-1,:,:)
-        sbuf2r(:,:)=v%r(    2,:,:)
-        sbuf1t(:,:)=v%t(n1t-1,:,:)
-        sbuf2t(:,:)=v%t(    2,:,:)
-        sbuf1p(:,:)=v%p(n1p-1,:,:)
-        sbuf2p(:,:)=v%p(    2,:,:)
-c
-        call MPI_Irecv (rbuf1r,lbuf1r,ntype_real,iproc_rm,tagr,
-     &                  comm_all,req(1),ierr)
-        call MPI_Irecv (rbuf2r,lbuf1r,ntype_real,iproc_rp,tagr,
-     &                  comm_all,req(2),ierr)
-        call MPI_Irecv (rbuf1t,lbuf1t,ntype_real,iproc_rm,tagt,
-     &                  comm_all,req(3),ierr)
-        call MPI_Irecv (rbuf2t,lbuf1t,ntype_real,iproc_rp,tagt,
-     &                  comm_all,req(4),ierr)
-        call MPI_Irecv (rbuf1p,lbuf1p,ntype_real,iproc_rm,tagp,
-     &                  comm_all,req(5),ierr)
-        call MPI_Irecv (rbuf2p,lbuf1p,ntype_real,iproc_rp,tagp,
-     &                  comm_all,req(6),ierr)
-c
-c ****** Launch async sends.
-c
-        call MPI_Isend (sbuf1r,lbuf1r,ntype_real,iproc_rp,tagr,
-     &                  comm_all,req(7),ierr)
-        call MPI_Isend (sbuf2r,lbuf1r,ntype_real,iproc_rm,tagr,
-     &                  comm_all,req(8),ierr)
-        call MPI_Isend (sbuf1t,lbuf1t,ntype_real,iproc_rp,tagt,
-     &                  comm_all,req(9),ierr)
-        call MPI_Isend (sbuf2t,lbuf1t,ntype_real,iproc_rm,tagt,
-     &                  comm_all,req(10),ierr)
-        call MPI_Isend (sbuf1p,lbuf1p,ntype_real,iproc_rp,tagp,
-     &                  comm_all,req(11),ierr)
-        call MPI_Isend (sbuf2p,lbuf1p,ntype_real,iproc_rm,tagp,
-     &                  comm_all,req(12),ierr)
-c
-c ****** Wait for all seams to complete.
-c
-        call MPI_Waitall (12,req,MPI_STATUSES_IGNORE,ierr)
-c
-c ****** Unload buffers.
-c
-        if (iproc_rm.ne.MPI_PROC_NULL) then
-           v%r(1,:,:)=rbuf1r(:,:)
-           v%t(1,:,:)=rbuf1t(:,:)
-           v%p(1,:,:)=rbuf1p(:,:)
-        end if
-        if (iproc_rp.ne.MPI_PROC_NULL) then
-           v%r(n1r,:,:)=rbuf2r(:,:)
-           v%t(n1t,:,:)=rbuf2t(:,:)
-           v%p(n1p,:,:)=rbuf2p(:,:)
-        end if
-c
-        deallocate (sbuf1r,sbuf2r,sbuf1t,sbuf2t,sbuf1p,sbuf2p,
-     &              rbuf1r,rbuf2r,rbuf1t,rbuf2t,rbuf1p,rbuf2p)
-c
-      end if
-c
-c ****** Seam the second dimension.
-c
-      if (nproc_t.gt.1) then
-c
-        allocate (sbuf1r(n1r,n3r),rbuf1r(n1r,n3r),
-     &            sbuf2r(n1r,n3r),rbuf2r(n1r,n3r),
-     &            sbuf1t(n1t,n3t),rbuf1t(n1t,n3t),
-     &            sbuf2t(n1t,n3t),rbuf2t(n1t,n3t),
-     &            sbuf1p(n1p,n3p),rbuf1p(n1p,n3p),
-     &            sbuf2p(n1p,n3p),rbuf2p(n1p,n3p))
-c
-        sbuf1r(:,:)=v%r(:,n2r-1,:)
-        sbuf2r(:,:)=v%r(:,    2,:)
-        sbuf1t(:,:)=v%t(:,n2t-1,:)
-        sbuf2t(:,:)=v%t(:,    2,:)
-        sbuf1p(:,:)=v%p(:,n2p-1,:)
-        sbuf2p(:,:)=v%p(:,    2,:)
-c
-        call MPI_Irecv (rbuf1r,lbuf2r,ntype_real,iproc_tm,tagr,
-     &                  comm_all,req(1),ierr)
-        call MPI_Irecv (rbuf2r,lbuf2r,ntype_real,iproc_tp,tagr,
-     &                  comm_all,req(2),ierr)
-        call MPI_Irecv (rbuf1t,lbuf2t,ntype_real,iproc_tm,tagt,
-     &                  comm_all,req(3),ierr)
-        call MPI_Irecv (rbuf2t,lbuf2t,ntype_real,iproc_tp,tagt,
-     &                  comm_all,req(4),ierr)
-        call MPI_Irecv (rbuf1p,lbuf2p,ntype_real,iproc_tm,tagp,
-     &                  comm_all,req(5),ierr)
-        call MPI_Irecv (rbuf2p,lbuf2p,ntype_real,iproc_tp,tagp,
-     &                  comm_all,req(6),ierr)
-c
-c ****** Launch async sends.
-c
-        call MPI_Isend (sbuf1r,lbuf2r,ntype_real,iproc_tp,tagr,
-     &                  comm_all,req(7),ierr)
-        call MPI_Isend (sbuf2r,lbuf2r,ntype_real,iproc_tm,tagr,
-     &                  comm_all,req(8),ierr)
-        call MPI_Isend (sbuf1t,lbuf2t,ntype_real,iproc_tp,tagt,
-     &                  comm_all,req(9),ierr)
-        call MPI_Isend (sbuf2t,lbuf2t,ntype_real,iproc_tm,tagt,
-     &                  comm_all,req(10),ierr)
-        call MPI_Isend (sbuf1p,lbuf2p,ntype_real,iproc_tp,tagp,
-     &                  comm_all,req(11),ierr)
-        call MPI_Isend (sbuf2p,lbuf2p,ntype_real,iproc_tm,tagp,
-     &                  comm_all,req(12),ierr)
-c
-c ****** Wait for all seams to complete.
-c
-        call MPI_Waitall (12,req,MPI_STATUSES_IGNORE,ierr)
-c
-c ****** Unload buffers.
-c
-        if (iproc_tm.ne.MPI_PROC_NULL) then
-           v%r(:,1,:)=rbuf1r(:,:)
-           v%t(:,1,:)=rbuf1t(:,:)
-           v%p(:,1,:)=rbuf1p(:,:)
-        end if
-        if (iproc_tp.ne.MPI_PROC_NULL) then
-           v%r(:,n2r,:)=rbuf2r(:,:)
-           v%t(:,n2t,:)=rbuf2t(:,:)
-           v%p(:,n2p,:)=rbuf2p(:,:)
-        end if
-c
-        deallocate (sbuf1r,sbuf2r,sbuf1t,sbuf2t,sbuf1p,sbuf2p,
-     &              rbuf1r,rbuf2r,rbuf1t,rbuf2t,rbuf1p,rbuf2p)
-c
-      end if
-c
-      if (use_timer) call timer (TIME_SEAM)
-c
-      return
-      end
-c#######################################################################
       subroutine seam_scalar (x,n1,n2,n3)
 c
 c-----------------------------------------------------------------------
@@ -49698,10 +49545,14 @@ c
       call seam (eta)
       call seam (vis)
       call seam_avec_cpu (a)
-      call seam_vvec_cpu (v)
+      call seam (v%r)
+      call seam (v%t)
+      call seam (v%p)
       call seam (rho)
       call seam (pres)
-      call seam_vvec_cpu (v_old)
+      call seam (v_old%r)
+      call seam (v_old%t)
+      call seam (v_old%p)
       call seam (em)
       call seam (ep)
       call seam (temp_e)
@@ -50416,8 +50267,8 @@ c
       cvars( 4)=cvar('Updated on',update)
       cvars( 5)=cvar('Source file',source)
       cvars( 6)=cvar('Run ID',runid)
-      cvars( 7)=cvar('Ran on machine',machname)
-      cvars( 8)=cvar('Machine type',machtype)
+      cvars( 7)=cvar('Ran on machine',trim(machname))
+      cvars( 8)=cvar('Machine type',trim(machtype))
       cvars( 9)=cvar('Written on',restart_file_date)
       cvars(10)=cvar('Written at',restart_file_time)
       cvars(11)=cvar('Multi-part',trim(part_str))
@@ -72027,11 +71878,11 @@ c        more compatible with different versions of the hdf5 library.
 c
 c ### Version 0.7.5.7, 08/16/2024, modified by RC:
 c      - Small fix to wtd mask output to make sure the filename
-c        correctly conforms to the chosen output format with the 
+c        correctly conforms to the chosen output format with the
 c        chosen filename.
 c
 c ### Version 0.7.6.0, 08/20/2024, modified by RC:
-c      - Update to PTL method (taken form HipFT).
+c      - Update to PTL method (taken from HipFT).
 c
 c ### Version 0.8.0.0, 12/13/2024, modified by RC:
 c      - MAJOR CHANGE:  MAS no longer supports hdf4.
@@ -72042,8 +71893,18 @@ c        All references to selecting hdf format must be taken
 c        out of all input files, and all input hdf4 files
 c        (e.g. BCs) should be converted to h5 using the PSI tool
 c        hdfh5 or psi_hdf2hdf.py.
-c        NOTE: This means that MAS no longer requires 
+c        NOTE: This means that MAS no longer requires
 c              custom-compiled hdf4, zlib, nor jpeg to compile and run.
 c              Only MPI and HDF5 are now required.
+c
+c ### Version 0.8.1.0, 03/31/2025, modified by RC:
+c      - Removed SVN sed variables.
+c      - Removed need for compile-time sed command for system name and
+c        type as MAS now uses Fortran standard commands to get that
+c        information at run time.
+c      - Added compiler and compiler flag information to run output.
+c        This info is not (yet) included in restart files.
+c      - Removed seam_vvec_cpu() and replaced last few calls of it
+c        with calls to seam() on each component.
 c
 c#######################################################################

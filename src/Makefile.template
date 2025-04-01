@@ -1,0 +1,30 @@
+FC = <FC>
+
+FRTFLAGS = <FRTFLAGS>
+
+INCFLAGS = -I<HDF5_INCLUDE_DIR>
+
+LIBFLAGS = -L<HDF5_LIB_DIR> <HDF5_LIB_FLAGS>
+
+all: pchip_module.o mas.o
+	$(FC) $(FRTFLAGS) $(INCFLAGS) pchip_module.o mas.o $(LIBFLAGS) -o mas
+	rm *.mod *.o 2>/dev/null
+
+install:
+	cp mas ../bin/
+
+clean:
+	rm -f mas 2>/dev/null
+	rm -f expmac 2>/dev/null
+	rm -f mas1.f 2>/dev/null
+	rm -f expmac 2>/dev/null
+	rm -f *.mod *.o 2>/dev/null
+
+mas.o: mas.f
+	$(FC) $(FRTFLAGS) expmac.f -o expmac
+	./expmac mas.f mas1.f
+	$(FC) $(FRTFLAGS) $(INCFLAGS) -c mas1.f -o mas.o
+
+pchip_module.o : pchip_module_v1.0.0.f90
+	$(FC) $(FRTFLAGS) -c pchip_module_v1.0.0.f90 -o pchip_module.o
+
