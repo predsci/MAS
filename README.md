@@ -8,7 +8,7 @@
   
 ## OVERVIEW ##
 
-<img height=200 src="doc/mas_bast_vis_sml.png" alt="MAS"/>`MAS` is a Fortran code that integrates the time-dependent resistive thermodynamic magnetohydrodynamic (MHD) equations in three-dimentional spherical coordinates and is used extensively in models of coronal structure, coronal dynamics, and coronal mass ejections out to the Earth. It is the primary MHD model in CORHEL (Corona-Heliosphere), a suite of models for describing the solar corona and inner heliosphere and CORHEL-CME, an interface-based system for modeling CME eruptions from the Sun to Earth, both of which are available for public runs-on-demand at NASA's Community Coordinated Modeling Center.  
+<img align="right" height=200 src="doc/mas_bast_vis_sml.png" alt="MAS"/>`MAS` is a Fortran code that integrates the time-dependent resistive thermodynamic magnetohydrodynamic (MHD) equations in three-dimentional spherical coordinates and is used extensively in models of coronal structure, coronal dynamics, and coronal mass ejections out to the Earth. It is the primary MHD model in CORHEL (Corona-Heliosphere), a suite of models for describing the solar corona and inner heliosphere and CORHEL-CME, an interface-based system for modeling CME eruptions from the Sun to Earth, both of which are available for public runs-on-demand at NASA's Community Coordinated Modeling Center.  
 
 MAS can be used with MacOS, Linux, and Windows (through WSL) on CPUs and NVIDIA GPUs. 
 
