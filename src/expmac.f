@@ -35,24 +35,26 @@ c
 c         - Manually added parse and number type module code
 c           so this tool is a stand-alone release.
 c
-c#######################################################################
+c        04/028/2025, RC, Version 2.0.0:
 c
-c ****** Note that this tool uses modules from ZM's tools library.
+c         - Updated code to work for Fortran 90 continuation and
+c           comments syntax.
+c           This is for GIT version of MAS.  It will not work for the
+c           old versions of MAS.
 c
 c#######################################################################
       module number_types
 c
+      use iso_fortran_env
+c
       implicit none
 c
-c-----------------------------------------------------------------------
-c ****** Basic number types.
-c ****** This module is used to set the default precision for REALs.
-c-----------------------------------------------------------------------
 c
 c ****** Set up the KIND values for the various REALs.
+c ****** These can be compiler dependent.
 c
-      integer, parameter :: KIND_REAL_4=kind(1.0e0)
-      integer, parameter :: KIND_REAL_8=kind(1.0d0)
+      integer, parameter :: KIND_REAL_4=REAL32
+      integer, parameter :: KIND_REAL_8=REAL64
 c
 c ****** KIND values for specifying the precision of REALs.
 c
@@ -299,14 +301,14 @@ c
 c-----------------------------------------------------------------------
 c
       character(*), parameter :: cname='EXPMAC'
-      character(*), parameter :: cvers='1.03'
-      character(*), parameter :: cdate='08/16/2012'
+      character(*), parameter :: cvers='2.0.0'
+      character(*), parameter :: cdate='04/02/2025'
 c
 c-----------------------------------------------------------------------
 c
       logical :: mdef,mres
       integer :: ierr
-      character(80) :: line
+      character(512) :: line
 c
 c-----------------------------------------------------------------------
 c
@@ -416,18 +418,19 @@ c ****** Write the line to the output file.
 c
         line=' '
         ix=ixfc-1
-        do 200 i=1,ixo-1
+
+        do i=1,ixo-1
           ix=ix+1
           line(ix:ix)=obuf(i:i)
-          if (ix.ge.72) then
-            write (2,'(a)') line(1:ix)
-            ix=6
+          if (ix.gt.72.and.(ixo-1+ixfc-1).gt.73) then
+            write (2,'(a)') line(1:ix)//'&'
+            ix=1
             line=' '
-            line(6:6)='&'
+            line(1:1)='&'
           end if
-  200   continue
+        enddo
         if (ix.gt.0) then
-          if (line(1:ix).ne.'     &') write (2,'(a)') line(1:ix)
+          if (line(1:ix).ne.'&') write (2,'(a)') line(1:ix)
         end if
 c
       end if
@@ -975,7 +978,7 @@ c
 c ****** If it is a comment, write it out to unit IUNO
 c ****** and process the next line.
 c
-      if (line(1:1).eq.'c'.or.line(1:1).eq.'C') then
+      if (line(1:1).eq.'c'.or.line(1:1).eq.'C'.or.line(1:1).eq.'!') then
         if (iuno.gt.0) write (iuno,'(a)') line(1:ll)
         rdfil=.true.
         go to 100
@@ -987,15 +990,15 @@ c
 c
 c ****** Check length of line.
 c
-      if (ll.gt.72) then
-        write (*,*)
-        write (*,*) '### WARNING from GETSTMT:'
-        write (*,*) '### Line exceeds 72 characters.'
-        write (*,*) 'Number of characters in line = ',ll
-        write (*,*) 'Line number = ',ln
-        write (*,*) 'The line is:'
-        write (*,*) line(1:ll)
-      end if
+c      if (ll.gt.72) then
+c        write (*,*)
+c        write (*,*) '### WARNING from GETSTMT:'
+c        write (*,*) '### Line exceeds 72 characters.'
+c        write (*,*) 'Number of characters in line = ',ll
+c        write (*,*) 'Line number = ',ln
+c        write (*,*) 'The line is:'
+c        write (*,*) line(1:ll)
+c      end if
 c
 c ****** Add the line to the buffer.
 c
@@ -1020,7 +1023,7 @@ c
 c
 c ****** Check if it is a comment.
 c
-      if (line(1:1).eq.'c'.or.line(1:1).eq.'C') then
+      if (line(1:1).eq.'c'.or.line(1:1).eq.'C'.or.line(1:1).eq.'!') then
         rdfil=.false.
         return
       end if
@@ -1626,7 +1629,7 @@ c
 c
 c ****** Storage for the error message.
 c
-      character(72) :: errmsg
+      character(512) :: errmsg
 c
 c-----------------------------------------------------------------------
 c
