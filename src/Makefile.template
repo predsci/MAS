@@ -20,7 +20,7 @@ clean:
 	rm -f *.mod *.o 2>/dev/null
 
 mas.o: mas.F90
-	$(FC) $(FRTFLAGS) expmac.f -o expmac
+	$(FC) $(FRTFLAGS) expmac.f90 -o expmac
 	./expmac mas.F90 mas_cpp.f90
 	$(FC) $(FRTFLAGS) $(INCFLAGS) -c mas_cpp.f90 -o mas.o
 

@@ -1,29 +1,48 @@
 !
-!     ##################################################################
-!     #                                                                #
-!     #      MAS: Magnetohydrodynamic Algorithm outside a Sphere       #
-!     #                                                                #
-!     #      Authors:  Z. Mikic                                        #
-!     #                J. Linker                                       #
-!     #                R. Lionello                                     #
-!     #                P. Riley                                        #
-!     #                C. Downs                                        #
-!     #                R. Caplan                                       #
-!     #                M. Stulajter                                    #
-!     #                                                                #
-!     #      Predictive Science Inc.                                   #
-!     #      San Diego, California, USA 92121                          #
-!     #                                                                #
-!     #      A code for the study of resistive MHD evolution           #
-!     #      in 3D spherical geometry.                                 #
-!     #                                                                #
-!     ##################################################################
+!   ##################################################################
+!   #                                                                #
+!   #      _|      _|     _|_|       _|_|_|                          #
+!   #      _|_|  _|_|   _|    _|   _|                                #
+!   #      _|  _|  _|   _|_|_|_|     _|_|                            #
+!   #      _|      _|   _|    _|         _|                          #
+!   #      _|      _|   _|    _|   _|_|_|                            #
+!   #                                                                #
+!   #      MAS: Magnetohydrodynamic Algorithm outside a Sphere       #
+!   #                                                                #
+!   #      Authors:  Z. Mikic                                        #
+!   #                J. Linker                                       #
+!   #                R. Lionello                                     #
+!   #                P. Riley                                        #
+!   #                C. Downs                                        #
+!   #                R. Caplan                                       #
+!   #                M. Stulajter                                    #
+!   #                                                                #
+!   #      Predictive Science Inc.                                   #
+!   #      San Diego, California, USA 92121                          #
+!   #                                                                #
+!   #      A code for the study of resistive MHD evolution           #
+!   #      in 3D spherical geometry.                                 #
+!   #                                                                #
+!   ##################################################################
 !
 !#######################################################################
+! Copyright 2025 Predictive Science Inc.
 !
-!-----------------------------------------------------------------------
+! Licensed under the Apache License, Version 2.0 (the "License");
+! you may not use this file except in compliance with the License.
+! You may obtain a copy of the License at
 !
-! ****** Utility macros.
+!    http://www.apache.org/licenses/LICENSE-2.0
+!
+! Unless required by applicable law or agreed to in writing, software
+! distributed under the License is distributed on an "AS IS" BASIS,
+! WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+! implied.
+! See the License for the specific language governing permissions and
+! limitations under the License.
+!#######################################################################
+!
+!#######################################################################
 !
 !-----------------------------------------------------------------------
 !
@@ -92,8 +111,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.0.0'
-      character(*), parameter :: update='04/02/2025'
+      character(*), parameter :: vers='0.9.0.1'
+      character(*), parameter :: update='04/03/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -258,8 +277,8 @@ module mesh
 !
 ! ****** Expansion factors and inverse of expansion factors.
 !
-      real(r_typ), dimension(:), allocatable, target :: fl_fac,fl_fach, &
-       fl_fac_i,fl_fach_i,fl_one,fl_oneh
+      real(r_typ), dimension(:), allocatable, target :: fl_fac, &
+                               fl_fach,fl_fac_i,fl_fach_i,fl_one,fl_oneh
 !
 ! ****** True radial distances, which are different when computing
 ! ****** along field lines.
@@ -1609,7 +1628,7 @@ module sts
 !
       integer :: sts_type=3
 !
-      integer*8 :: sts_s
+      integer(8) :: sts_s
 !
       real(r_typ), dimension(:), allocatable :: sts_uj
       real(r_typ), dimension(:), allocatable :: sts_vj
@@ -4854,6 +4873,16 @@ module get_cl_args_interface
       end interface
 end module
 !#######################################################################
+module parse_cl_interface
+      interface
+        subroutine parse_cl (narg,arg,ierr)
+        implicit none
+        integer :: narg,ierr
+        character(*), dimension(:), pointer ::arg
+        end subroutine
+      end interface
+end module
+!#######################################################################
 module hdfname_interface
       interface
         function hdfname (root,seq)
@@ -5487,6 +5516,7 @@ subroutine setup
       use timing
       use mpidefs
       use get_cl_args_interface
+      use parse_cl_interface
       use io_units
       use diagnostics
 !
@@ -5535,21 +5565,13 @@ subroutine setup
 !
       if (iamp0) call get_system_info
 !
-! ****** Get the command-line arguments.
+! ****** Get the command-line arguments (allocates arg).
 !
       call get_cl_args (narg,arg)
 !
-! ****** Parse the command line.
+! ****** Parse the command line (deallocates arg).
 !
       call parse_cl (narg,arg,ierr)
-!
-! ****** Terminate the run if there was a parsing error.
-!
-      if (ierr.ne.0) call endrun (.true.)
-!
-! ****** Deallocate the command-line argument array.
-!
-      deallocate (arg)
 !
 ! ****** Start the timer to get the total CPU time used.
 !
@@ -5563,21 +5585,20 @@ subroutine setup
 !
       lr=len_trim(runid)
 !
-      if (lr.le.0.or.lr.gt.64) go to 100
-      if (.not.letter(runid(1:1))) go to 100
+      ierr=0
+      if (lr.le.0.or.lr.gt.64.or..not.letter(runid(1:1))) ierr=1
       do i=1,lr
-        if (.not.valid_character(runid(i:i))) go to 100
+        if (.not.valid_character(runid(i:i))) ierr=1
       enddo
-      go to 200
-  100 continue
-      if (iamp0) then
-        write (*,*)
-        write (*,*) '### ERROR in SETUP:'
-        write (*,*) '### Run ID is invalid.'
-        write (*,*) 'RUNID = ',runid
+      if (ierr.ne.0) then
+        if (iamp0) then
+          write (*,*)
+          write (*,*) '### ERROR in SETUP:'
+          write (*,*) '### Run ID is invalid.'
+          write (*,*) 'RUNID = ',runid
+        end if
+        call endrun (.true.)
       end if
-      call endrun (.true.)
-  200 continue
 !
 ! ****** Create file names based on RUNID.
 !
@@ -5738,7 +5759,10 @@ subroutine final_diags
 !
 !-----------------------------------------------------------------------
 !
-      if (final_diags_has_been_called) go to 100
+      if (final_diags_has_been_called) then
+        call finish
+        return
+      end if
 !
       final_diags_has_been_called=.true.
 !
@@ -5783,8 +5807,6 @@ subroutine final_diags
       if (ifabort.or.rs_final) then
         call write_restart (0)
       end if
-!
-  100 continue
 !
       call finish
 !
@@ -8010,7 +8032,7 @@ subroutine parse_cl (narg,arg,ierr)
 !-----------------------------------------------------------------------
 !
       integer :: narg
-      character(*), dimension(narg) :: arg
+      character(*), dimension(:), pointer :: arg
       integer :: ierr
 !
 !-----------------------------------------------------------------------
@@ -8131,6 +8153,10 @@ subroutine parse_cl (narg,arg,ierr)
         end select
       enddo
 !
+! ****** Deallocate the command-line argument array.
+!
+      deallocate (arg)
+!
 ! ****** Check that the run ID has been specified.
 !
       if (.not.runid_set) go to 900
@@ -8180,6 +8206,8 @@ subroutine parse_cl (narg,arg,ierr)
         write (*,*) '                         and the restart'// &
                     ' file (default=10:00).'
       end if
+!
+      call endrun (.true.)
 !
 end subroutine
 !#######################################################################
@@ -11024,10 +11052,10 @@ subroutine fluxrope_add_a_from_file (rope_file,a_fr)
           write (*,*) '### ERROR in FLUXROPE_ADD_A_FROM_FILE:'
           write (*,*) '### The Ar file does not have the correct size:'
           write (*,*) 'File name: ',trim(fname)
-          write (*,*) 'File Mesh: &
-                       nr_f: ',nr_f,'nt_f: ',nt_f,'np_f: ',np_f
-          write (*,*) 'MAS Mesh: &
-                       nrm1_g: ',nrm1_g,'nt_g: ',nt_g,'np_g: ',np_g
+          write (*,*) 'File Mesh: ', &
+                       'nr_f: ',nr_f,'nt_f: ',nt_f,'np_f: ',np_f
+          write (*,*) 'MAS Mesh: ', &
+                       'nrm1_g: ',nrm1_g,'nt_g: ',nt_g,'np_g: ',np_g
           ierr=1
         end if
       end if
@@ -11108,10 +11136,10 @@ subroutine fluxrope_add_a_from_file (rope_file,a_fr)
           write (*,*) '### ERROR in FLUXROPE_ADD_A_FROM_FILE:'
           write (*,*) '### The At file does not have the correct size:'
           write (*,*) 'File name: ',trim(fname)
-          write (*,*) 'File Mesh: &
-                      nr_f: ',nr_f,'nt_f: ',nt_f,'np_f: ',np_f
-          write (*,*) 'MAS Mesh: &
-                      nr_g: ',nr_g,'ntm1_g: ',ntm1_g,'np_g: ',np_g
+          write (*,*) 'File Mesh:', &
+                      'nr_f: ',nr_f,'nt_f: ',nt_f,'np_f: ',np_f
+          write (*,*) 'MAS Mesh:', &
+                      'nr_g: ',nr_g,'ntm1_g: ',ntm1_g,'np_g: ',np_g
           ierr=1
         end if
       end if
@@ -11192,10 +11220,10 @@ subroutine fluxrope_add_a_from_file (rope_file,a_fr)
           write (*,*) '### ERROR in FLUXROPE_ADD_A_FROM_FILE:'
           write (*,*) '### The Ap file does not have the correct size:'
           write (*,*) 'File name: ',trim(fname)
-          write (*,*) 'File Mesh: &
-                       nr_f: ',nr_f,'nt_f: ',nt_f,'np_f: ',np_f
-          write (*,*) 'MAS Mesh: &
-                       nr_g: ',nr_g,'nt_g: ',nt_g,'npm1_g: ',npm1_g
+          write (*,*) 'File Mesh:', &
+                       'nr_f: ',nr_f,'nt_f: ',nt_f,'np_f: ',np_f
+          write (*,*) 'MAS Mesh:', &
+                       'nr_g: ',nr_g,'nt_g: ',nt_g,'npm1_g: ',npm1_g
           ierr=1
         end if
       end if
@@ -25692,7 +25720,9 @@ subroutine cgsolve (x,r,ierr)
         rnrm=0.
         epsn=0.
         ierr=0
-        go to 100
+        call dealloc_cg_ax_tmp
+!$acc exit data delete(p,ap)
+        return
       end if
 !
 !-----------------------------------------------------------------------
@@ -25713,7 +25743,11 @@ subroutine cgsolve (x,r,ierr)
       rdotr=cgdot(r,p)
 !
       call err_norm (rdotr,ierr)
-      if (ierr.ge.0) go to 100
+      if (ierr.ge.0) then
+        call dealloc_cg_ax_tmp
+!$acc exit data delete(p,ap)
+        return
+      end if
 !
 !-----------------------------------------------------------------------
 ! ****** Main iteration loop.
@@ -25754,10 +25788,6 @@ subroutine cgsolve (x,r,ierr)
         enddo
 !
       enddo
-!
-  100 continue
-!
-! ****** Deallocate temporary field storage used in Ax.
 !
       call dealloc_cg_ax_tmp
 !$acc exit data delete(p,ap)
@@ -29218,7 +29248,7 @@ subroutine take_sts_step_rk2 (y,dtime_current)
 !
 !-----------------------------------------------------------------------
 !
-      integer*8 :: s_i
+      integer(8) :: s_i
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -29276,7 +29306,7 @@ subroutine take_sts_step_rkl1 (y,dtime_current)
 !
 !-----------------------------------------------------------------------
 !
-      integer*8 :: s_i
+      integer(8) :: s_i
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -29328,13 +29358,13 @@ subroutine take_exp_step (y,steps,dt)
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(N_CG) :: y
-      integer*8 :: steps
+      integer(8) :: steps
       real(r_typ) :: dt
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(N_CG) :: Ay
-      integer*8 :: i,j
+      integer(8) :: i,j
       character(30) :: solve_name
 !
 !-----------------------------------------------------------------------
@@ -30304,9 +30334,9 @@ subroutine diacsr_tc (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,M
       real (r_typ) :: Acsr(M)
       real (r_typ) :: Adia(IDIAG,N)
-      integer :: N,M
       integer :: Adptr(N)
       integer :: IA(N+1)
       integer :: JA(M)
@@ -30477,10 +30507,10 @@ subroutine diacsr_v (N,M,Adia_r,Adia_t,Adia_p,ioff_r,ioff_t, &
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,Nvr,Nvt,Nvp,M
       real (r_typ) :: Acsr(M)
       real (r_typ) :: Adia_r(IDIAG,Nvr),Adia_t(IDIAG,Nvt), &
                       Adia_p(IDIAG,Nvp)
-      integer :: N,Nvr,Nvt,Nvp,M
       integer :: Adptr(N),IA(N+1),JA(M)
       integer :: ioff_r(IDIAG),ioff_t(IDIAG),ioff_p(IDIAG)
 !
@@ -30732,9 +30762,9 @@ subroutine diacsr_v_par (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,M
       real (r_typ) :: Acsr(M)
       real (r_typ) :: Adia(IDIAG,N)
-      integer :: N,M
       integer :: Adptr(N)
       integer :: IA(N+1)
       integer :: JA(M)
@@ -30900,9 +30930,9 @@ subroutine diacsr_divb (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,M
       real (r_typ) :: Acsr(M)
       real (r_typ) :: Adia(IDIAG,N)
-      integer :: N,M
       integer :: Adptr(N)
       integer :: IA(N+1)
       integer :: JA(M)
@@ -31574,9 +31604,9 @@ subroutine lusol (N,M,x,LU,LU_ja,N1,N2,LUd_i)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,M
       real(r_typ) :: x(N),LUd_i(N),LU(M)
       integer :: N1(N),N2(N),LU_ja(M)
-      integer :: N,M
 !
 !-----------------------------------------------------------------------
 !
@@ -31655,8 +31685,8 @@ subroutine ilu0 (N,M,A,JA,IA,A_da,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: JA(M),IA(N+1),A_da(N),iw(N)
       integer :: ierr,N,M
+      integer :: JA(M),IA(N+1),A_da(N),iw(N)
       real(r_typ) :: A(M)
 !
 !-----------------------------------------------------------------------
@@ -31744,12 +31774,12 @@ subroutine load_sts_coeffs_rkl2 (dtime_current,dtime_exp)
 !
 !-----------------------------------------------------------------------
 !
-      integer*8,   parameter :: two_int=2
+      integer(8),   parameter :: two_int=2
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sts_s_real,bj_bjm2,bj_bjm1,dtime_exp,dtime_current
-      integer*8 :: j
+      integer(8) :: j
 !
 !-----------------------------------------------------------------------
 !
@@ -31766,7 +31796,7 @@ subroutine load_sts_coeffs_rkl2 (dtime_current,dtime_exp)
 !
 ! ****** Make sure s is odd for better stability.
 !
-      if(MOD(sts_s,2).eq.0) then
+      if(MOD(sts_s,two_int).eq.0) then
         sts_s=sts_s+1
       end if
 !
@@ -31832,13 +31862,14 @@ subroutine load_sts_coeffs_rkl1 (dtime_current,dtime_exp)
       real(r_typ), parameter :: two=2._r_typ
       real(r_typ), parameter :: eight=8._r_typ
       real(r_typ), parameter :: half=0.5_r_typ
+      integer(8),  parameter :: two_int=2
 !
 !-----------------------------------------------------------------------
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sts_s_real,dtime_exp,dtime_current
-      integer*8 :: j
+      integer(8) :: j
 !
 !-----------------------------------------------------------------------
 !
@@ -31856,7 +31887,7 @@ subroutine load_sts_coeffs_rkl1 (dtime_current,dtime_exp)
 ! ****** Make sure s is odd for better stability
 ! ****** And due to rkl1 high-mode issue, add another couple of steps.
 !
-      if(MOD(sts_s,2).eq.0) then
+      if(MOD(sts_s,two_int).eq.0) then
         sts_s=sts_s+3
       end if
 !
@@ -31900,13 +31931,14 @@ subroutine load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
 !
 !-----------------------------------------------------------------------
 !
-      integer*8,   parameter :: one_int=1
+      integer(8),  parameter :: one_int=1
       real(r_typ), parameter :: zero=0.0_r_typ
       real(r_typ), parameter :: one=1._r_typ
       real(r_typ), parameter :: two=2._r_typ
+      integer(8),  parameter :: two_int=2
       real(r_typ), parameter :: three=3._r_typ
       real(r_typ), parameter :: four=4._r_typ
-      integer*8,   parameter :: four_int=4
+      integer(8),  parameter :: four_int=4
       real(r_typ), parameter :: six=6._r_typ
       real(r_typ), parameter :: ten=10._r_typ
       real(r_typ), parameter :: fifteen=15._r_typ
@@ -31921,7 +31953,7 @@ subroutine load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sts_s_real,bj_bjm2,bj_bjm1,w
-      integer*8 :: j
+      integer(8) :: j
 !
 !-----------------------------------------------------------------------
 !
@@ -31941,7 +31973,7 @@ subroutine load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
 !
 ! ****** Make sure s is odd.
 !
-      if (MOD(sts_s,2).eq.0) then
+      if (MOD(sts_s,two_int).eq.0) then
         sts_s=sts_s+1
       endif
 !
@@ -33361,9 +33393,9 @@ subroutine diacsr_pot2d (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,M
       real (r_typ) :: Acsr(M)
       real (r_typ) :: Adia(IDIAG,N)
-      integer :: N,M
       integer :: Adptr(N)
       integer :: IA(N+1)
       integer :: JA(M)
@@ -33585,9 +33617,9 @@ subroutine diacsr_pot2dh (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: N,M
       real (r_typ) :: Acsr(M)
       real (r_typ) :: Adia(IDIAG,N)
-      integer :: N,M
       integer :: Adptr(N)
       integer :: IA(N+1)
       integer :: JA(M)
@@ -40355,9 +40387,9 @@ subroutine check_negative_field (field,n1,n2,n3,fname,call_loc)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: field
       character(32) :: fname,call_loc
-      integer :: n1,n2,n3
 !
 !-----------------------------------------------------------------------
 !
@@ -40440,9 +40472,9 @@ subroutine floor_field (field,n1,n2,n3,fname,call_loc,floor_val)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: field
       character(*) :: fname,call_loc
-      integer :: n1,n2,n3
       integer :: min_indices(3)=0.
       real(r_typ) :: floor_val
 !
@@ -40610,9 +40642,9 @@ subroutine floor_field_v (field,field_limit, &
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: field,field_limit
       character(*) :: fname,call_loc
-      integer :: n1,n2,n3
       integer :: min_indices(3)=0.
       real(r_typ) :: field_fac
 !
@@ -43501,6 +43533,7 @@ subroutine seam_scalar (x,n1,n2,n3)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: x
 !
 !-----------------------------------------------------------------------
@@ -43521,7 +43554,6 @@ subroutine seam_scalar (x,n1,n2,n3)
 !-----------------------------------------------------------------------
 !
       integer :: lbuf3,lbuf1,lbuf2
-      integer :: n1,n2,n3
       integer :: req(4)
       integer :: j,k
 !
@@ -43679,6 +43711,7 @@ subroutine seam_scalar_xd (x,n1,n2,n3,seam_r,seam_t,seam_p)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: x
 !
 !-----------------------------------------------------------------------
@@ -43699,7 +43732,6 @@ subroutine seam_scalar_xd (x,n1,n2,n3,seam_r,seam_t,seam_p)
 !-----------------------------------------------------------------------
 !
       integer :: lbuf3,lbuf1,lbuf2
-      integer :: n1,n2,n3
       logical :: seam_r,seam_t,seam_p
       integer :: req(4)
       integer :: j,k
@@ -44163,6 +44195,7 @@ subroutine seam_2d_tp (x,n1,n2,seam1,seam2)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n1,n2
       real(r_typ), dimension(n1,n2) :: x
       logical :: seam1,seam2
 !
@@ -44182,7 +44215,7 @@ subroutine seam_2d_tp (x,n1,n2,seam1,seam2)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: n1,n2,i
+      integer :: i
       integer :: req(4)
 !
       if (use_timer) call timer (TIME_SEAM)
@@ -44594,8 +44627,8 @@ subroutine global_min_loc (x,idx)
 !-----------------------------------------------------------------------
 !
       integer :: ierr
-      real*4, dimension(2) :: x_idx_local
-      real*4, dimension(2) :: x_idx_global
+      real(4), dimension(2) :: x_idx_local
+      real(4), dimension(2) :: x_idx_global
 !
 !-----------------------------------------------------------------------
 !
@@ -50443,18 +50476,11 @@ subroutine wrrsh5_c (name,value,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        call wrrs_error_text (name,myname,ierr)
+        return
       end if
 !
       ierr=0
-!
-      return
-!
-! ****** Error return.
-!
-  900 continue
-!
-      call wrrs_error_text (name,myname,ierr)
 !
 end subroutine
 !#######################################################################
@@ -50508,18 +50534,11 @@ subroutine wrrsh5_i (name,value,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        call wrrs_error_text (name,myname,ierr)
+        return
       end if
 !
       ierr=0
-!
-      return
-!
-! ****** Error return.
-!
-  900 continue
-!
-      call wrrs_error_text (name,myname,ierr)
 !
 end subroutine
 !#######################################################################
@@ -50572,18 +50591,11 @@ subroutine wrrsh5_r (name,value,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        call wrrs_error_text (name,myname,ierr)
+        return
       end if
 !
       ierr=0
-!
-      return
-!
-! ****** Error return.
-!
-  900 continue
-!
-      call wrrs_error_text (name,myname,ierr)
 !
 end subroutine
 !#######################################################################
@@ -50835,9 +50847,9 @@ subroutine rdrsh5_c (name,value,ierr)
 !
       integer(HID_T) :: atype_id      ! Attribute type identifier
       integer(HID_T) :: attr_id       ! Attribute dentifier
-      integer(HSIZE_T) :: attrlen
+      integer(HSIZE_T) :: attrlen,vallen
       integer(HSIZE_T), dimension(1) :: adims=(/1/)
-      integer :: i
+      integer(HSIZE_T) :: i
 !
 !-----------------------------------------------------------------------
 !
@@ -50857,24 +50869,20 @@ subroutine rdrsh5_c (name,value,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        call rdrs_error_text (name,myname,ierr)
+        return
       end if
 !
+! ****** Note that value is of length LENVALUE=64 (see module restart)
+!
       value=' '
-      do i=1,min(attrlen,len(value))
+      vallen=len(value)
+      do i=1,min(attrlen,vallen)
         value(i:i)=cbuf(i)
       enddo
       deallocate (cbuf)
 !
       ierr=0
-!
-      return
-!
-! ****** Error return.
-!
-  900 continue
-!
-      call rdrs_error_text (name,myname,ierr)
 !
 end subroutine
 !#######################################################################
@@ -50920,18 +50928,11 @@ subroutine rdrsh5_i (name,value,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        call rdrs_error_text (name,myname,ierr)
+        return
       end if
 !
       ierr=0
-!
-      return
-!
-! ****** Error return.
-!
-  900 continue
-!
-      call rdrs_error_text (name,myname,ierr)
 !
 end subroutine
 !#######################################################################
@@ -50980,18 +50981,11 @@ subroutine rdrsh5_r (name,value,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        call rdrs_error_text (name,myname,ierr)
+        return
       end if
 !
       ierr=0
-!
-      return
-!
-! ****** Error return.
-!
-  900 continue
-!
-      call rdrs_error_text (name,myname,ierr)
 !
 end subroutine
 !#######################################################################
@@ -56631,8 +56625,8 @@ subroutine apply_boost_i (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(n) :: qrad,tempk
       integer :: i,n
+      real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
 !
@@ -56665,8 +56659,8 @@ subroutine get_qrad (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(n) :: qrad,tempk
       integer :: n
+      real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
 !
@@ -56735,6 +56729,7 @@ subroutine apply_q_chromo_mod (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
@@ -56753,7 +56748,7 @@ subroutine apply_q_chromo_mod (qrad,tempk,n)
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: fac,alpha,g
-      integer :: i,n
+      integer :: i
 !
 !-----------------------------------------------------------------------
 !
@@ -56815,8 +56810,8 @@ subroutine get_dqrad (dqrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(n) :: dqrad,tempk
       integer :: n
+      real(r_typ), dimension(n) :: dqrad,tempk
 !
 !-----------------------------------------------------------------------
 !
@@ -56875,12 +56870,13 @@ subroutine get_qrad_rosner (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: t,qalpha,qchi
-      integer :: i,n
+      integer :: i
 !
 !-----------------------------------------------------------------------
 !
@@ -56940,6 +56936,7 @@ subroutine get_qrad_athay (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
@@ -56960,7 +56957,7 @@ subroutine get_qrad_athay (qrad,tempk,n)
       real(r_typ), parameter :: e3=5.35_r_typ
       real(r_typ), parameter :: e4=6.1_r_typ
 !
-      integer :: i,n
+      integer :: i
 !
 !-----------------------------------------------------------------------
 !
@@ -56997,6 +56994,7 @@ subroutine get_qrad_rtv (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
@@ -57008,7 +57006,7 @@ subroutine get_qrad_rtv (qrad,tempk,n)
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sqrttemp
-      integer :: i,n
+      integer :: i
 !
 !-----------------------------------------------------------------------
 !
@@ -57044,6 +57042,7 @@ subroutine get_qrad_chianti_v71_corona (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
@@ -57053,7 +57052,7 @@ subroutine get_qrad_chianti_v71_corona (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ii,i,n
+      integer :: ii,i
       real(r_typ) :: log10_t,log10_q,i_cont,alpha
 !
 !-----------------------------------------------------------------------
@@ -57104,6 +57103,7 @@ subroutine get_qrad_chianti_v71_photo (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
@@ -57113,7 +57113,7 @@ subroutine get_qrad_chianti_v71_photo (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ii,i,n
+      integer :: ii,i
       real(r_typ) :: log10_t,log10_q,i_cont,alpha
 !
 !-----------------------------------------------------------------------
@@ -57163,6 +57163,7 @@ subroutine get_qrad_chianti_v713_hybrid (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: n
       real(r_typ), dimension(n) :: qrad,tempk
 !
 !-----------------------------------------------------------------------
@@ -57172,7 +57173,7 @@ subroutine get_qrad_chianti_v713_hybrid (qrad,tempk,n)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ii,i,n
+      integer :: ii,i
       real(r_typ) :: log10_t,log10_q,i_cont,alpha
 !
 !-----------------------------------------------------------------------
@@ -60179,9 +60180,9 @@ subroutine flux_limiter_ospre (rr,phi,i0,i1,j0,j1,k0,k1,ni,nj,nk)
 !
       implicit none
 !
+      integer, intent(in) :: ni,nj,nk
       real(r_typ), intent(in), dimension(ni,nj,nk) :: rr
       real(r_typ), intent(inout), dimension(ni,nj,nk) :: phi
-      integer, intent(in) :: ni,nj,nk
       integer, intent(in) :: i0,i1,j0,j1,k0,k1
 !
 !-----------------------------------------------------------------------
@@ -60220,9 +60221,9 @@ subroutine flux_limiter_minmod (rr,phi,i0,i1,j0,j1,k0,k1,ni,nj,nk)
 !
       implicit none
 !
+      integer, intent(in) :: ni,nj,nk
       real(r_typ), intent(in), dimension(ni,nj,nk) :: rr
       real(r_typ), intent(inout), dimension(ni,nj,nk) :: phi
-      integer, intent(in) :: ni,nj,nk
       integer, intent(in) :: i0,i1,j0,j1,k0,k1
 !
 !-----------------------------------------------------------------------
@@ -64782,11 +64783,11 @@ subroutine lagint1D_2Dphi (x,y,n,xi,yi,ni,nd1,c,ierr)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: ierr,c,nd1,n,ni
       real(r_typ), dimension(nd1,n) :: y
       real(r_typ), dimension(nd1,ni) :: yi
       real(r_typ), dimension(n) :: x
       real(r_typ), dimension(ni) :: xi
-      integer :: ierr,c,nd1,n,ni
 !
 !-----------------------------------------------------------------------
 !
@@ -64917,11 +64918,11 @@ subroutine lagint1D_2Dphi_ip_pm (x,y,n,xi,yi,ni,nd1,c,ierr)
 !
 !-----------------------------------------------------------------------
 !
+      integer :: ierr,c,nd1,n,ni
       real(r_typ), dimension(nd1,n) :: y
       real(r_typ), dimension(nd1,ni) :: yi
       real(r_typ), dimension(n+1) :: x
       real(r_typ), dimension(ni) :: xi
-      integer :: ierr,c,nd1,n,ni
 !
 !-----------------------------------------------------------------------
 !
@@ -66669,6 +66670,7 @@ subroutine sub_read_eigen_matrix (path_eigen)
 !
       character(150) :: datafile,path_eigen
       integer :: ichemi, natom
+      integer :: ierr=0
 !
 !-----------------------------------------------------------------------
 !
@@ -66676,28 +66678,32 @@ subroutine sub_read_eigen_matrix (path_eigen)
         natom=index_element(ichemi)
 !
         allocate(eigen(ichemi)%eqis(natom+1,nte), &
-        eigen(ichemi)%evalues(natom+1,nte), &
-        eigen(ichemi)%evector(natom+1,natom+1,nte), &
-        eigen(ichemi)%evector_invers(natom+1,natom+1,nte), &
-        eigen(ichemi)%c(natom+1,nte), &
-        eigen(ichemi)%r(natom+1,nte))
+                 eigen(ichemi)%evalues(natom+1,nte), &
+                 eigen(ichemi)%evector(natom+1,natom+1,nte), &
+                 eigen(ichemi)%evector_invers(natom+1,natom+1,nte), &
+                 eigen(ichemi)%c(natom+1,nte), &
+                 eigen(ichemi)%r(natom+1,nte))
 !
         datafile=trim(path_eigen)//trim(char_element(ichemi))// &
-       'eigen.dat'
+                 'eigen.dat'
         open(11,file=trim(datafile),form='unformatted',action='read', &
-        err=1)
+             iostat=ierr)
+!
+        if (ierr.ne.0) then
+          write (*,*) '### WARNING from SUB_READ_EIGEN_MATRIX:'
+          write (*,*) '### Missing/problematic eigenvalue matrixi file'
+          write (*,*) '### File name: ',trim(datafile)
+          close(11)
+          continue
+        end if
+!
         read(11)eigen(ichemi)%eqis
         read(11)eigen(ichemi)%evalues
         read(11)eigen(ichemi)%evector
         read(11)eigen(ichemi)%evector_invers
         read(11)eigen(ichemi)%c
         read(11)eigen(ichemi)%r
-        go to 2
-1       continue
-          write (*,*) '### WARNING from SUB_READ_EIGEN_MATRIX:'
-          write (*,*) '### Missing eigenvalue matrixi file'
-          write (*,*) '### File name: ',trim(datafile)
-2       continue
+!
         close(11)
       enddo
 !
@@ -66914,8 +66920,9 @@ subroutine read_fcs_g (fname,field_g,ncs,pole_bc)
 !-----------------------------------------------------------------------
 !
       character(*) :: fname
-      real(r_typ), dimension(nt_g,np_g,ncs) :: field_g
-      integer :: pole_bc,ncs
+      integer :: ncs
+      real(r_typ) :: field_g(nt_g,np_g,ncs)
+      integer :: pole_bc
 !
 !-----------------------------------------------------------------------
 !
@@ -66980,8 +66987,8 @@ subroutine read_fcs_interp (fname,f_g,ncs,pole_bc,ierr)
 !-----------------------------------------------------------------------
 !
       character(*) :: fname
-      real(r_typ), dimension(nt_g,np_g,ncs) :: f_g
       integer :: pole_bc,ncs
+      real(r_typ) :: f_g(nt_g,np_g,ncs)
       integer :: ierr
 !
 !-----------------------------------------------------------------------
@@ -71624,5 +71631,8 @@ end subroutine
 !                       and Fortran 90 style continuations and comments.
 !                       The EXPMAC tool in the github has been updated
 !                       to handle the new format.
+!
+! ### Version 0.9.0.1, 04/03/2025, modified by RC:
+!      - Many small changes to make code Fortran 2018 compliant.
 !
 !#######################################################################

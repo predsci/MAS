@@ -1,11 +1,21 @@
-!*******************************************************************************************************
-!>
+!***********************************************************************
+!
+!  PCHIP: Piecewise Cubic Hermite Interpolation Package
+!  https://github.com/jacobwilliams/PCHIP
+!
+!  Copyright (c) 2019-2024, Jacob Williams
+!  All rights reserved.
+!
 !  A Fortran package for piecewise cubic Hermite interpolation of data.
 !
 !### Author
 !  * Fritsch, F. N., (LLNL) -- original author
 !  * Oct 2019 : Jacob Williams, Extensive refactoring
 !    and modernization of the SLATEC code.
+!
+!  Version 1.0.0
+!
+!***********************************************************************
 
     module pchip_module
 
@@ -857,7 +867,11 @@
 
     subroutine dpchcm (n, x, f, d, incfd, skip, ismon, ierr)
 
+    implicit none
+
     integer,intent(in)    :: n          !! the number of data points.  (Error return if N<2).
+    integer,intent(in)    :: incfd      !! the increment between successive values in F and D.
+                                        !! (Error return if  INCFD<1).
     real(wp),intent(in)   :: x(n)       !! array of independent variable values.  The
                                         !! elements of X must be strictly increasing:
                                         !!      X(I-1) < X(I),  I = 2(1)N.
@@ -866,8 +880,6 @@
                                         !! the value corresponding to X(I).
     real(wp),intent(in)   :: d(incfd,n) !! array of derivative values.  D(1+(I-1)*INCFD) is
                                         !! is the value corresponding to X(I).
-    integer,intent(in)    :: incfd      !! the increment between successive values in F and D.
-                                        !! (Error return if  INCFD<1).
     logical,intent(inout) :: skip       !! logical variable which should be set to
                                         !! .TRUE. if the user wishes to skip checks for validity of
                                         !! preceding parameters, or to .FALSE. otherwise.
@@ -1000,6 +1012,8 @@
     real(wp),intent(in)   :: switch      !! indicates the amount of control desired over
                                          !! local excursions from data.
     integer,intent(in)    :: n           !! number of data points.  (assumes N>2).
+    integer,intent(in)    :: incfd       !! increment between successive values in D.
+                                         !! This argument is provided primarily for 2-D applications.
     real(wp),intent(in)   :: h(*)        !! array of interval lengths.
     real(wp),intent(in)   :: slope(*)    !! array of data slopes.
                                          !! If the data are (X(I),Y(I)), I=1(1)N, then these inputs are:
@@ -1015,8 +1029,6 @@
                                          !! The value corresponding to X(I) is stored in
                                          !! `D(1+(I-1)*INCFD),  I=1(1)N`
                                          !! No other entries in D are changed.
-    integer,intent(in)    :: incfd       !! increment between successive values in D.
-                                         !! This argument is provided primarily for 2-D applications.
     integer,intent(out)   :: ierr        !! error flag.  should be zero.
                                          !! If negative, trouble in [[DPCHSW]].  (should never happen.)
 
