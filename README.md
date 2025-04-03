@@ -22,10 +22,10 @@ Then, run `./build.sh ./conf/<CONF_FILE>.conf` where `<CONF_FILE>.conf` is the c
   
 See the multiple build configuration files in the `conf/` folder for examples.
 
-MAS has been tested to work with the followng compilers:  
- - GCC gfortran 12.3.0
- - NVIDIA nvfortran 25.3 (both CPU and GPU)
- - INTEL ifx 2025.1.0
+MAS has been tested to work with the following compilers:  
+ - GCC `gfortran` v12.3.0
+ - NVIDIA `nvfortran` v25.3 (both CPU and GPU)
+ - INTEL `ifx` v2025.1.0
  
  
 ### RUN THE MAS TESTSUITE ###
