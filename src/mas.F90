@@ -44,9 +44,7 @@
 !
 !#######################################################################
 !
-!-----------------------------------------------------------------------
-!
-! ****** Averaging macros.
+! ****** Averaging macros in 3D.
 !
 #define AVG(A1,A2,A3,A4) A1(A2,A3,A4)
 #define AVGR(A1,A2,A3,A4) (.5_r_typ*(A1(A2,A3,A4)+A1(A2-1,A3,A4)))
@@ -62,7 +60,7 @@ A1(A2,A3,A4-1)+A1(A2,A3-1,A4-1)))
 A1(A2,A3-1,A4)+A1(A2,A3,A4-1)+A1(A2-1,A3-1,A4)+A1(A2-1,A3,A4-1)+\
 A1(A2,A3-1,A4-1)+A1(A2-1,A3-1,A4-1)))
 !
-! ****** Advection macros.
+! ****** Advection macros in 3D.
 !
 #define ADVR(A1,A2,A3,A4,A5) (.5_r_typ*((1._r_typ-A5)*A1(A2,A3,A4)+\
 (1._r_typ+A5)*A1(A2-1,A3,A4)))
@@ -73,7 +71,7 @@ A1(A2,A3-1,A4-1)+A1(A2-1,A3-1,A4-1)))
 !
 #define ADVCT(A1,A2,A3) (.5_r_typ*((1._r_typ-A3)*A1+(1._r_typ+A3)*A2))
 !
-! ****** Extrapolation macros.
+! ****** Extrapolation macros in 3D.
 !
 #define EXTRAPR0(A1,A2,A3,A4) (A1(A2,A3,A4)+(A1(A2,A3,A4)\
 -A1(A2+1,A3,A4))*dr(A2-1)*dr_i(A2))
@@ -99,8 +97,6 @@ A1(A3,A4-1)+A1(A3-1,A4-1)))
 #define ADVP2(A1,A3,A4,A5) (.5_r_typ*((1._r_typ-A5)*A1(A3,A4)+\
 (1._r_typ+A5)*A1(A3,A4-1)))
 !
-!-----------------------------------------------------------------------
-!
 !#######################################################################
 module ident
 !
@@ -111,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.0.1'
-      character(*), parameter :: update='04/03/2025'
+      character(*), parameter :: vers='0.9.1.0'
+      character(*), parameter :: update='04/04/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -8551,174 +8547,116 @@ subroutine read_input_file
 !
 !-----------------------------------------------------------------------
 !
-! ****** Buffer to hold the input file lines.
+! ****** Buffer to hold an input file line.
 !
-      integer :: nlines
-      character(256), dimension(:), allocatable :: lines
+      character(1024) :: line
 !
 !-----------------------------------------------------------------------
 !
       integer :: ierr=0
-      integer :: i,nc
-      character(256) :: tmpfile
-      character(256) :: errline
+      integer :: i
 !
 !-----------------------------------------------------------------------
 !
-! ****** Scan the input file (only on processor IPROC0) to determine
-! ****** how many lines it has.
+! ****** Open the input file (all MPI ranks).
 !
-      if (iamp0) then
-        call ffopen (IO_INPUT,infile,'r',ierr)
-      end if
-      call check_error_on_p0 (ierr)
+      call ffopen (IO_INPUT,infile,'r',ierr)
+      call check_error_on_any_proc (ierr)
 !
-      if (iamp0) then
-        nlines=0
-        do
-          read (IO_INPUT,'(a)',err=100,end=100)
-          nlines=nlines+1
-        enddo
-  100   continue
-        close(IO_INPUT)
-      end if
-!
-! ****** Broadcast the number of lines to all processors.
-!
-      call MPI_Bcast (nlines,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-!
-! ****** Allocate storage for the lines.
-!
-      allocate (lines(nlines))
-!
-! ****** Read the input file (only on processor IPROC0).
-!
-      if (iamp0) then
-        call ffopen (IO_INPUT,infile,'r',ierr)
-      end if
-      call check_error_on_p0 (ierr)
-!
-      if (iamp0) then
-        do i=1,nlines
-          read (IO_INPUT,'(a)') lines(i)
-        enddo
-        close(IO_INPUT)
-      end if
-!
-! ****** Broadcast the lines to all processors.
-!
-      nc=len(lines)*nlines
-!
-      call MPI_Bcast (lines,nc,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-!
-! ****** Write the input file contents to the TTY and to
-! ****** the output file.
+! ****** Read and write out the raw input file (only on processor IPROC0).
 !
       if (iamp0) then
         write (*,*)
         write (*,*) '### Input file contents:'
         write (*,*)
-        do i=1,nlines
-          write (*,'(a)') trim(lines(i))
-        enddo
-        write (*,*)
         write (9,*)
         write (9,*) '### Input file contents:'
         write (9,*)
-        do i=1,nlines
-          write (9,'(a)') trim(lines(i))
+        do
+          read (IO_INPUT,'(a)',err=100,end=100) line
+          write (*,'(a)') trim(line)
+          write (9,'(a)') trim(line)
         enddo
+  100   continue
+        write (*,*)
         write (9,*)
+        rewind (IO_INPUT)
       end if
 !
-! ****** On each processor, read the NAMELIST parameters.
-! ****** Since NAMELIST cannot be read from an internal file
-! ****** (i.e., the LINES character buffer), a scratch file
-! ****** is used temporarily.
+! ****** Now read the namelist sections one by one on all ranks.
 !
-! ****** The Absoft compiler (v6.0) has a bug that prevents
-! ****** the scratch file from being deleted.
-! ****** We therefore put in special code to deal with this bug.
-!
-      open (1,status='scratch')
-      do i=1,nlines
-        write (1,'(a)') trim(lines(i))
-      enddo
-      rewind (1)
-!
-      read (1,topology,iostat=ierr)
-      if (ierr.ne.0.and.iamp0) then
-        backspace (1)
-        read (1,fmt='(A)') errline
-        write (*,*)
-        write (*,*) '### ERROR from READ_INPUT_FILE:'
-        write (*,*) '### The following line has a problem:'
-        write (*,*)
-        write (*,*) trim(errline)
-        write (*,*)
-        write (*,*) '###'
-      end if
-      call check_error_on_any_proc (ierr)
-!
-      read (1,data,iostat=ierr)
-      if (ierr.ne.0.and.iamp0) then
-        backspace (1)
-        read (1,fmt='(A)') errline
-        write (*,*)
-        write (*,*) '### ERROR from READ_INPUT_FILE:'
-        write (*,*) '### The following line has a problem:'
-        write (*,*)
-        write (*,*) trim(errline)
-        write (*,*)
-        write (*,*) '###'
-      end if
-      call check_error_on_any_proc (ierr)
-!
-      read (1,interplanetary,iostat=ierr)
-      if (ierr.ne.0.and.ierr.ne.-1) then
+      read (IO_INPUT,topology,iostat=ierr)
+      if (ierr.ne.0) then
         if (iamp0) then
-          backspace (1)
-          read (1,fmt='(A)') errline
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
           write (*,*)
-          write (*,*) '### ERROR from READ_INPUT_FILE:'
+          write (*,*) '### ERROR from READ_INPUT_FILE [TOPOLOGY]:'
           write (*,*) '### The following line has a problem:'
           write (*,*)
-          write (*,*) trim(errline)
+          write (*,*) trim(line)
           write (*,*)
           write (*,*) '###'
         end if
-        call check_error_on_p0 (ierr)
       end if
+      call check_error_on_any_proc (ierr)
 !
-      read (1,fcs_nl,iostat=ierr)
-      if (ierr.ne.0.and.ierr.ne.-1) then
+      read (IO_INPUT,data,iostat=ierr)
+      if (ierr.ne.0) then
         if (iamp0) then
-          backspace (1)
-          read (1,fmt='(A)') errline
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
           write (*,*)
-          write (*,*) '### ERROR from READ_INPUT_FILE:'
+          write (*,*) '### ERROR from READ_INPUT_FILE [DATA]:'
           write (*,*) '### The following line has a problem:'
           write (*,*)
-          write (*,*) trim(errline)
+          write (*,*) trim(line)
           write (*,*)
           write (*,*) '###'
         end if
-        call check_error_on_p0 (ierr)
       end if
+      call check_error_on_any_proc (ierr)
 !
-      inquire (1,name=tmpfile)
-      close(1,iostat=ierr)
+      read (IO_INPUT,interplanetary,iostat=ierr)
+      if (ierr.ne.0.and.ierr.ne.-1) then
+        if (iamp0) then
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
+          write (*,*)
+          write (*,*) '### ERROR from READ_INPUT_FILE [INTERPLANETARY]:'
+          write (*,*) '### The following line has a problem:'
+          write (*,*)
+          write (*,*) trim(line)
+          write (*,*)
+          write (*,*) '###'
+        end if
+      end if
+      if (ierr.eq.-1) ierr=0
+      call check_error_on_any_proc (ierr)
 !
+      read (IO_INPUT,fcs_nl,iostat=ierr)
+      if (ierr.ne.0.and.ierr.ne.-1) then
+        if (iamp0) then
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
+          write (*,*)
+          write (*,*) '### ERROR from READ_INPUT_FILE [FCS_NL]:'
+          write (*,*) '### The following line has a problem:'
+          write (*,*)
+          write (*,*) trim(line)
+          write (*,*)
+          write (*,*) '###'
+        end if
+      end if
+      if (ierr.eq.-1) ierr=0
+      call check_error_on_any_proc (ierr)
+!
+      close(IO_INPUT,iostat=ierr)
       if (ierr.ne.0) then
         write (*,*)
         write (*,*) '### WARNING from READ_INPUT_FILE:'
-        write (*,*) '### Could not dispose of the temporary file.'
-        write (*,*) 'Temporary file name: ',trim(tmpfile)
+        write (*,*) '### Could not close the input file.'
       end if
-!
-! ****** Deallocate the buffer.
-!
-      deallocate (lines)
 !
 ! ****** Save the mesh size if the automatic decompostion option
 ! ****** is being used.
@@ -8730,6 +8668,8 @@ subroutine read_input_file
       end if
 !
 ! ****** Write the NAMELIST parameter values to the output file.
+!        [RC[]: May want to run check_inputs here so that the namelist params
+!         written here are the "real ones" being used?]
 !
       if (iamp0) then
         write (9,*)
@@ -8743,6 +8683,44 @@ subroutine read_input_file
       end if
 !
 end subroutine
+!#######################################################################
+pure function is_substring (main_string,sub_string)
+!
+!-----------------------------------------------------------------------
+!
+! ****** Check if one string contains another.
+!
+!-----------------------------------------------------------------------
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!
+      logical :: is_substring
+      character(*), intent(in) :: main_string
+      character(*), intent(in) :: sub_string
+!
+!-----------------------------------------------------------------------
+!
+      is_substring=.false.
+!
+! ****** Check for empty string.
+!
+      if (len_trim(sub_string)==0) then
+        is_substring=.true.
+        return
+      end if
+!
+! ****** Check if string is shorter than substring.
+!
+      if (len_trim(main_string) < len_trim(sub_string)) return
+!
+! ****** Check for substring.
+!
+      if (INDEX(main_string,sub_string)>0) is_substring = .true.
+!
+      return
+end function
 !#######################################################################
 subroutine check_inputs
 !
@@ -8781,6 +8759,7 @@ subroutine check_inputs
       use wtd
       use mod_input_parameter
       use sts
+      use ident
 !
 !-----------------------------------------------------------------------
 !
@@ -8789,6 +8768,9 @@ subroutine check_inputs
 !-----------------------------------------------------------------------
 !
       integer :: ierr,i
+      logical :: is_substring
+!
+!-----------------------------------------------------------------------
 !
       ierr=0
 !
@@ -9096,6 +9078,49 @@ subroutine check_inputs
         if (restart_calculation_frame.eq.'FLAG') then
           restart_calculation_frame=calculation_frame
         end if
+      end if
+!
+! ****** Check for NVIDIA GPU run. If yes, set if_prec parameters correctly.
+!
+      if (is_substring(compiler,'nvfortran') .and. &
+          is_substring(compiler_flags,'stdpar=gpu')) then
+!
+        if (ifprec_v.ne.1) then
+          write (*,*)
+          write (*,*) '### NOTE from CHECK_INPUTS:'
+          write (*,*) '### Preconditioner choice for velocity solve was'
+          write (*,*) '### not compatible with GPU run.'
+          write (*,*) '### Changing to diagonal scaling.'
+          ifprec_v=1
+        end if
+!
+        if (advance_tc.and.ifprec_t.ne.1) then
+          write (*,*)
+          write (*,*) '### NOTE from CHECK_INPUTS:'
+          write (*,*) '### Preconditioner choice for thermal conduction'
+          write (*,*) '### solve was not compatible with GPU run.'
+          write (*,*) '### Changing to diagonal scaling.'
+          ifprec_t=1
+        end if
+!
+        if (ifprec_pot2d.ne.1) then
+          write (*,*)
+          write (*,*) '### NOTE from CHECK_INPUTS:'
+          write (*,*) '### Preconditioner choice for boundary potential'
+          write (*,*) '### field solves was not compatible with GPU run.'
+          write (*,*) '### Changing to diagonal scaling.'
+          ifprec_pot2d=1
+        end if
+!
+        if (ifprec_divb.ne.1) then
+          write (*,*)
+          write (*,*) '### NOTE from CHECK_INPUTS:'
+          write (*,*) '### Preconditioner choice for divergence cleaning'
+          write (*,*) '### of re-meshed field solve was not compatible with'
+          write (*,*) '### GPU run. Changing to diagonal scaling.'
+          ifprec_divb=1
+        end if
+!
       end if
 !
 ! ****** Update GPU versions of inputs that are "declared".
@@ -71634,5 +71659,12 @@ end subroutine
 !
 ! ### Version 0.9.0.1, 04/03/2025, modified by RC:
 !      - Many small changes to make code Fortran 2018 compliant.
+!
+! ### Version 0.9.1.0, 04/04/2025, modified by RC:
+!      - Added a check for GPU runs that detects the NVIDIA compiler
+!        and sets the if_prec parameters correctly for a GPU run.
+!        If/when we implement the cuSparse ILU0, this check will have to
+!        be modified.
+!      - Cleaned up namelist reading since we don't use Absoft anymore.
 !
 !#######################################################################

@@ -6,14 +6,13 @@ import argparse
 import re
 import numpy as np
 
-# Version 1.0.4
+# Version 2.0.0
 #
 # - Added option to use relatie links instead of absolute ones.
 #   The method for doing so is not robust for all cases.
 
 # TODO: 
 #  - Add subfolders option to make nice subfolders for everything
-#  - Add auto-detection of HDF format or HDF format option
 #  - Add slice number detection to do all slices, and write out slice list
 #  - Add non-tp slices
 #  - Add more error checking
@@ -105,8 +104,7 @@ for rundir in rundirs:
     common_dir_run_out = os.path.commonprefix([rundir_full,outdir_full])
     rundir_rel = os.path.relpath(rundir_full, common_dir_run_out)
 
-    #ASSUME HDF4 FOR NOW, in the future, look for H5 param:
-    hdf_fmt='.hdf'
+    hdf_fmt='.h5'
 
     # Copy run logs:
     rfldstr = "run%06d" % (run_i+1)

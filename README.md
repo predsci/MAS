@@ -15,23 +15,30 @@ MAS can be used with MacOS, Linux, and Windows (through WSL) on CPUs and NVIDIA 
 
 --------------------------------
   
-## HOW TO BUILD MAS ##
+## HOW TO BUILD/INSTALL MAS ##
   
 Create or select a build configuration file in the `conf/` folder. 
 Then, run `./build.sh ./conf/<CONF_FILE>.conf` where `<CONF_FILE>.conf` is the configuration file for your system.
   
-See the multiple build configuration files in the `conf/` folder for examples.
-
+See the multiple build configuration files in the `conf/` folder for examples.  
+  
+After the build, the script will display a BASH environment modification line that shoudl be run in a terminal (or sourced in a script) before running MAS.  
+  
 MAS has been tested to work with the following compilers:  
  - GCC `gfortran` v12.3.0
  - NVIDIA `nvfortran` v25.3 (both CPU and GPU)
- - INTEL `ifx` v2025.1.0
+ - INTEL `ifx` v2025.1.0  
  
- 
-### RUN THE MAS TESTSUITE ###
+### Run the Testsuite ###
 
-Coming soon ...
-
+To ensure the installation was sucessfull, a testsuite is provided in the `testsuite` folder.  
+To run the testsuite, first ensure the code has been compiled and then run `./run_mas_testsuite`.
+The available options for running the testsuite can be viewed by running `./run_mas_testsuite -h`.  
+  
+DEVELOPERS:  
+A more expansive testsuite with a braoder range of test and stricter PASS/FAIL requirements is available [[HERE]].  
+Its use is only recommended for developers of the MAS code.
+  
 --------------------------------
   
 ## HOW TO RUN MAS ##
@@ -48,6 +55,10 @@ and run the command:
 where `<N>` is the total number of MPI ranks to use (typically equal to the number of CPU cores) and `<MPI_LAUNCHER>` is your MPI run command (e.g. `mpiexec`,`mpirun`, `ibrun`, `srun`, etc).  
 For example:  `mpiexec -np 1024 ./mas`
   
+### Example Runs ###
+  
+In the `examples` folder, we provide several example input file sets for various use cases of MAS.  
+
 --------------------------------
 
 
