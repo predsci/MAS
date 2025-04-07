@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.1.0'
-      character(*), parameter :: update='04/04/2025'
+      character(*), parameter :: vers='0.9.2.0'
+      character(*), parameter :: update='04/07/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -1254,7 +1254,7 @@ module cgcom
       integer :: ifprec_pot3d=1
       integer :: ifprec_divb=3
 !
-      integer :: ncgmax=10000
+      integer :: ncgmax=100000
       integer :: ncghist=0
 !
 !-----------------------------------------------------------------------
@@ -1898,7 +1898,7 @@ module vars
 !
       integer :: ntime=0
       integer :: ntime_rs=0
-      integer :: ntmax=500
+      integer :: ntmax=1000000
       real(r_typ) :: tmax=100._r_typ
       real(r_typ) :: dtmin=.001_r_typ
       real(r_typ) :: dtmax=1._r_typ
@@ -1979,7 +1979,7 @@ module vars
 ! ****** Advection parameters.
 !-----------------------------------------------------------------------
 !
-      real(r_typ) :: upwind_a=0.
+      real(r_typ) :: upwind_a=1._r_typ
       real(r_typ) :: upwind_ar=0.
       real(r_typ) :: upwind_at=0.
       real(r_typ) :: upwind_ap=0.
@@ -71666,5 +71666,9 @@ end subroutine
 !        If/when we implement the cuSparse ILU0, this check will have to
 !        be modified.
 !      - Cleaned up namelist reading since we don't use Absoft anymore.
+!
+! ### Version 0.9.2.0, 04/07/2025, modified by RC:
+!      - Updated default of upwind_a to 1.0 instead of 0.
+!      - Increased default max solver iterations and # of time steps.
 !
 !#######################################################################
