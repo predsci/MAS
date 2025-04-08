@@ -1855,32 +1855,31 @@ module vars
 ! ****** File names.
 !-----------------------------------------------------------------------
 !
-      character(256) :: infile=' '
-      character(256) :: outfile=' '
-      character(256) :: warnfile=' '
-      character(256) :: dump3dfile='mas_dumps_3d.txt'
-      character(256) :: dumpslicefile='mas_dumps_slices.txt'
-      character(256) :: dumptracerfile='mas_dumps_tracers.txt'
-      character(256) :: dumprsfile='mas_dumps_restarts.txt'
+! ****** Set this to use the old style mas text output filenames.
+! ****** E.g. o<RUNID>,t<RUNID>,w<RUNID>,h<RUNID>,v<RUNID>, etc.
+!
+      logical :: legacy_output_filenames=.true.
+!
+      character(512) :: infile=' '
+      character(512) :: outfile=' '
+      character(512) :: warnfile=' '
+      character(512)  :: dump3dfile     ='mas_dumps_3d.txt'
+      character(512)  :: dumpslicefile  ='mas_dumps_slices.txt'
+      character(512)  :: dumptracerfile ='mas_dumps_tracers.txt'
+      character(512)  :: dumprsfile     ='mas_dumps_restarts.txt'
 !
 !-----------------------------------------------------------------------
 ! ****** Restart files.
 !-----------------------------------------------------------------------
 !
 ! ****** Restart files can either be a single file, a three-part
-! ****** file, or a fifteen-part file.  Splitting the file into
-! ****** multiple parts is a way to overcome the 2Gbyte limit on
-! ****** the size of HDF4 files.
+! ****** file, or a fifteen-part file.
 !
 ! ****** The number of parts should thus be set to 1, 3, 15, or 17.
 !
 ! ****** Number of input restart file parts.
 !
       integer :: n_rs_input_file_parts=1
-!
-! ****** Number of output restart file parts.
-!
-      integer :: n_rs_output_file_parts=1
 !
       character(256) :: rsifile=' '
       character(256) :: rsifile_prefix=' '
@@ -5596,16 +5595,27 @@ subroutine setup
         call endrun (.true.)
       end if
 !
-! ****** Create file names based on RUNID.
+! ****** Create input file name based on RUNID if it is not specified.
 !
       if (infile.eq.' ') infile='i'//runid
-      outfile='o'//runid
-      warnfile='w'//runid
 !
-! ****** Create the output files.
+! ****** Read the input file (this also creates the output file).
+!
+      call read_and_check_input_file
+!
+! ****** Create output text file names.
+!
+      if (legacy_output_filenames) then
+        warnfile='w'//runid
+      else
+        warnfile='mas_warnings.out'
+        dump3dfile     ='mas_output_list_3d.out'
+        dumpslicefile  ='mas_output_list_slices.out'
+        dumptracerfile ='mas_output_list_tracers.out'
+        dumprsfile     ='mas_output_list_restarts.out'
+      end if
 !
       if (iamp0) then
-        call ffopen (IO_OUT,trim(outfile),'rw',ierr)
         call ffopen (IO_WARN,trim(warnfile),'rw',ierr)
       end if
       call check_error_on_p0 (ierr)
@@ -5639,14 +5649,6 @@ subroutine setup
                       'Compiler Flags: ',trim(compiler_flags)
   300   format (11(/,a,a),/)
       end if
-!
-! ****** Read the input file.
-!
-      call read_input_file
-!
-! ****** Check the input parameters.
-!
-      call check_inputs
 !
 ! ****** Create the file dump output files.
 !
@@ -8060,12 +8062,6 @@ subroutine parse_cl (narg,arg,ierr)
         case ('-v')
           idebug=idebug+1
           iarg=iarg+1
-        case ('-p4pg','-p4wd')
-          if (iarg+1.le.narg) then
-            iarg=iarg+2
-          else
-            go to 900
-          end if
         case ('-dryrun')
           dryrun=.true.
           iarg=iarg+1
@@ -8316,14 +8312,13 @@ subroutine parse_time (s,sec)
 !
 end subroutine
 !#######################################################################
-subroutine read_input_file
+subroutine read_and_check_input_file
 !
 !-----------------------------------------------------------------------
 !
-! ****** Read the input file.
+! ****** Read the input file and check inputs.
 !
-! ****** The input file is read on processor IPROC0 and the data is
-! ****** then broadcast to all other processors.
+! ****** The input file is read on all ranks.
 !
 !-----------------------------------------------------------------------
 !
@@ -8360,6 +8355,7 @@ subroutine read_input_file
       use io_units
       use helicity_pumping_params
       use prescribe_tdc_from_file_r0
+      use ident
 !
 !-----------------------------------------------------------------------
 !
@@ -8407,7 +8403,7 @@ subroutine read_input_file
                       plotlist,ihistint,thistint,ipltxint,tpltxint, &
                       br00,slund,visc,eta_bg,visc_bg, &
                       diag,irsdump,trsdump, &
-                      n_rs_input_file_parts,n_rs_output_file_parts, &
+                      n_rs_input_file_parts, &
                       rsifile,rsifile_prefix,rsifile_root, &
                       rsifile_parts,rs_final, &
                       ifvdgv,fmaxef,r1ef,sigmaef, &
@@ -8541,7 +8537,8 @@ subroutine read_input_file
                       tdcff_path,br_tdcff_file,vt_tdcff_file, &
                       vp_tdcff_file,phi_tdcff_file,deltat_tdcff, &
                       tdcff_sequence,tdcff_node, &
-                      time_dependent_corona_from_files
+                      time_dependent_corona_from_files, &
+                      legacy_output_filenames
 !
       namelist /fcs_nl/ nelem,natom_list,path_eigen
 !
@@ -8562,26 +8559,6 @@ subroutine read_input_file
 !
       call ffopen (IO_INPUT,infile,'r',ierr)
       call check_error_on_any_proc (ierr)
-!
-! ****** Read and write out the raw input file (only on processor IPROC0).
-!
-      if (iamp0) then
-        write (*,*)
-        write (*,*) '### Input file contents:'
-        write (*,*)
-        write (9,*)
-        write (9,*) '### Input file contents:'
-        write (9,*)
-        do
-          read (IO_INPUT,'(a)',err=100,end=100) line
-          write (*,'(a)') trim(line)
-          write (9,'(a)') trim(line)
-        enddo
-  100   continue
-        write (*,*)
-        write (9,*)
-        rewind (IO_INPUT)
-      end if
 !
 ! ****** Now read the namelist sections one by one on all ranks.
 !
@@ -8651,13 +8628,6 @@ subroutine read_input_file
       if (ierr.eq.-1) ierr=0
       call check_error_on_any_proc (ierr)
 !
-      close(IO_INPUT,iostat=ierr)
-      if (ierr.ne.0) then
-        write (*,*)
-        write (*,*) '### WARNING from READ_INPUT_FILE:'
-        write (*,*) '### Could not close the input file.'
-      end if
-!
 ! ****** Save the mesh size if the automatic decompostion option
 ! ****** is being used.
 !
@@ -8667,20 +8637,77 @@ subroutine read_input_file
         np_auto=np
       end if
 !
-! ****** Write the NAMELIST parameter values to the output file.
-!        [RC[]: May want to run check_inputs here so that the namelist params
-!         written here are the "real ones" being used?]
+! ****** Create the output file.  This needs to be here due to the new
+! ****** legacy mode option.
+!
+      if (legacy_output_filenames) then
+        outfile='o'//runid
+      else
+        outfile='mas.out'
+      end if
 !
       if (iamp0) then
-        write (9,*)
-        write (9,*) '### Parameter values:'
-        write (9,*)
-        write (9,topology)
-        write (9,data)
-        write (9,interplanetary)
-        write (9,fcs_nl)
-        write (9,*)
+        call ffopen (IO_OUT,trim(outfile),'rw',ierr)
       end if
+      call check_error_on_p0 (ierr)
+!
+! ****** Read and write out the raw input file (only on processor IPROC0).
+!
+      if (iamp0) then
+        rewind(IO_INPUT)
+        write (*,*)
+        write (*,*) '### Input file contents:'
+        write (*,*)
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### Input file contents:'
+        write (IO_OUT,*)
+        do
+          read (IO_INPUT,'(a)',err=100,end=100) line
+          write (*,'(a)') trim(line)
+          write (IO_OUT,'(a)') trim(line)
+        enddo
+  100   continue
+        write (*,*)
+        write (IO_OUT,*)
+      end if
+!
+! ****** Close the input file on all ranks.
+!
+      close(IO_INPUT,iostat=ierr)
+      if (ierr.ne.0) then
+        write (*,*)
+        write (*,*) '### WARNING from READ_INPUT_FILE:'
+        write (*,*) '### Could not close the input file.'
+      end if
+!
+! ****** Check the input parameters.
+! ****** NOTE: This routine can change input parameters so we call it
+! ******       here before writing the namelist.
+!
+      call check_inputs
+!
+! ****** Write the NAMELIST parameter values used (after checking).
+!
+      if (iamp0) then
+        if (legacy_output_filenames) then
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### Parameter values:'
+          write (IO_OUT,*)
+          write (IO_OUT,topology)
+          write (IO_OUT,data)
+          write (IO_OUT,interplanetary)
+          write (IO_OUT,fcs_nl)
+          write (IO_OUT,*)
+        else
+          call ffopen (IO_TEMP,'mas_run_parameters_used.out','rw',ierr)
+          write (IO_TEMP,topology)
+          write (IO_TEMP,data)
+          write (IO_TEMP,interplanetary)
+          write (IO_TEMP,fcs_nl)
+          close (IO_TEMP)
+        end if
+      end if
+      call check_error_on_p0 (ierr)
 !
 end subroutine
 !#######################################################################
@@ -8960,15 +8987,6 @@ subroutine check_inputs
           write (*,*) '### You requested FREEZE_B=.true.'// &
                       ' for an interplanetary run.'
           write (*,*) '### This combination is not allowed.'
-        end if
-!
-        if(n_rs_output_file_parts.ne.1) then
-            write (*,*)
-            write (*,*) '### WARNING in CHECK_INPUTS:'
-            write (*,*) '### N_RS_OUTPUT_FILE_PARTS is not 1.'
-            write (*,*) '### Restarts are now always one H5 file.'
-            write (*,*) '### This is a deprecated parameter.'
-            write (*,*) '### Please remove from your input file.'
         end if
 !
 ! ****** Computationa long a field line checks.
@@ -48087,7 +48105,7 @@ subroutine dumphist
 !
 ! ****** History file name and sequence number.
 !
-      character(256) :: histfile
+      character(512) :: histfile
       logical, save :: first=.true.
 !
 !-----------------------------------------------------------------------
@@ -48196,7 +48214,11 @@ subroutine dumphist
 ! ****** Write histories to the file h<runid>.
 !-----------------------------------------------------------------------
 !
-      histfile='h'//runid
+      if (legacy_output_filenames) then
+        histfile='h'//runid
+      else
+        histfile='mas_history_a.out'
+      end if
 !
       if (iamp0) then
         if (first) then
@@ -48226,7 +48248,11 @@ subroutine dumphist
 ! ****** Write histories to the file v<runid>.
 !-----------------------------------------------------------------------
 !
-      histfile='v'//runid
+      if (legacy_output_filenames) then
+        histfile='v'//runid
+      else
+        histfile='mas_history_b.out'
+      end if
 !
       if (iamp0) then
         if (first) then
@@ -48290,7 +48316,11 @@ subroutine dumphist
       do i=1,ndiagp
 !
         write (cpt,'(i2.2)') i
-        histfile='d'//cpt//runid
+        if (legacy_output_filenames) then
+          histfile='d'//cpt//runid
+        else
+          histfile='mas_history_insitu_'//cpt//'.out'
+        end if
 !
         select case (diagpt(i)%type)
         case ('MIN')
@@ -51786,7 +51816,11 @@ subroutine write_timing
 !
 ! ****** Open the timing file.
 !
-      tfile='t'//runid
+      if (legacy_output_filenames) then
+        tfile='t'//runid
+      else
+        tfile='mas_timing.out'
+      end if
 !
       if (iamp0) then
         call ffopen (1,trim(tfile),'rw',ierr)
@@ -54976,7 +55010,7 @@ subroutine initialize_heating
 !
 !-----------------------------------------------------------------------
 !
-      integer :: i,n
+      integer :: i,n,hsi
       logical :: validheatsource
       real(r_typ), dimension(nt,np) :: heatflux
 !
@@ -55061,24 +55095,33 @@ subroutine initialize_heating
 !
 ! ****** Calculate the initial heat flux.
 !
-      heat(:,:,:)=0.
-!$acc update device(b%r,b%t,b%p,fj%r,fj%t,fj%p,eta,etacel,heat)
+!$acc update device(b%r,b%t,b%p,fj%r,fj%t,fj%p,eta,etacel)
       if (advance_zw.and.wtd_add_zw_heating) then
 !$acc update device(zp,zm,rho)
       end if
       call heating
 !$acc update self(heat)
 !
-      heatflux(:,:)=0.
-      call calculate_heat_flux (heat,heatflux)
+      hsi=0
+      do i=1,max_heat_sources
+        if (heatsource(n)%active) hsi=1
+      enddo
+      if (hsi.eq.1.or.add_heat_from_file.or. &
+          (advance_zw.and.wtd_add_zw_heating).or.add_ohmic_heating.or. &
+          legacy_output_filenames) then
+!
+        heatflux(:,:)=0.
+!
+        call calculate_heat_flux (heat,heatflux)
 !
 ! ****** Convert the heat flux into physical units.
 !
-      heatflux(:,:)=fn_q0*heatflux(:,:)
+        heatflux(:,:)=fn_q0*heatflux(:,:)
 !
-! ****** Write the heat flux to an HDF file.
+! ****** Write the heat flux to file.
 !
-      call write_field_tp ('heatflux.h5',IFLD_HEAT,heatflux,0)
+        call write_field_tp ('heatflux.h5',IFLD_HEAT,heatflux,0)
+      end if
 !
 ! ****** Setup the chromospheric heating function.
 !
@@ -71670,5 +71713,10 @@ end subroutine
 ! ### Version 0.9.2.0, 04/07/2025, modified by RC:
 !      - Updated default of upwind_a to 1.0 instead of 0.
 !      - Increased default max solver iterations and # of time steps.
+!      - Added legacy_output_filenames logical parameter to 
+!        determine if updated output filenames should be used or not.
+!      - Some code cleanup.
+!      - Namelist parameters are now output after processing them so the
+!        resulting information is true to the run.
 !
 !#######################################################################
