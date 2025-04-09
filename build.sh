@@ -84,7 +84,7 @@ if [ ! -e mas ]; then
   ${echo} "${cX}"
   exit 1
 fi
-$echo "==> Copying mas executable to: ${MAS_HOME}/bin/mas"
+$echo "==> Moving mas executable to: ${MAS_HOME}/bin/mas"
 make install
 ${echo} "${cG}==> Build complete!${cX}"
 ${echo}      "    Please add the following to your shell startup (e.g. .bashrc, .profile, etc.):"

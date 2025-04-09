@@ -8,6 +8,10 @@
 /
 &data
 !
+! *** Use the new style output text files.
+!
+  legacy_output_filenames = .false.
+!
 ! *** Radial domain.
 !
   r0 = 1.0
@@ -88,7 +92,6 @@
 !
 ! *** Numerical algorithm options.
 !
-  dryrun = .false.
   cfl = 0.4
   use_sts_visc = .false.
   use_sts_tc   = .false.

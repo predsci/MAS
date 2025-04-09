@@ -11,7 +11,7 @@ all: pchip_module.o mas.o
 	rm *.mod *.o 2>/dev/null
 
 install:
-	cp mas ../bin/
+	mv mas ../bin/
 
 clean:
 	rm -f mas 2>/dev/null
