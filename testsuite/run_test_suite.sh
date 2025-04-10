@@ -72,10 +72,9 @@ masexe="mas"
 mpicall="mpirun -np"
 
 AVAIL_TEST_RUNS_LIST="
-zb_2d_alfven_wave_p"
-#zb_2d_alfven_wave_t (maybe this one and not the one above)
-#zb_3d_alfven_wave_p_rot
-#zb_3d_tdm_3rope
+zb_2d_alfven_wave_t
+zb_3d_alfven_wave_p_rot
+zb_3d_tdm_3rope"
 #zb_3d_fr_rbsl
 #poly_1d_parker
 #poly_2d_shear

@@ -87,11 +87,11 @@
 !
 ! *** Initial condition.
 !
-  initial_field  = 'ALFVEN_WAVE2'
+  initial_field  = 'ALFVEN_WAVE1'
   initial_plasma = 'ZERO-BETA'
-  wave_mode_t = 1
   wave_mode_r = 2
-  wave_amplitude = 1.e-4
+  wave_mode_t = 3
+  wave_amplitude = 1e-4
 !
 ! *** Numerical algorithm options.
 !
@@ -127,8 +127,8 @@ Version: 0.9.2.0git
 Updated on: 04/07/2025
 Source file: mas.F90
 Run ID: mas
-Run started on: 04/08/2025
-Run started at: 18:02:48
+Run started on: 04/09/2025
+Run started at: 13:42:03
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
 Compiler: GCC version 12.3.0
@@ -420,19 +420,29 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Matrix # of non-zeros per node M:           145
  Estimated memory usage per node:     0.01 MB
 
- ### COMMENT from INIT_ALFVEN_WAVE2:
- ### Alfven wave (type 2) parameters:
+ ### COMMENT from INIT_ALFVEN_WAVE1:
+ ### Alfven wave (type 1) parameters:
 
  WAVE_MODE_R =            2
- WAVE_MODE_T =            1
+ WAVE_MODE_T =            3
  BR00 =    1.0000000000000000     
  RHO0 =    1.0000000000000000     
  VA =    1.0000000000000000     
 
- ### COMMENT from INIT_ALFVEN_WAVE2: 
- ### Normal mode frequency:
+ ### COMMENT from INIT_ALFVEN_WAVE1: 
+ ### Found a root for the Alfven wave:
+ Radial mode number =            1
+ OMEGA =    2.9121501862969339     
 
- OMEGA =    4.1887902047863905     
+ ### COMMENT from INIT_ALFVEN_WAVE1: 
+ ### Found a root for the Alfven wave:
+ Radial mode number =            2
+ OMEGA =    4.7091936287889649     
+
+ ### COMMENT from INIT_ALFVEN_WAVE1: 
+ ### The normal mode frequency has been found.
+
+ OMEGA =    4.7091936287889649     
 
  ### COMMENT from LOAD_RESISTIVITY:
  ### Using resistivity profile: UNIFORM
@@ -478,8 +488,8 @@ Version: 0.9.2.0git
 Updated on: 04/07/2025
 Source file: mas.F90
 Run ID: mas
-Run ended on: 04/08/2025
-Run ended at: 18:02:51
+Run ended on: 04/09/2025
+Run ended at: 13:42:07
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
 Compiler: GCC version 12.3.0
@@ -515,12 +525,12 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### Semi-implicit advance (predictor):
  Total number of solves =          600
- Total number of iterations =         4856
+ Total number of iterations =         4976
  Average number of iterations per solve =            8
 
  ### Semi-implicit advance (corrector):
  Total number of solves =          600
- Total number of iterations =         5158
+ Total number of iterations =         5227
  Average number of iterations per solve =            8
 
  ### Viscosity advance:
@@ -553,5 +563,5 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Total number of iterations =            0
  Average number of iterations per solve =            0
 
- ### CPU time used (on IPROC0):         3.05 seconds
+ ### CPU time used (on IPROC0):         3.08 seconds
 

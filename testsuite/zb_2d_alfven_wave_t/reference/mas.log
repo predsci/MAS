@@ -96,11 +96,11 @@
 !
 ! *** Initial condition.
 !
-  initial_field  = 'ALFVEN_WAVE2'
+  initial_field  = 'ALFVEN_WAVE1'
   initial_plasma = 'ZERO-BETA'
-  wave_mode_t = 1
   wave_mode_r = 2
-  wave_amplitude = 1.e-4
+  wave_mode_t = 3
+  wave_amplitude = 1e-4
 !
 ! *** Numerical algorithm options.
 !
@@ -136,8 +136,8 @@ Version: 0.9.2.0git
 Updated on: 04/07/2025
 Source file: mas.F90
 Run ID: mas
-Run started on: 04/08/2025
-Run started at: 18:02:48
+Run started on: 04/09/2025
+Run started at: 13:42:03
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
 Compiler: GCC version 12.3.0
@@ -768,8 +768,8 @@ Version: 0.9.2.0git
 Updated on: 04/07/2025
 Source file: mas.F90
 Run ID: mas
-Run ended on: 04/08/2025
-Run ended at: 18:02:51
+Run ended on: 04/09/2025
+Run ended at: 13:42:07
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
 Compiler: GCC version 12.3.0
@@ -781,5 +781,5 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  NTIME =        600
  TIME =  1.5000000000E+01
 
- ### CPU time used (on IPROC0):         3.05 seconds
+ ### CPU time used (on IPROC0):         3.08 seconds
 

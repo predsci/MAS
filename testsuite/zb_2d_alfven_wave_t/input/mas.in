@@ -84,11 +84,11 @@
 !
 ! *** Initial condition.
 !
-  initial_field  = 'ALFVEN_WAVE2'
+  initial_field  = 'ALFVEN_WAVE1'
   initial_plasma = 'ZERO-BETA'
-  wave_mode_t = 1
   wave_mode_r = 2
-  wave_amplitude = 1.e-4
+  wave_mode_t = 3
+  wave_amplitude = 1e-4
 !
 ! *** Numerical algorithm options.
 !
@@ -111,7 +111,7 @@
 !
 /
 ! -----------------------
-! Zero-beta Alfven Wave P
+! Zero-beta Alfven Wave T
 ! -----------------------
 !
 ! Description goes here.

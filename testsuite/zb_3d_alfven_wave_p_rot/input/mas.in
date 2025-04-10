@@ -2,9 +2,9 @@
 ! *** Grid resolution.
 !
 &topology
-  nr = 105
-  nt = 100
-  np = 3
+  nr = 25
+  nt = 50
+  np = 100
 /
 &data
 !
@@ -19,7 +19,7 @@
 !
 ! *** Time domain.
 !
-  tmax = 15.0
+  tmax = 3.0
 !
 ! *** Grid specifications.
 !
@@ -36,7 +36,7 @@
 !
 ! *** Time step specifications.
 !
-  dtmax = 0.025
+  dtmax = 0.05
   dtmin = 0.0001
   dt_init = 0.0
 !
@@ -84,11 +84,12 @@
 !
 ! *** Initial condition.
 !
-  initial_field  = 'ALFVEN_WAVE2'
+  initial_field = 'ALFVEN_WAVE2_ROTATED'
   initial_plasma = 'ZERO-BETA'
-  wave_mode_t = 1
   wave_mode_r = 2
-  wave_amplitude = 1.e-4
+  wave_mode_t = 1
+  wave_amplitude = 1e-4
+  wave_rotation_t = 1.1781
 !
 ! *** Numerical algorithm options.
 !
@@ -111,7 +112,7 @@
 !
 /
 ! -----------------------
-! Zero-beta Alfven Wave P
+! Zero-beta Rotated Alfven Wave P
 ! -----------------------
 !
 ! Description goes here.
