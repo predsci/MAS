@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.2.0'
-      character(*), parameter :: update='04/07/2025'
+      character(*), parameter :: vers='0.9.2.1'
+      character(*), parameter :: update='04/23/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -29522,7 +29522,11 @@ subroutine load_matrix_t_solve_implicit (tc)
 !
 ! ****** Set internal points for fk arrays.
 !
-      do concurrent (i=2:nrm1, j=2:ntm1, k=2:npm1)
+!$acc parallel loop collapse(3) default(present)
+        do k=2,npm1
+        do j=2,ntm1
+        do i=2,nrm1
+!!!      do concurrent (i=2:nrm1, j=2:ntm1, k=2:npm1)
         brav=AVGTP(b%r,i,j,k)
         btav=AVGRP(b%t,i,j,k)
         bpav=AVGRT(b%p,i,j,k)
@@ -29552,6 +29556,8 @@ subroutine load_matrix_t_solve_implicit (tc)
         fkrt(i,j,k)=kf*frt*fkpar
         fkrp(i,j,k)=kf*frp*fkpar
         fktp(i,j,k)=kf*ftp*fkpar
+      enddo
+      enddo
       enddo
 !
 ! ****** Boundary points at r=R0.
@@ -53364,10 +53370,9 @@ subroutine advtce
       solve_type=ST_T
       N_CG=N_cgvec
 !
-! *** Allocate and load solver matrix coefficents using original temp.
+! *** Allocate matrix coefficents.
 !
       call alloc_t_matrix_coefs
-      call load_matrix_t_solve_implicit (temp_e0)
 !
 ! ****** Set up tc subcycles.
 !
@@ -53642,10 +53647,9 @@ subroutine advtcp
       solve_type=ST_T
       N_CG=N_cgvec
 !
-! *** Allocate and load solver matrix coefficents using original temp.
+! *** Allocate matrix coefficents.
 !
       call alloc_t_matrix_coefs
-      call load_matrix_t_solve_implicit (temp_p0)
 !
 ! ****** Set up tc subcycles.
 !
@@ -55766,7 +55770,12 @@ subroutine heating
 ! ****** Add the contributions of all the heat sources at
 ! ****** each mesh point.
 !
-      do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
+!$acc parallel loop collapse(3) default(present)
+      do k=2,npm1
+      do j=2,ntm1
+      do i=2,nrm1
+
+!      do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
 !
 ! ****** Get the local magnetic field components.
 !
@@ -55925,6 +55934,8 @@ subroutine heating
 !
         enddo
 !
+      enddo
+      enddo
       enddo
 !
 ! ****** Add a heating source from a file, if requested.
@@ -58043,8 +58054,11 @@ subroutine advpw
 !
 ! ****** Estimate the maximum explicit stable time step.
 !
-      do concurrent (i=2:nrm1)
+!$acc parallel default(present)
+!$acc loop 
+      do i=2,nrm1
         tmp=0.
+!$acc loop collapse(2) reduction(max:tmp)
         do k=2,npm1
           do j=2,ntm1
             fkr2=drh_i(i)**2
@@ -58067,6 +58081,7 @@ subroutine advpw
         enddo
         fkdotvmx(i)=max(1.e-20_r_typ,tmp)
       enddo
+!$acc end parallel
 !
       dtaw=dtime
 !
@@ -71718,5 +71733,8 @@ end subroutine
 !      - Some code cleanup.
 !      - Namelist parameters are now output after processing them so the
 !        resulting information is true to the run.
+!
+! ### Version 0.9.2.1, 04/23/2025, modified by RC:
+!      - GPU optimizations.
 !
 !#######################################################################
