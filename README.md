@@ -1,6 +1,6 @@
 <img height=125 src="doc/mas_logo.png" alt="MAS"/> <img height=125 src="doc/mas_logo_text.png" alt="MAS"/>
   
-# MAS: Magnetohydrodynamic Algorithm outside a Sphere  
+# Magnetohydrodynamic Algorithm outside a Sphere  
 
 [Predictive Science Inc.](https://www.predsci.com)  
   
