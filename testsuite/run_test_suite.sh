@@ -307,7 +307,7 @@ do
   if [ ${testok} -eq 0 ]
   then
     ${echo} "${cR}==> TEST ${cX}${cM}${TESTNAME}${cX}${cR} is not a valid test in the testsuite!${cX}"
-    continue
+    exit 1
   fi
   ${echo} "STARTING TEST ${cM}${TESTNAME}${cX}"
   ${echo} "${cC}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%${cX}"
