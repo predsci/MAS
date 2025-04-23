@@ -29563,7 +29563,10 @@ subroutine load_matrix_t_solve_implicit (tc)
 ! ****** Boundary points at r=R0.
 !
       if (rb0) then
-        do concurrent (k=2:npm1, j=2:ntm1)
+!$acc parallel loop collapse(2) default(present)
+        do k=2,npm1
+        do j=2,ntm1
+       ! do concurrent (k=2:npm1, j=2:ntm1)
           brav=AVGRTP(b%r,   2,j  ,k)
           btav=AVGP  (b%t,   1,j  ,k)
           bpav=AVGT  (b%p,   1,j  ,k)
@@ -29600,12 +29603,16 @@ subroutine load_matrix_t_solve_implicit (tc)
           fkrp(1,j,k)=two*fkrp(1,j,k)-fkrp(2,j,k)
           fktp(1,j,k)=two*fktp(1,j,k)-fktp(2,j,k)
         enddo
+        enddo
       end if
 !
 ! ****** Boundary points at r=R1.
 !
       if (rb1) then
-        do concurrent (k=2:npm1, j=2:ntm1)
+!$acc parallel loop collapse(2) default(present)
+        do k=2,npm1
+        do j=2,ntm1
+        !do concurrent (k=2:npm1, j=2:ntm1)
           brav=AVGRTP(b%r,  nr,j  ,k)
           btav=AVGP  (b%t,nrm1,j  ,k)
           bpav=AVGT  (b%p,nrm1,j  ,k)
@@ -29641,6 +29648,7 @@ subroutine load_matrix_t_solve_implicit (tc)
           fkrt(nr,j,k)=two*fkrt(nr,j,k)-fkrt(2,j,k)
           fkrp(nr,j,k)=two*fkrp(nr,j,k)-fkrp(2,j,k)
           fktp(nr,j,k)=two*fktp(nr,j,k)-fktp(2,j,k)
+        enddo
         enddo
       end if
 !
@@ -29896,7 +29904,11 @@ subroutine load_matrix_t_solve_explicit (tc)
 !
 ! ****** Set internal points for fk arrays.
 !
-      do concurrent (i=2:nrm1, j=2:ntm1, k=2:npm1)
+!$acc parallel loop collapse(3) default(present)
+      do k=2,npm1
+      do j=2,ntm1
+      do i=2,nrm1
+!!!   do concurrent (i=2:nrm1, j=2:ntm1, k=2:npm1)
         brav=AVGTP(b%r,i,j,k)
         btav=AVGRP(b%t,i,j,k)
         bpav=AVGRT(b%p,i,j,k)
@@ -29927,11 +29939,16 @@ subroutine load_matrix_t_solve_explicit (tc)
         fkrp(i,j,k)=kf*frp*fkpar
         fktp(i,j,k)=kf*ftp*fkpar
       enddo
+      enddo
+      enddo
 !
 ! ****** Boundary points at r=R0.
 !
       if (rb0) then
-        do concurrent (k=2:npm1, j=2:ntm1)
+!$acc parallel loop collapse(2) default(present)
+        do k=2,npm1
+        do j=2,ntm1
+        !do concurrent (k=2:npm1, j=2:ntm1)
           brav=AVGRTP(b%r,   2,j  ,k)
           btav=AVGP  (b%t,   1,j  ,k)
           bpav=AVGT  (b%p,   1,j  ,k)
@@ -29968,12 +29985,16 @@ subroutine load_matrix_t_solve_explicit (tc)
           fkrp(1,j,k)=two*fkrp(1,j,k)-fkrp(2,j,k)
           fktp(1,j,k)=two*fktp(1,j,k)-fktp(2,j,k)
         enddo
+        enddo
       end if
 !
 ! ****** Boundary points at r=R1.
 !
       if (rb1) then
-        do concurrent (k=2:npm1, j=2:ntm1)
+!$acc parallel loop collapse(2) default(present)
+        do k=2,npm1
+        do j=2,ntm1
+        !do concurrent (k=2:npm1, j=2:ntm1)        )
           brav=AVGRTP(b%r,  nr,j  ,k)
           btav=AVGP  (b%t,nrm1,j  ,k)
           bpav=AVGT  (b%p,nrm1,j  ,k)
@@ -30009,6 +30030,7 @@ subroutine load_matrix_t_solve_explicit (tc)
           fkrt(nr,j,k)=two*fkrt(nr,j,k)-fkrt(2,j,k)
           fkrp(nr,j,k)=two*fkrp(nr,j,k)-fkrp(2,j,k)
           fktp(nr,j,k)=two*fktp(nr,j,k)-fktp(2,j,k)
+        enddo
         enddo
       end if
 !
@@ -58055,7 +58077,7 @@ subroutine advpw
 ! ****** Estimate the maximum explicit stable time step.
 !
 !$acc parallel default(present)
-!$acc loop 
+!$acc loop
       do i=2,nrm1
         tmp=0.
 !$acc loop collapse(2) reduction(max:tmp)
@@ -71728,7 +71750,7 @@ end subroutine
 ! ### Version 0.9.2.0, 04/07/2025, modified by RC:
 !      - Updated default of upwind_a to 1.0 instead of 0.
 !      - Increased default max solver iterations and # of time steps.
-!      - Added legacy_output_filenames logical parameter to 
+!      - Added legacy_output_filenames logical parameter to
 !        determine if updated output filenames should be used or not.
 !      - Some code cleanup.
 !      - Namelist parameters are now output after processing them so the
