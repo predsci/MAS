@@ -29523,41 +29523,40 @@ subroutine load_matrix_t_solve_implicit (tc)
 ! ****** Set internal points for fk arrays.
 !
 !$acc parallel loop collapse(3) default(present)
-        do k=2,npm1
+      do k=2,npm1
         do j=2,ntm1
-        do i=2,nrm1
-!!!      do concurrent (i=2:nrm1, j=2:ntm1, k=2:npm1)
-        brav=AVGTP(b%r,i,j,k)
-        btav=AVGRP(b%t,i,j,k)
-        bpav=AVGRT(b%p,i,j,k)
-        bsq=brav**2+btav**2+bpav**2
-        if (bsq.lt.btol) then
-          frr=one
-          ftt=one
-          fpp=one
-          frt=0.
-          frp=0.
-          ftp=0.
-        else
-          frr=brav*brav/bsq
-          ftt=btav*btav/bsq
-          fpp=bpav*bpav/bsq
-          frt=brav*btav/bsq
-          frp=brav*bpav/bsq
-          ftp=btav*bpav/bsq
-        end if
-        tav=tc(i,j,k)*fn_t
-        bf=boost(tav)
-        fkpar=bf*fkpar0*(tav)**2.5_r_typ
-        kf=kappa_mask(i,j,k)
-        fkrr(i,j,k)=(kf*frr+(one-kf))*fkpar
-        fktt(i,j,k)=(kf*ftt+(one-kf))*fkpar
-        fkpp(i,j,k)=(kf*fpp+(one-kf))*fkpar
-        fkrt(i,j,k)=kf*frt*fkpar
-        fkrp(i,j,k)=kf*frp*fkpar
-        fktp(i,j,k)=kf*ftp*fkpar
-      enddo
-      enddo
+          do i=2,nrm1
+            brav=AVGTP(b%r,i,j,k)
+            btav=AVGRP(b%t,i,j,k)
+            bpav=AVGRT(b%p,i,j,k)
+            bsq=brav**2+btav**2+bpav**2
+            if (bsq.lt.btol) then
+              frr=one
+              ftt=one
+              fpp=one
+              frt=0.
+              frp=0.
+              ftp=0.
+            else
+              frr=brav*brav/bsq
+              ftt=btav*btav/bsq
+              fpp=bpav*bpav/bsq
+              frt=brav*btav/bsq
+              frp=brav*bpav/bsq
+              ftp=btav*bpav/bsq
+            end if
+            tav=tc(i,j,k)*fn_t
+            bf=boost(tav)
+            fkpar=bf*fkpar0*(tav)**2.5_r_typ
+            kf=kappa_mask(i,j,k)
+            fkrr(i,j,k)=(kf*frr+(one-kf))*fkpar
+            fktt(i,j,k)=(kf*ftt+(one-kf))*fkpar
+            fkpp(i,j,k)=(kf*fpp+(one-kf))*fkpar
+            fkrt(i,j,k)=kf*frt*fkpar
+            fkrp(i,j,k)=kf*frp*fkpar
+            fktp(i,j,k)=kf*ftp*fkpar
+          enddo
+        enddo
       enddo
 !
 ! ****** Boundary points at r=R0.
@@ -29565,44 +29564,43 @@ subroutine load_matrix_t_solve_implicit (tc)
       if (rb0) then
 !$acc parallel loop collapse(2) default(present)
         do k=2,npm1
-        do j=2,ntm1
-       ! do concurrent (k=2:npm1, j=2:ntm1)
-          brav=AVGRTP(b%r,   2,j  ,k)
-          btav=AVGP  (b%t,   1,j  ,k)
-          bpav=AVGT  (b%p,   1,j  ,k)
-          bsq=brav**2+btav**2+bpav**2
-          if (bsq.lt.btol) then
-            frr=one
-            ftt=one
-            fpp=one
-            frt=0.
-            frp=0.
-            ftp=0.
-          else
-            frr=brav*brav/bsq
-            ftt=btav*btav/bsq
-            fpp=bpav*bpav/bsq
-            frt=brav*btav/bsq
-            frp=brav*bpav/bsq
-            ftp=btav*bpav/bsq
-          end if
-          tav=(AVGR (tc,   2,j  ,k))*fn_t
-          bf=boost(tav)
-          fkpar=bf*fkpar0*(tav)**2.5_r_typ
-          kf=kappa_mask(2,j,k)
-          fkrr(1,j,k)=(kf*frr+(one-kf))*fkpar
-          fktt(1,j,k)=(kf*ftt+(one-kf))*fkpar
-          fkpp(1,j,k)=(kf*fpp+(one-kf))*fkpar
-          fkrt(1,j,k)=kf*frt*fkpar
-          fkrp(1,j,k)=kf*frp*fkpar
-          fktp(1,j,k)=kf*ftp*fkpar
-          fkrr(1,j,k)=two*fkrr(1,j,k)-fkrr(2,j,k)
-          fktt(1,j,k)=two*fktt(1,j,k)-fktt(2,j,k)
-          fkpp(1,j,k)=two*fkpp(1,j,k)-fkpp(2,j,k)
-          fkrt(1,j,k)=two*fkrt(1,j,k)-fkrt(2,j,k)
-          fkrp(1,j,k)=two*fkrp(1,j,k)-fkrp(2,j,k)
-          fktp(1,j,k)=two*fktp(1,j,k)-fktp(2,j,k)
-        enddo
+          do j=2,ntm1
+            brav=AVGRTP(b%r,   2,j  ,k)
+            btav=AVGP  (b%t,   1,j  ,k)
+            bpav=AVGT  (b%p,   1,j  ,k)
+            bsq=brav**2+btav**2+bpav**2
+            if (bsq.lt.btol) then
+              frr=one
+              ftt=one
+              fpp=one
+              frt=0.
+              frp=0.
+              ftp=0.
+            else
+              frr=brav*brav/bsq
+              ftt=btav*btav/bsq
+              fpp=bpav*bpav/bsq
+              frt=brav*btav/bsq
+              frp=brav*bpav/bsq
+              ftp=btav*bpav/bsq
+            end if
+            tav=(AVGR (tc,   2,j  ,k))*fn_t
+            bf=boost(tav)
+            fkpar=bf*fkpar0*(tav)**2.5_r_typ
+            kf=kappa_mask(2,j,k)
+            fkrr(1,j,k)=(kf*frr+(one-kf))*fkpar
+            fktt(1,j,k)=(kf*ftt+(one-kf))*fkpar
+            fkpp(1,j,k)=(kf*fpp+(one-kf))*fkpar
+            fkrt(1,j,k)=kf*frt*fkpar
+            fkrp(1,j,k)=kf*frp*fkpar
+            fktp(1,j,k)=kf*ftp*fkpar
+            fkrr(1,j,k)=two*fkrr(1,j,k)-fkrr(2,j,k)
+            fktt(1,j,k)=two*fktt(1,j,k)-fktt(2,j,k)
+            fkpp(1,j,k)=two*fkpp(1,j,k)-fkpp(2,j,k)
+            fkrt(1,j,k)=two*fkrt(1,j,k)-fkrt(2,j,k)
+            fkrp(1,j,k)=two*fkrp(1,j,k)-fkrp(2,j,k)
+            fktp(1,j,k)=two*fktp(1,j,k)-fktp(2,j,k)
+          enddo
         enddo
       end if
 !
@@ -29611,44 +29609,43 @@ subroutine load_matrix_t_solve_implicit (tc)
       if (rb1) then
 !$acc parallel loop collapse(2) default(present)
         do k=2,npm1
-        do j=2,ntm1
-        !do concurrent (k=2:npm1, j=2:ntm1)
-          brav=AVGRTP(b%r,  nr,j  ,k)
-          btav=AVGP  (b%t,nrm1,j  ,k)
-          bpav=AVGT  (b%p,nrm1,j  ,k)
-          bsq=brav**2+btav**2+bpav**2
-          if (bsq.lt.btol) then
-            frr=one
-            ftt=one
-            fpp=one
-            frt=0.
-            frp=0.
-            ftp=0.
-          else
-            frr=brav*brav/bsq
-            ftt=btav*btav/bsq
-            fpp=bpav*bpav/bsq
-            frt=brav*btav/bsq
-            frp=brav*bpav/bsq
-            ftp=btav*bpav/bsq
-          end if
-          tav=(AVGR (tc,  nr,j  ,k))*fn_t
-          bf=boost(tav)
-          fkpar=bf*fkpar0*(tav)**2.5_r_typ
-          kf=kappa_mask(nrm1,j,k)
-          fkrr(nr,j,k)=(kf*frr+(one-kf))*fkpar
-          fktt(nr,j,k)=(kf*ftt+(one-kf))*fkpar
-          fkpp(nr,j,k)=(kf*fpp+(one-kf))*fkpar
-          fkrt(nr,j,k)=kf*frt*fkpar
-          fkrp(nr,j,k)=kf*frp*fkpar
-          fktp(nr,j,k)=kf*ftp*fkpar
-          fkrr(nr,j,k)=two*fkrr(nr,j,k)-fkrr(2,j,k)
-          fktt(nr,j,k)=two*fktt(nr,j,k)-fktt(2,j,k)
-          fkpp(nr,j,k)=two*fkpp(nr,j,k)-fkpp(2,j,k)
-          fkrt(nr,j,k)=two*fkrt(nr,j,k)-fkrt(2,j,k)
-          fkrp(nr,j,k)=two*fkrp(nr,j,k)-fkrp(2,j,k)
-          fktp(nr,j,k)=two*fktp(nr,j,k)-fktp(2,j,k)
-        enddo
+          do j=2,ntm1
+            brav=AVGRTP(b%r,  nr,j  ,k)
+            btav=AVGP  (b%t,nrm1,j  ,k)
+            bpav=AVGT  (b%p,nrm1,j  ,k)
+            bsq=brav**2+btav**2+bpav**2
+            if (bsq.lt.btol) then
+              frr=one
+              ftt=one
+              fpp=one
+              frt=0.
+              frp=0.
+              ftp=0.
+            else
+              frr=brav*brav/bsq
+              ftt=btav*btav/bsq
+              fpp=bpav*bpav/bsq
+              frt=brav*btav/bsq
+              frp=brav*bpav/bsq
+              ftp=btav*bpav/bsq
+            end if
+            tav=(AVGR (tc,  nr,j  ,k))*fn_t
+            bf=boost(tav)
+            fkpar=bf*fkpar0*(tav)**2.5_r_typ
+            kf=kappa_mask(nrm1,j,k)
+            fkrr(nr,j,k)=(kf*frr+(one-kf))*fkpar
+            fktt(nr,j,k)=(kf*ftt+(one-kf))*fkpar
+            fkpp(nr,j,k)=(kf*fpp+(one-kf))*fkpar
+            fkrt(nr,j,k)=kf*frt*fkpar
+            fkrp(nr,j,k)=kf*frp*fkpar
+            fktp(nr,j,k)=kf*ftp*fkpar
+            fkrr(nr,j,k)=two*fkrr(nr,j,k)-fkrr(2,j,k)
+            fktt(nr,j,k)=two*fktt(nr,j,k)-fktt(2,j,k)
+            fkpp(nr,j,k)=two*fkpp(nr,j,k)-fkpp(2,j,k)
+            fkrt(nr,j,k)=two*fkrt(nr,j,k)-fkrt(2,j,k)
+            fkrp(nr,j,k)=two*fkrp(nr,j,k)-fkrp(2,j,k)
+            fktp(nr,j,k)=two*fktp(nr,j,k)-fktp(2,j,k)
+          enddo
         enddo
       end if
 !
@@ -29906,40 +29903,39 @@ subroutine load_matrix_t_solve_explicit (tc)
 !
 !$acc parallel loop collapse(3) default(present)
       do k=2,npm1
-      do j=2,ntm1
-      do i=2,nrm1
-!!!   do concurrent (i=2:nrm1, j=2:ntm1, k=2:npm1)
-        brav=AVGTP(b%r,i,j,k)
-        btav=AVGRP(b%t,i,j,k)
-        bpav=AVGRT(b%p,i,j,k)
-        bsq=brav**2+btav**2+bpav**2
-        if (bsq.lt.btol) then
-          frr=one
-          ftt=one
-          fpp=one
-          frt=0.
-          frp=0.
-          ftp=0.
-        else
-          frr=brav*brav/bsq
-          ftt=btav*btav/bsq
-          fpp=bpav*bpav/bsq
-          frt=brav*btav/bsq
-          frp=brav*bpav/bsq
-          ftp=btav*bpav/bsq
-        end if
-        tav=tc(i,j,k)*fn_t
-        bf=boost(tav)
-        fkpar=bf*fkpar0*(tav)**2.5_r_typ
-        kf=kappa_mask(i,j,k)
-        fkrr(i,j,k)=(kf*frr+(one-kf))*fkpar
-        fktt(i,j,k)=(kf*ftt+(one-kf))*fkpar
-        fkpp(i,j,k)=(kf*fpp+(one-kf))*fkpar
-        fkrt(i,j,k)=kf*frt*fkpar
-        fkrp(i,j,k)=kf*frp*fkpar
-        fktp(i,j,k)=kf*ftp*fkpar
-      enddo
-      enddo
+        do j=2,ntm1
+          do i=2,nrm1
+            brav=AVGTP(b%r,i,j,k)
+            btav=AVGRP(b%t,i,j,k)
+            bpav=AVGRT(b%p,i,j,k)
+            bsq=brav**2+btav**2+bpav**2
+            if (bsq.lt.btol) then
+              frr=one
+              ftt=one
+              fpp=one
+              frt=0.
+              frp=0.
+              ftp=0.
+            else
+              frr=brav*brav/bsq
+              ftt=btav*btav/bsq
+              fpp=bpav*bpav/bsq
+              frt=brav*btav/bsq
+              frp=brav*bpav/bsq
+              ftp=btav*bpav/bsq
+            end if
+            tav=tc(i,j,k)*fn_t
+            bf=boost(tav)
+            fkpar=bf*fkpar0*(tav)**2.5_r_typ
+            kf=kappa_mask(i,j,k)
+            fkrr(i,j,k)=(kf*frr+(one-kf))*fkpar
+            fktt(i,j,k)=(kf*ftt+(one-kf))*fkpar
+            fkpp(i,j,k)=(kf*fpp+(one-kf))*fkpar
+            fkrt(i,j,k)=kf*frt*fkpar
+            fkrp(i,j,k)=kf*frp*fkpar
+            fktp(i,j,k)=kf*ftp*fkpar
+          enddo
+        enddo
       enddo
 !
 ! ****** Boundary points at r=R0.
@@ -29947,44 +29943,43 @@ subroutine load_matrix_t_solve_explicit (tc)
       if (rb0) then
 !$acc parallel loop collapse(2) default(present)
         do k=2,npm1
-        do j=2,ntm1
-        !do concurrent (k=2:npm1, j=2:ntm1)
-          brav=AVGRTP(b%r,   2,j  ,k)
-          btav=AVGP  (b%t,   1,j  ,k)
-          bpav=AVGT  (b%p,   1,j  ,k)
-          bsq=brav**2+btav**2+bpav**2
-          if (bsq.lt.btol) then
-            frr=one
-            ftt=one
-            fpp=one
-            frt=0.
-            frp=0.
-            ftp=0.
-          else
-            frr=brav*brav/bsq
-            ftt=btav*btav/bsq
-            fpp=bpav*bpav/bsq
-            frt=brav*btav/bsq
-            frp=brav*bpav/bsq
-            ftp=btav*bpav/bsq
-          end if
-          tav=(AVGR (tc,   2,j  ,k))*fn_t
-          bf=boost(tav)
-          fkpar=bf*fkpar0*(tav)**2.5_r_typ
-          kf=kappa_mask(2,j,k)
-          fkrr(1,j,k)=(kf*frr+(one-kf))*fkpar
-          fktt(1,j,k)=(kf*ftt+(one-kf))*fkpar
-          fkpp(1,j,k)=(kf*fpp+(one-kf))*fkpar
-          fkrt(1,j,k)=kf*frt*fkpar
-          fkrp(1,j,k)=kf*frp*fkpar
-          fktp(1,j,k)=kf*ftp*fkpar
-          fkrr(1,j,k)=two*fkrr(1,j,k)-fkrr(2,j,k)
-          fktt(1,j,k)=two*fktt(1,j,k)-fktt(2,j,k)
-          fkpp(1,j,k)=two*fkpp(1,j,k)-fkpp(2,j,k)
-          fkrt(1,j,k)=two*fkrt(1,j,k)-fkrt(2,j,k)
-          fkrp(1,j,k)=two*fkrp(1,j,k)-fkrp(2,j,k)
-          fktp(1,j,k)=two*fktp(1,j,k)-fktp(2,j,k)
-        enddo
+          do j=2,ntm1
+            brav=AVGRTP(b%r,   2,j  ,k)
+            btav=AVGP  (b%t,   1,j  ,k)
+            bpav=AVGT  (b%p,   1,j  ,k)
+            bsq=brav**2+btav**2+bpav**2
+            if (bsq.lt.btol) then
+              frr=one
+              ftt=one
+              fpp=one
+              frt=0.
+              frp=0.
+              ftp=0.
+            else
+              frr=brav*brav/bsq
+              ftt=btav*btav/bsq
+              fpp=bpav*bpav/bsq
+              frt=brav*btav/bsq
+              frp=brav*bpav/bsq
+              ftp=btav*bpav/bsq
+            end if
+            tav=(AVGR (tc,   2,j  ,k))*fn_t
+            bf=boost(tav)
+            fkpar=bf*fkpar0*(tav)**2.5_r_typ
+            kf=kappa_mask(2,j,k)
+            fkrr(1,j,k)=(kf*frr+(one-kf))*fkpar
+            fktt(1,j,k)=(kf*ftt+(one-kf))*fkpar
+            fkpp(1,j,k)=(kf*fpp+(one-kf))*fkpar
+            fkrt(1,j,k)=kf*frt*fkpar
+            fkrp(1,j,k)=kf*frp*fkpar
+            fktp(1,j,k)=kf*ftp*fkpar
+            fkrr(1,j,k)=two*fkrr(1,j,k)-fkrr(2,j,k)
+            fktt(1,j,k)=two*fktt(1,j,k)-fktt(2,j,k)
+            fkpp(1,j,k)=two*fkpp(1,j,k)-fkpp(2,j,k)
+            fkrt(1,j,k)=two*fkrt(1,j,k)-fkrt(2,j,k)
+            fkrp(1,j,k)=two*fkrp(1,j,k)-fkrp(2,j,k)
+            fktp(1,j,k)=two*fktp(1,j,k)-fktp(2,j,k)
+          enddo
         enddo
       end if
 !
@@ -29993,44 +29988,43 @@ subroutine load_matrix_t_solve_explicit (tc)
       if (rb1) then
 !$acc parallel loop collapse(2) default(present)
         do k=2,npm1
-        do j=2,ntm1
-        !do concurrent (k=2:npm1, j=2:ntm1)        )
-          brav=AVGRTP(b%r,  nr,j  ,k)
-          btav=AVGP  (b%t,nrm1,j  ,k)
-          bpav=AVGT  (b%p,nrm1,j  ,k)
-          bsq=brav**2+btav**2+bpav**2
-          if (bsq.lt.btol) then
-            frr=one
-            ftt=one
-            fpp=one
-            frt=0.
-            frp=0.
-            ftp=0.
-          else
-            frr=brav*brav/bsq
-            ftt=btav*btav/bsq
-            fpp=bpav*bpav/bsq
-            frt=brav*btav/bsq
-            frp=brav*bpav/bsq
-            ftp=btav*bpav/bsq
-          end if
-          tav=(AVGR (tc,  nr,j  ,k))*fn_t
-          bf=boost(tav)
-          fkpar=bf*fkpar0*(tav)**2.5_r_typ
-          kf=kappa_mask(nrm1,j,k)
-          fkrr(nr,j,k)=(kf*frr+(one-kf))*fkpar
-          fktt(nr,j,k)=(kf*ftt+(one-kf))*fkpar
-          fkpp(nr,j,k)=(kf*fpp+(one-kf))*fkpar
-          fkrt(nr,j,k)=kf*frt*fkpar
-          fkrp(nr,j,k)=kf*frp*fkpar
-          fktp(nr,j,k)=kf*ftp*fkpar
-          fkrr(nr,j,k)=two*fkrr(nr,j,k)-fkrr(2,j,k)
-          fktt(nr,j,k)=two*fktt(nr,j,k)-fktt(2,j,k)
-          fkpp(nr,j,k)=two*fkpp(nr,j,k)-fkpp(2,j,k)
-          fkrt(nr,j,k)=two*fkrt(nr,j,k)-fkrt(2,j,k)
-          fkrp(nr,j,k)=two*fkrp(nr,j,k)-fkrp(2,j,k)
-          fktp(nr,j,k)=two*fktp(nr,j,k)-fktp(2,j,k)
-        enddo
+          do j=2,ntm1
+            brav=AVGRTP(b%r,  nr,j  ,k)
+            btav=AVGP  (b%t,nrm1,j  ,k)
+            bpav=AVGT  (b%p,nrm1,j  ,k)
+            bsq=brav**2+btav**2+bpav**2
+            if (bsq.lt.btol) then
+              frr=one
+              ftt=one
+              fpp=one
+              frt=0.
+              frp=0.
+              ftp=0.
+            else
+              frr=brav*brav/bsq
+              ftt=btav*btav/bsq
+              fpp=bpav*bpav/bsq
+              frt=brav*btav/bsq
+              frp=brav*bpav/bsq
+              ftp=btav*bpav/bsq
+            end if
+            tav=(AVGR (tc,  nr,j  ,k))*fn_t
+            bf=boost(tav)
+            fkpar=bf*fkpar0*(tav)**2.5_r_typ
+            kf=kappa_mask(nrm1,j,k)
+            fkrr(nr,j,k)=(kf*frr+(one-kf))*fkpar
+            fktt(nr,j,k)=(kf*ftt+(one-kf))*fkpar
+            fkpp(nr,j,k)=(kf*fpp+(one-kf))*fkpar
+            fkrt(nr,j,k)=kf*frt*fkpar
+            fkrp(nr,j,k)=kf*frp*fkpar
+            fktp(nr,j,k)=kf*ftp*fkpar
+            fkrr(nr,j,k)=two*fkrr(nr,j,k)-fkrr(2,j,k)
+            fktt(nr,j,k)=two*fktt(nr,j,k)-fktt(2,j,k)
+            fkpp(nr,j,k)=two*fkpp(nr,j,k)-fkpp(2,j,k)
+            fkrt(nr,j,k)=two*fkrt(nr,j,k)-fkrt(2,j,k)
+            fkrp(nr,j,k)=two*fkrp(nr,j,k)-fkrp(2,j,k)
+            fktp(nr,j,k)=two*fktp(nr,j,k)-fktp(2,j,k)
+          enddo
         enddo
       end if
 !
@@ -55792,12 +55786,7 @@ subroutine heating
 ! ****** Add the contributions of all the heat sources at
 ! ****** each mesh point.
 !
-!$acc parallel loop collapse(3) default(present)
-      do k=2,npm1
-      do j=2,ntm1
-      do i=2,nrm1
-
-!      do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
+      do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
 !
 ! ****** Get the local magnetic field components.
 !
@@ -55956,8 +55945,6 @@ subroutine heating
 !
         enddo
 !
-      enddo
-      enddo
       enddo
 !
 ! ****** Add a heating source from a file, if requested.
@@ -58077,7 +58064,8 @@ subroutine advpw
 ! ****** Estimate the maximum explicit stable time step.
 !
 !$acc parallel default(present)
-!$acc loop
+!$acc loop gang
+!$omp parallel do default(shared)
       do i=2,nrm1
         tmp=0.
 !$acc loop collapse(2) reduction(max:tmp)
@@ -58104,6 +58092,7 @@ subroutine advpw
         fkdotvmx(i)=max(1.e-20_r_typ,tmp)
       enddo
 !$acc end parallel
+!$omp end parallel do
 !
       dtaw=dtime
 !
