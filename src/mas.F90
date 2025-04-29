@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.2.1'
-      character(*), parameter :: update='04/23/2025'
+      character(*), parameter :: vers='0.9.3.0'
+      character(*), parameter :: update='04/28/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -2410,7 +2410,7 @@ module vars
 !
 ! ****** Apply radiative loss function implicitly.
 !
-      integer :: ifimplrad=1
+      integer :: ifimplrad=0
 !
 ! ****** Flag to apply the legacy reduction of Q at the base of the
 ! ****** chromosphere (developed by Yung Mok).  This option is not
@@ -71747,5 +71747,9 @@ end subroutine
 !
 ! ### Version 0.9.2.1, 04/23/2025, modified by RC:
 !      - GPU optimizations.
+!
+! ### Version 0.9.3.0, 04/28/2025, modified by RC:
+!      - Default changed to not use implicit radiation loss.method
+!        (ifimplrad=0).
 !
 !#######################################################################

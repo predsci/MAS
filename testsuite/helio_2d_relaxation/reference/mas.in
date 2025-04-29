@@ -2,9 +2,9 @@
 ! *** Grid resolution.
 !
 &topology
-  nr = 25
-  nt = 50
-  np = 100
+  nr = 201
+  nt = 61
+  np = 3
 /
 &data
 !
@@ -14,20 +14,20 @@
 !
 ! *** Radial domain.
 !
-  r0 = 1.0
-  r1 = 2.5
+  r0 = 20.0
+  r1 = 215.0
 !
 ! *** Time domain.
 !
-  tmax = 3.0
+  tmax = 100.0
 !
 ! *** Grid specifications.
 !
   rfrac    = 0.0,1.0
-  drratio  = 5.0
+  drratio  = 1.0
   nfrmesh  = 5
-  tfrac    = 0.0,0.5,1.0
-  dtratio  = 0.5,2.0
+  tfrac    = 0.0,1.0
+  dtratio  = 1.0
   nftmesh  = 5
   pfrac    = 0.0
   dpratio  = 0.0
@@ -36,18 +36,14 @@
 !
 ! *** Time step specifications.
 !
-  dtmax = 0.05
+  dtmax = 100.0
   dtmin = 0.0001
   dt_init = 0.0
 !
 ! *** Output options.
 !
-  plotlist = 'br'
-  tpltxint = 0.0
-  slice_plotlist = ''
-  slice_tp_radii = 0.0
-  slice_txint = 0.0
-  trace_txint = 0.0
+  plotlist = 'vr','rho','br','t'
+  tpltxint = 10.0
   hdf32 = .false.
   rs_final = .false.
   trsdump = 0.0
@@ -56,41 +52,39 @@
 !
   advance_a    = .true.
   advance_v    = .true.
-  advance_t    = .false.
-  advance_rho  = .false.
+  advance_t    = .true.
+  advance_rho  = .true.
   advance_pw   = .false.
   advance_zw   = .false.
   advance_fcs  = .false.
   trace_particles = .false.
-  slund = 1.e30
-  visc = 1.e-5
-  gamma = 1.666666666666667
-  g0 = 0.0
-  br00 = 1.0
-  rho0 = 1.0
-  tbc0    = 20000.
-  iftfloor = .false.
-  tfloor  = 20000.
-  char_bc0 = .false.
-  char_bc1 = .false.
-  ubzero = .false.
+  slund = 1.e5
+  visc = 0.01
+  gamma = 1.5
+  g0 = 0.823
+  br00 = 0.0
+  rho0 = 14000.0
+  char_bc0 = .true.
+  char_bc1 = .true.
+  ubzero = .true.
   filter_poles = .false.
 ! *** Thermal conduction:
   advance_tc = .false.
   tcond = 0.0
   alpha_nocoll = 0.0
-  t_cutoff1 = 500000.0
-  nfilt_kappa = 0
-  tchromo = 20000.
+! *** Radiative loss:
+  radloss = 0.0
 !
 ! *** Initial condition.
 !
-  initial_field = 'ALFVEN_WAVE2_ROTATED'
-  initial_plasma = 'ZERO-BETA'
-  wave_mode_r = 2
-  wave_mode_t = 1
-  wave_amplitude = 1e-4
-  wave_rotation_t = 1.1781
+  initial_field = 'POTENTIAL_FIELD'
+  bnfile = "bc/br_ex001.h5"
+  b_in_gauss = .false.
+  initial_plasma = '2dfile'
+  twodfile_vr  = 'bc/vr_ex001.h5'
+  twodfile_t   = 'bc/t_ex001.h5'
+  twodfile_rho = 'bc/rho_ex001.h5'
+  const_t_rho = .true.
 !
 ! *** Numerical algorithm options.
 !
@@ -99,8 +93,9 @@
   use_sts_tc   = .false.
   visc_auto_subcycle = .false.
   tc_auto_subcycle   = .false.
-  ifprec_t     = 3
-  ifprec_v     = 3
+  ifimplrad = 0
+  ifprec_t     = 1
+  ifprec_v     = 1
   ifprec_pot2d = 3
   ifprec_divb  = 3
   epscg_a       = 1.e-9
@@ -110,8 +105,21 @@
   epscg_newflux = 1.e-9
   epscg_divb    = 1.e-9
   ncgmax = 100000
-!
 /
-!
-! Zero-beta Rotated Alfven Wave P
+&interplanetary
+  interplanetary_run = .true.
+  ip_radius = 20.
+  boundary_frame = 'FAKE_COROTATING'
+  brfile = "bc/br_ex"
+  btfile = "bc/bt_ex"
+  bpfile = "bc/bp_ex"
+  rhofile = "bc/rho_ex"
+  tfile = "bc/t_ex"
+  vrfile = "bc/vr_ex"
+  vtfile = "bc/vt_ex"
+  vpfile = "bc/vp_ex"
+  fcsfile = "bc/fcs_ex"
+  ip_sequence = 1
+  ip_node = 0
+/
 !

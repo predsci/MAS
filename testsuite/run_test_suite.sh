@@ -74,18 +74,18 @@ mpicall="mpirun -np"
 AVAIL_TEST_RUNS_LIST="
 zb_2d_alfven_wave_t
 zb_3d_alfven_wave_p_rot
-zb_3d_tdm_3rope"
-#zb_3d_fr_rbsl
+zb_3d_tdm_3rope
+zb_3d_fr_rbsl
+poly_3d_pw_relaxation
+thermo_3d_relaxation
+thermo_wtd_3d_relaxation
+helio_2d_relaxation"
 #poly_1d_parker
 #poly_2d_shear
 #poly_2d_dipole
 #poly_2d_ip_cs
-#poly_3d_adapt_pw
 #thermo_1d_wind
-#thermo_3d_bipole_relax
 #wtd_1d_analytic
-#wtd_3d_relaxation
-#"
 
 TEST_RUNS_LIST=${AVAIL_TEST_RUNS_LIST}
 
@@ -359,7 +359,7 @@ do
     fi
 
     ${echo} "==> Copying input files..."
-    cp ${INPUTDIR}/* ${RUNDIR}/ 2>/dev/null
+    cp -r ${INPUTDIR}/* ${RUNDIR}/ 2>/dev/null
 
     cd ${RUNDIR}
 
