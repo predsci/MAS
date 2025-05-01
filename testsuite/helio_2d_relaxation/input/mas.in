@@ -108,7 +108,6 @@
 /
 &interplanetary
   interplanetary_run = .true.
-  ip_radius = 20.
   boundary_frame = 'FAKE_COROTATING'
   brfile = "bc/br_ex"
   btfile = "bc/bt_ex"
@@ -120,6 +119,6 @@
   vpfile = "bc/vp_ex"
   fcsfile = "bc/fcs_ex"
   ip_sequence = 1
-  ip_node = 0
+  ip_node = 0.0
 /
 !
