@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.3.0'
-      character(*), parameter :: update='04/28/2025'
+      character(*), parameter :: vers='0.9.3.1'
+      character(*), parameter :: update='05/07/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -5524,7 +5524,7 @@ subroutine setup
 ! ****** Command-line arguments.
 !
       integer :: narg
-      character(256), dimension(:), pointer :: arg
+      character(512), dimension(:), pointer :: arg
 !
 !-----------------------------------------------------------------------
 !
@@ -5558,7 +5558,7 @@ subroutine setup
 !
 ! ****** Get system infomration.
 !
-      if (iamp0) call get_system_info
+      call get_system_info
 !
 ! ****** Get the command-line arguments (allocates arg).
 !
@@ -5678,6 +5678,7 @@ subroutine get_system_info
 !
       use number_types
       use ident
+      use mpidefs
       use iso_fortran_env
 !
 !-----------------------------------------------------------------------
@@ -5691,48 +5692,63 @@ subroutine get_system_info
 !
 !-----------------------------------------------------------------------
 !
+      if (iamp0) then
+!
 ! ****** Get system hostname (machname).
 !
-      call EXECUTE_COMMAND_LINE('uname -n > tmp.txt',wait=.true., &
-                                exitstat=ierr,cmdstat=ierrc, &
-                                cmdmsg=errmsg)
-      if (ierr==0) then
-        open(unit=10,file="tmp.txt",status="old")
-        read(10, '(A)') machname
-        close(10, status="delete")
-      else
-        write(*,*) "WARNING:  Failed to retrieve machine name"
-        write(*,*) " ERRMSG:  "//trim(errmsg)
-        machname = 'Unknown'
-        if (ierrc==0) then
-          open(unit=10,file="tmp.txt",status='old')
+        call EXECUTE_COMMAND_LINE('uname -n > tmp.txt',wait=.true., &
+                                  exitstat=ierr,cmdstat=ierrc, &
+                                  cmdmsg=errmsg)
+        if (ierr==0) then
+          open(unit=10,file="tmp.txt",status="old")
+          read(10, '(A)') machname
           close(10, status="delete")
+        else
+          write(*,*) "WARNING:  Failed to retrieve machine name"
+          write(*,*) " ERRMSG:  "//trim(errmsg)
+          machname = 'Unknown'
+          if (ierrc==0) then
+            open(unit=10,file="tmp.txt",status='old')
+            close(10, status="delete")
+          end if
         end if
-      end if
 !
 ! ****** Get system type (machtype).
 !
-      call EXECUTE_COMMAND_LINE('uname -m > tmp.txt',wait=.true., &
-                                exitstat=ierr,cmdstat=ierrc, &
-                                cmdmsg=errmsg)
-      if (ierr==0) then
-        open(unit=10,file="tmp.txt",status="old")
-        read(10, '(A)') machtype
-        close(10, status="delete")
-      else
-        write(*,*) "WARNING:  Failed to retrieve machine type"
-        write(*,*) " ERRMSG:  "//trim(errmsg)
-        machtype = 'Unknown'
-        if (ierrc==0) then
-          open(unit=10,file="tmp.txt",status='old')
+        call EXECUTE_COMMAND_LINE('uname -m > tmp.txt',wait=.true., &
+                                  exitstat=ierr,cmdstat=ierrc, &
+                                  cmdmsg=errmsg)
+        if (ierr==0) then
+          open(unit=10,file="tmp.txt",status="old")
+          read(10, '(A)') machtype
           close(10, status="delete")
+        else
+          write(*,*) "WARNING:  Failed to retrieve machine type"
+          write(*,*) " ERRMSG:  "//trim(errmsg)
+          machtype = 'Unknown'
+          if (ierrc==0) then
+            open(unit=10,file="tmp.txt",status='old')
+            close(10, status="delete")
+          end if
         end if
-      end if
 !
 ! ****** Get compiler and compiler flags.
 !
-      compiler=compiler_version()
-      compiler_flags=compiler_options()
+        compiler=compiler_version()
+        compiler_flags=compiler_options()
+!
+      end if
+!
+! ****** Broadcast to all other ranks.
+!
+      call MPI_Bcast(machname,len(machname),MPI_CHARACTER, &
+                     0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(machtype,len(machtype),MPI_CHARACTER, &
+                     0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(compiler,len(compiler),MPI_CHARACTER, &
+                     0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(compiler_flags,len(compiler_flags),MPI_CHARACTER, &
+                     0,MPI_COMM_WORLD,ierr)
 !
 end subroutine
 !#######################################################################
@@ -71751,5 +71767,10 @@ end subroutine
 ! ### Version 0.9.3.0, 04/28/2025, modified by RC:
 !      - Default changed to not use implicit radiation loss.method
 !        (ifimplrad=0).
+!
+! ### Version 0.9.3.1, 05/07/2025, modified by RC:
+!      - BUG FIX:  The GPU ifprec detection was only happening on
+!                  process 0, so multi-GPU runs were stalling.
+!                  Also, fixed mismatch in char size of cmd line arg.
 !
 !#######################################################################
