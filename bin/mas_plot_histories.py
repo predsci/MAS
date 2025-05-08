@@ -9,19 +9,17 @@ import sys
 
 parser = argparse.ArgumentParser(description='Plot/compare histories for one or more MAS runs')
 parser.add_argument('-name',help='Name of the set of plots',type=str, required=True)
-parser.add_argument('-runs',help='A comma separated list names of the mas runs (ex:-runs=mas001,mas002)',type=str, required=True)
 parser.add_argument('-dirs',help='A comma separated list of paths to the directory each run is located in', type=str, required=True)
 parser.add_argument('-time1',help='The time to start plotting the data at (default:first time in mas file)',default=-9999)
 parser.add_argument('-time2',help='The time to stop plotting the data at (default:last time in mas file)',default=9999)
 parser.add_argument('-skip',help='Number of points to skip in plotting, this helps with larger files (default:1)',default=1)
-parser.add_argument('-samples',help='Number of points to plot, this helps with larger files (default:all)',default=-1,type=int)
+parser.add_argument('-samples',help='Number of points to plot, this helps with larger files (default:all)',default=200,type=int)
 parser.add_argument('-labels',help='A comma separated list of labels to display in the plots for each run (default:"Run 1","Run 2",...)',type=str,default=' ')
 parser.add_argument('-cu',help='Display quantities in code units.',action='store_true',default=False)
 
 
 args = parser.parse_args()
 arg_dict = vars(args)
-run_list = arg_dict['runs'].split(',')
 dir_list = arg_dict['dirs'].split(',')
 label_list = arg_dict['labels'].split(',')
 code_units = arg_dict['cu']
@@ -56,12 +54,12 @@ else:
 if arg_dict['labels'] == ' ':
     label_list = []
     def_label = 'Run '
-    for i,run in enumerate(run_list):
+    for i,run in enumerate(dir_list):
         label_list.append(def_label+str(i+1))
 
 LABEL_LEN = len(label_list)
 # Validate the list arguments:
-if not len(run_list) == len(dir_list) == LABEL_LEN:
+if not len(dir_list) == LABEL_LEN:
     print('ERROR: Number of runs, dirs, and labels must match. Use -h for more information.')
     sys.exit()
 
@@ -133,7 +131,7 @@ def parse_TSV(file_name,headers,time1,time2,skip,samples):
         end_idx = find_nearest(time_list,time2)
     
      # Step 1: Apply skipping first
-    indices = numpy.arange(start_idx, end_idx + 1, skip)
+    indices = numpy.arange(start_idx, end_idx, skip)
     
     # Step 2: If samples is specified, select at most 'samples' points
     if samples > 0 and len(indices) > samples:
@@ -146,9 +144,9 @@ def parse_TSV(file_name,headers,time1,time2,skip,samples):
 
 # For every run name given, build file path, then parse the data
 # and store a list of all parsed data
-for i,run in enumerate(run_list):
-    h_file_name = "{}/h{}".format(dir_list[i],run)
-    v_file_name = "{}/v{}".format(dir_list[i],run)
+for i,run in enumerate(dir_list):
+    h_file_name = "{}/mas_history_a.out".format(dir_list[i])
+    v_file_name = "{}/mas_history_b.out".format(dir_list[i])
     temp_h_table = parse_TSV(h_file_name, H_HEADERS, arg_dict['time1'], arg_dict['time2'], arg_dict['skip'], arg_dict['samples'])
     temp_v_table = parse_TSV(v_file_name, V_HEADERS, arg_dict['time1'], arg_dict['time2'], arg_dict['skip'], arg_dict['samples'])
     temp_W = temp_h_table[:,H_HEADERS['Wr']] + temp_h_table[:,H_HEADERS['Wt']] + temp_h_table[:,H_HEADERS['Wp']]
@@ -282,4 +280,12 @@ plt.grid()
 fig.delaxes(ax[2][2])
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-fig.savefig("{}_history-compare.pdf".format(arg_dict['name']),bbox_inches='tight',dpi=96)
+
+if len(dir_list) > 1:
+  fig.savefig("mas_histories_comparison.pdf",bbox_inches='tight',dpi=96)
+else:
+  fig.savefig("mas_histories.pdf",bbox_inches='tight',dpi=96)
+
+
+
+
