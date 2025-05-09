@@ -76,8 +76,8 @@
   g0 = 0.823
   br00 = 0.0
   rho0 = 20000.0
-  tbc0 = 20000.
-  tchromo = 20000.
+  tbc0 = 20000.0
+  tchromo = 20000.0
   iftfloor = .true.
   tfloor  = 10000.0
   char_bc0 = .true.
