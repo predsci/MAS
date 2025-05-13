@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.3.1'
-      character(*), parameter :: update='05/07/2025'
+      character(*), parameter :: vers='0.9.4.0'
+      character(*), parameter :: update='05/12/2025'
       character(*), parameter :: branch_vers='git'
       character(*), parameter :: source='mas.F90'
 !
@@ -5243,9 +5243,9 @@ program MAS
 !
       if (dryrun) then
         if (iamp0) then
-          write (9,*)
-          write (9,*) '### COMMENT from START:'
-          write (9,*) 'DRYRUN was requested.  Ending MAS.'
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### COMMENT from START:'
+          write (IO_OUT,*) 'DRYRUN was requested.  Ending MAS.'
           write (*,*)
           write (*,*) '### COMMENT from START:'
           write (*,*) 'DRYRUN was requested.  Ending MAS.'
@@ -5273,8 +5273,8 @@ program MAS
                                         ', TIME = ',time, &
                                         ', DTIME = ',dtime, &
                                       dtime_set_reason
+          FLUSH (OUTPUT_UNIT)
         end if
-        flush(OUTPUT_UNIT)
 !
 ! ****** Keep track of the average time step.
 !
@@ -5405,6 +5405,7 @@ subroutine check_if_wallclock_exceeded
       use timing
       use time_limit
       use vars
+      use io_units
 !
 !-----------------------------------------------------------------------
 !
@@ -5428,13 +5429,13 @@ subroutine check_if_wallclock_exceeded
           write (*,*) '### has been exceeded.'
           write (*,*) 'NTIME = ',ntime
           write (*,*) 'TIME = ',time
-          write (9,*)
-          write (9,*) '### WARNING from MAS:'
-          write (9,*) '### The run was stopped because the'// &
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### WARNING from MAS:'
+          write (IO_OUT,*) '### The run was stopped because the'// &
                       ' wall-clock time limit'
-          write (9,*) '### has been exceeded.'
-          write (9,*) 'NTIME = ',ntime
-          write (9,*) 'TIME = ',time
+          write (IO_OUT,*) '### has been exceeded.'
+          write (IO_OUT,*) 'NTIME = ',ntime
+          write (IO_OUT,*) 'TIME = ',time
           ifend=.true.
         end if
       end if
@@ -5458,6 +5459,7 @@ subroutine check_if_stoprun
 !
       use mpidefs
       use vars
+      use io_units
 !
 !-----------------------------------------------------------------------
 !
@@ -5482,12 +5484,12 @@ subroutine check_if_stoprun
                       //' via STOPRUN ...'
           write (*,*) 'NTIME = ',ntime
           write (*,*) 'TIME = ',time
-          write (9,*)
-          write (9,*) '### WARNING from MAS:'
-          write (9,*) '### The run was stopped prematurely' &
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### WARNING from MAS:'
+          write (IO_OUT,*) '### The run was stopped prematurely' &
                       //' via STOPRUN ...'
-          write (9,*) 'NTIME = ',ntime
-          write (9,*) 'TIME = ',time
+          write (IO_OUT,*) 'NTIME = ',ntime
+          write (IO_OUT,*) 'TIME = ',time
           ifabort=.true.
         end if
       end if
@@ -6157,14 +6159,14 @@ subroutine start
 ! ****** Log the type of timer being used to the output file.
 !
       if (iamp0) then
-        write (9,*)
-        write (9,*) repeat ('-',72)
-        write (9,*)
-        write (9,*) '### COMMENT from START:'
+        write (IO_OUT,*)
+        write (IO_OUT,*) repeat ('-',72)
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### COMMENT from START:'
         if (use_timer) then
-          write (9,*) '### Timing has been turned ON for this run.'
+          write (IO_OUT,*) '### Timing has been turned ON for this run.'
         else
-          write (9,*) '### Timing has been turned OFF for this run.'
+          write (IO_OUT,*) '### Timing has been turned OFF for this run.'
         end if
       end if
 !
@@ -6173,13 +6175,13 @@ subroutine start
 !
       if (use_wallclock_limit) then
         if (iamp0) then
-          write (9,*)
-          write (9,*) '### COMMENT from START:'
-          write (9,*) '### A wall-clock time limit has been'// &
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### COMMENT from START:'
+          write (IO_OUT,*) '### A wall-clock time limit has been'// &
                       ' specified.'
-          write (9,*)
-          write (9,*) 'Time limit [seconds] = ',int(t_wc_limit)
-          write (9,*) 'Time reserved for final diagnostics'// &
+          write (IO_OUT,*)
+          write (IO_OUT,*) 'Time limit [seconds] = ',int(t_wc_limit)
+          write (IO_OUT,*) 'Time reserved for final diagnostics'// &
                       ' [seconds] = ',int(t_wc_reserved)
         end if
       end if
@@ -6239,9 +6241,9 @@ subroutine start
         write (*,*) '### COMMENT from START:'
         write (*,*) '### The parallel flow model has been'// &
                     ' requested (FREEZE_B=.true.).'
-        write (9,*)
-        write (9,*) '### COMMENT from START:'
-        write (9,*) '### The parallel flow model has been'// &
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### COMMENT from START:'
+        write (IO_OUT,*) '### The parallel flow model has been'// &
                     ' requested (FREEZE_B=.true.).'
       end if
 !
@@ -6258,13 +6260,13 @@ subroutine start
       end if
 !
       if (iamp0) then
-        write (9,*)
-        write (9,*) '### COMMENT from START:'
-        write (9,*) '### Upwind coefficients for the A equation:'
-        write (9,*) 'UPWIND_AR = ',upwind_ar
-        write (9,*) 'UPWIND_AT = ',upwind_at
-        write (9,*) 'UPWIND_AP = ',upwind_ap
-        write (9,*) 'UPWIND_A_R0 = ',upwind_a_r0
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### COMMENT from START:'
+        write (IO_OUT,*) '### Upwind coefficients for the A equation:'
+        write (IO_OUT,*) 'UPWIND_AR = ',upwind_ar
+        write (IO_OUT,*) 'UPWIND_AT = ',upwind_at
+        write (IO_OUT,*) 'UPWIND_AP = ',upwind_ap
+        write (IO_OUT,*) 'UPWIND_A_R0 = ',upwind_a_r0
       end if
 !
 ! ****** Normalize the "floor" temperature.
@@ -15172,6 +15174,7 @@ subroutine potfld_from_bnfile
         write (IO_OUT,*) '### COMMENT from POTFLD_FROM_BNFILE:'
         write (IO_OUT,*) '### Reading Br at r=R0 from file: ', &
                           trim(bnfile)
+        FLUSH (IO_OUT)
       end if
 !
       call read_flux (bnfile,br0)
@@ -15231,6 +15234,7 @@ subroutine potfld_from_mas_br0
         write (IO_OUT,*) '### Getting Br0 from the current MAS B.'
         write (IO_OUT,*) 'NTIME = ',ntime
         write (IO_OUT,*) 'TIME = ',time
+        FLUSH (IO_OUT)
       end if
 !
 !$acc update device(a%r,a%t,a%p)
@@ -15312,6 +15316,7 @@ subroutine potfld_compute (br0)
 !
       integer :: ierr,i,j,k
       real(r_typ) :: dv
+      logical :: reset_ncghist=.false.
 !
 !-----------------------------------------------------------------------
 !
@@ -15380,6 +15385,7 @@ subroutine potfld_compute (br0)
         if (ucase(potential_field_bc).eq.'SOURCE_SURFACE') then
           write (IO_OUT,*) 'Source-surface radius [R_SS] = ',r_ss
         end if
+        FLUSH (IO_OUT)
       end if
 !
 ! ****** Write the interpolated boundary flux to file BNFILE_OUT
@@ -15391,6 +15397,7 @@ subroutine potfld_compute (br0)
           write (IO_OUT,*) '### COMMENT from POTFLD:'
           write (IO_OUT,*)
           write (IO_OUT,*) 'Writing BR0 to file: ',trim(bnfile_out)
+          FLUSH (IO_OUT)
         end if
         if (br00.ne.0.) then
           br0_tmp(:,:)=br0(:,:)+br00
@@ -15467,9 +15474,25 @@ subroutine potfld_compute (br0)
 !
       equation_solved=EQ_POT2D
 !
+      if (iamp0) then
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### Starting POT2D solver.'
+        FLUSH (IO_OUT)
+      end if
+!
+      if (ncghist.eq.0) then
+        ncghist=100
+        reset_ncghist=.true.
+      end if
+!
 !$acc enter data copyin(psi_r0,rhs2d)
       call pot2d_solver (psi_r0,rhs2d)
 !$acc exit data delete(rhs2d)
+!
+      if (reset_ncghist) then
+        ncghist=0
+        reset_ncghist=.false.
+      end if
 !
       call write_field_tp ('potfld_psi0.h5',IFLD_BR,psi_r0,0)
 !
@@ -15489,7 +15512,23 @@ subroutine potfld_compute (br0)
 !
       equation_solved=EQ_POT3D
 !
+      if (iamp0) then
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### Starting POT3D solver.'
+        FLUSH (IO_OUT)
+      end if
+!
+      if (ncghist.eq.0) then
+        ncghist=100
+        reset_ncghist=.true.
+      end if
+!
       call pot3d_solver (psi3d,rhs3d)
+!
+      if (reset_ncghist) then
+        ncghist=0
+        reset_ncghist=.false.
+      end if
 !
 !$acc update self(psi3d)
 !      if (idebug.gt.0) then
@@ -21548,6 +21587,8 @@ subroutine genmesh (io,label,nc,c0,c1,nseg,frac,dratio, &
         deallocate (dc)
         deallocate (rdc)
 !
+        FLUSH (io)
+!
       end if
 !
   900 format (/,tr1,a)
@@ -26166,6 +26207,7 @@ subroutine err_norm (rdotr,ierr)
       use number_types
       use cgcom
       use mpidefs
+      use io_units
 !
 !-----------------------------------------------------------------------
 !
@@ -26194,12 +26236,13 @@ subroutine err_norm (rdotr,ierr)
         if (mod(ncg,ncghist).eq.0) then
           if (iamp0) then
             if (ncg.eq.0) then
-              write (9,*)
-              write (9,*) '### Comment from ERR_NORM:'
-              write (9,*) '### Convergence information:'
+              write (IO_OUT,*)
+              write (IO_OUT,*) '### Comment from ERR_NORM:'
+              write (IO_OUT,*) '### Convergence information:'
             end if
-            write (9,100) ncg,epsn
-  100       format (tr1,'N = ',i6,' EPSN = ',1pe13.6)
+            write (IO_OUT,100) ncg,epsn
+            FLUSH (IO_OUT)
+  100       format (1x,'Iteration: ',i8,'   Residual: ',1pe23.15)
           end if
         end if
       end if
@@ -26209,10 +26252,11 @@ subroutine err_norm (rdotr,ierr)
       if (epsn.ge.0..and.epsn.lt.epscg_desired) then
         if (ncghist.gt.0) then
           if (iamp0) then
-            write (9,*)
-            write (9,*) '### Comment from ERR_NORM:'
-            write (9,*) '### The CG solver has converged.'
-            write (9,100) ncg,epsn
+            write (IO_OUT,*)
+            write (IO_OUT,*) '### Comment from ERR_NORM:'
+            write (IO_OUT,*) '### The CG solver has converged.'
+            write (IO_OUT,100) ncg,epsn
+            FLUSH (IO_OUT)
           end if
         end if
         ierr=0
@@ -26223,6 +26267,7 @@ subroutine err_norm (rdotr,ierr)
           write (*,*) '### Exceeded maximum number of iterations.'
           write (*,*) 'NCGMAX = ',ncgmax
           write (*,*) 'EPSN = ',epsn
+          FLUSH (IO_OUT)
         end if
         ierr=1
       end if
@@ -34224,6 +34269,7 @@ subroutine pot3d_solver (x,rhs)
       use seam_interface
       use matrix_storage_pot3d_solve
       use potential_field
+      use io_units
 !
 !-----------------------------------------------------------------------
 !
@@ -34245,7 +34291,6 @@ subroutine pot3d_solver (x,rhs)
 !-----------------------------------------------------------------------
 !
       integer :: ierr,i,j,k
-      character(32) :: capt
 !
 !-----------------------------------------------------------------------
 !
@@ -34268,8 +34313,6 @@ subroutine pot3d_solver (x,rhs)
 !$acc update device(a000,ap00,a0p0,a00p,a_dia_i)
 !
       solve_type=ST_POT3D
-!
-      capt='Initial potential'
 !
 ! ****** Set the tolerance for the solve.
 !
@@ -34308,11 +34351,11 @@ subroutine pot3d_solver (x,rhs)
 !
       if (idebug.gt.0.or.ncghist.gt.0) then
         if (iamp0) then
-          write (9,*)
-          write (9,*) '### COMMENT from POT3D_SOLVER:'
-          write (9,*) '### CG solution of '//trim(capt)//':'
-          write (9,*) 'NTIME = ',ntime
-          write (9,*) 'TIME = ',time
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### COMMENT from POT3D_SOLVER:'
+          write (IO_OUT,*) 'NTIME = ',ntime
+          write (IO_OUT,*) 'TIME = ',time
+          FLUSH (IO_OUT)
         end if
       end if
 !
@@ -34322,7 +34365,6 @@ subroutine pot3d_solver (x,rhs)
         if (iamp0) then
           write (*,*)
           write (*,*) '### ERROR in POT3D_SOLVER:'
-          write (*,*) '### CG solution of '//trim(capt)//':'
           write (*,*) '### CG solution did not converge.'
         end if
         ifabort=.true.
@@ -34331,7 +34373,7 @@ subroutine pot3d_solver (x,rhs)
 !
       if (idebug.gt.0.or.ncghist.gt.0) then
         if (iamp0) then
-          write (9,900) '### Potential field ['//trim(capt)//']:', &
+          write (9,900) '### Potential field 3D:', &
                         ncg,bnrm,rnrm
         end if
       end if
@@ -41871,6 +41913,7 @@ subroutine load_helicity_pumping_profile
                       'LOAD_HELICITY_PUMPING_PROFILE'
           write (IO_OUT,*) '### Using hpump profile: ', &
                       trim(ucase(hpump_profile))
+          FLUSH (IO_OUT)
         end if
 !
         hpump_prof(:,:,:)=hpump_constant
@@ -41883,6 +41926,7 @@ subroutine load_helicity_pumping_profile
                       'LOAD_HELICITY_PUMPING_PROFILE'
           write (IO_OUT,*) '### Using hpump profile: ', &
                       trim(ucase(hpump_profile))
+          FLUSH (IO_OUT)
         end if
 !
         do i=1,nrm
@@ -41900,6 +41944,7 @@ subroutine load_helicity_pumping_profile
                       'LOAD_HELICITY_PUMPING_PROFILE'
           write (IO_OUT,*) '### Using hpump profile: ', &
                       trim(ucase(hpump_profile))
+          FLUSH (IO_OUT)
         end if
 !
 ! ****** Interpolate the (t,p) profile from the specified file.
@@ -41954,6 +41999,7 @@ subroutine load_helicity_pumping_profile
             write (IO_OUT,*) '### Reading the (r,t,p) hpump '// &
                         ' profile from file: ', &
                         trim(hpump_profile_file)
+            FLUSH (IO_OUT)
             call read_rtp_interp_mmm (hpump_profile_file, &
                                     hpump_prof_rtp_g,1,ierr)
           end if
@@ -48280,6 +48326,7 @@ subroutine dumphist
         write (IO_OUT,*)
         write (IO_OUT,*) '### COMMENT from DUMPHIST:'
         write (IO_OUT,*) 'Wrote time histories to file: ',trim(histfile)
+        FLUSH (IO_OUT)
       end if
 !
 !-----------------------------------------------------------------------
@@ -48312,6 +48359,7 @@ subroutine dumphist
         enddo
         close(IO_HIST_DIAG)
         write (IO_OUT,*) 'Wrote time histories to file: ',trim(histfile)
+        FLUSH (IO_OUT)
       end if
 !
 !-----------------------------------------------------------------------
@@ -48399,8 +48447,10 @@ subroutine dumphist
         end if
 !
         if (iamp0) then
-       write (IO_OUT,*) 'Wrote diagnostic point time history to file: ', &
-                      trim(histfile)
+          write (IO_OUT,*) &
+            'Wrote diagnostic point time history to file: ', &
+            trim(histfile)
+          FLUSH (IO_OUT)
         end if
 !
       enddo
@@ -48409,6 +48459,7 @@ subroutine dumphist
         if (iamp0) then
           write (IO_OUT,*) 'NTIME = ',ntime
           write (IO_OUT,*) 'TIME = ',time
+          FLUSH (IO_OUT)
         end if
       end if
 !
@@ -48568,7 +48619,8 @@ subroutine particle_dump
           write (IO_OUT,*) '### ERROR in PARTICLE_DUMP:'
           write (IO_OUT,*) '### Could not write the particles file.'
           write (IO_OUT,*) 'IERR (from WRHDF_2D) = ',ierr
-        write (IO_OUT,*) 'File name: ',trim(hdfname('tracers_pos',iseq))
+          write (IO_OUT,*) 'File name: ', &
+                           trim(hdfname('tracers_pos',iseq))
           write (*,*)
           write (*,*) '### ERROR in PARTICLE_DUMP:'
           write (*,*) '### Could not write the particles file.'
@@ -48588,7 +48640,8 @@ subroutine particle_dump
             write (IO_OUT,*) '### ERROR in PARTICLE_DUMP:'
             write (IO_OUT,*) '### Could not write a particle file.'
             write (IO_OUT,*) 'IERR (from WRHDF_1D) = ',ierr
-         write (IO_OUT,*) 'File name: ',trim(hdfname('tracers_ds',iseq))
+            write (IO_OUT,*) 'File name: ', &
+                             trim(hdfname('tracers_ds',iseq))
             write (*,*)
             write (*,*) '### ERROR in PARTICLE_DUMP:'
             write (*,*) '### Could not write a particle file.'
@@ -48603,7 +48656,7 @@ subroutine particle_dump
       if (iamp0) then
         write (IO_OUT,*)
         write (IO_OUT,*) '### COMMENT from PARTICLE_DUMP:'
-       write (IO_OUT,*) '### Wrote out the requested tracer quantities.'
+        write (IO_OUT,*) '### Wrote out the requested tracer quantities.'
         write (IO_OUT,*) 'File sequence number = ',iseq
         write (IO_OUT,*) 'NTIME = ',ntime
         write (IO_OUT,*) 'TIME = ',time
@@ -71772,5 +71825,10 @@ end subroutine
 !      - BUG FIX:  The GPU ifprec detection was only happening on
 !                  process 0, so multi-GPU runs were stalling.
 !                  Also, fixed mismatch in char size of cmd line arg.
+!
+! ### Version 0.9.4.0, 05/12/2025, modified by RC:
+!      - Made some quality of life changes to output file.
+!        More writes are flushed.
+!      - Added periodic solver output to initial pot2d and pot3d solves.
 !
 !#######################################################################
