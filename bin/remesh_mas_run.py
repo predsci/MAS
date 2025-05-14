@@ -5,7 +5,7 @@ import signal
 import subprocess
 import numpy as np
 import argparse
-import psihdf
+import psi_io
 
 """
 REMESH_MAS_RUN: Version 2.2.2
@@ -344,7 +344,7 @@ def validate_non_negative_remesh(remesh_dir, remesh_vars, mas_non_neg):
     """
     for var in set(remesh_vars).intersection(mas_non_neg):
         file = os.path.join(remesh_dir, var + '_remesh' + extout)
-        rh, th, ph, f3d = psihdf.rdhdf_3d(file)
+        rh, th, ph, f3d = psi_io.rdhdf_3d(file)
 
         # interp the edges in the r and t dimensions (f will be ordered p,t,r in python)
         f3d[:, 0, :] = 0.5*(f3d[:, 0, :] + f3d[:, 1, :])

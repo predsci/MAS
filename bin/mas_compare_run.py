@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import argparse
 import os
-from psihdf import rdhdf
+from psi_io import rdhdf
 
 # Get rid of warning when nan or zero value in divisor
 np.seterr(divide='ignore', invalid='ignore')
