@@ -109,7 +109,7 @@ module ident
       character(*), parameter :: idcode='MAS'
       character(*), parameter :: vers='0.9.4.0'
       character(*), parameter :: update='05/12/2025'
-      character(*), parameter :: branch_vers='git'
+      character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
 !-----------------------------------------------------------------------
