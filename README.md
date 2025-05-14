@@ -49,11 +49,11 @@ MAS uses a namelist in an input text file to set all non-default parameters of a
 
 ### Launching the Code ###
   
-To run `MAS`, set the desired run parameters in a text file, then copy or link the `mas` executable into the same directory as teh input file  
+To run `MAS`, set the desired run parameters in a text file, then copy or link the `mas` executable into the same directory as the input file  
 and run the command:  
-  `<MPI_LAUNCHER> -np <N> ./mas `  
+  `<MPI_LAUNCHER> -np <N> ./mas <RUNNAME> <INPUT_FILE> `  
 where `<N>` is the total number of MPI ranks to use (typically equal to the number of CPU cores) and `<MPI_LAUNCHER>` is your MPI run command (e.g. `mpiexec`,`mpirun`, `ibrun`, `srun`, etc).  
-For example:  `mpiexec -np 1024 ./mas`
+For example:  `mpiexec -np 1024 ./mas my_first_run mas.in`
   
 ### Example Runs ###
   
