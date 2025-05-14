@@ -29,3 +29,5 @@
 # Executables
 *.exe
 *.app
+
+__pycache__

@@ -8,36 +8,50 @@
   
 ## OVERVIEW ##
 
-<img align="right" height=200 src="doc/mas_bast_vis_sml.png" alt="MAS"/>`MAS` is a Fortran code that integrates the time-dependent resistive thermodynamic magnetohydrodynamic (MHD) equations in three-dimentional spherical coordinates and is used extensively in models of coronal structure, coronal dynamics, and coronal mass ejections out to the Earth. It is the primary MHD model in CORHEL (Corona-Heliosphere), a suite of models for describing the solar corona and inner heliosphere and CORHEL-CME, an interface-based system for modeling CME eruptions from the Sun to Earth, both of which are available for public runs-on-demand at NASA's Community Coordinated Modeling Center.  
-
-MAS can be used with MacOS, Linux, and Windows (through WSL) on CPUs and NVIDIA GPUs. 
+<a href="https://fortran-lang.org)"><img align="right" height=200 src="doc/mas_bast_vis_sml.png" alt="MAS"/></a>MAS is a [Fortran](https://fortran-lang.org) code that integrates the time-dependent resistive thermodynamic magnetohydrodynamic (MHD) equations in three-dimensional spherical coordinates and is used extensively to compute models of coronal structure, coronal dynamics, and coronal mass ejections out to the Earth. It is the primary MHD model in [CORHEL](https://ccmc.gsfc.nasa.gov/models/CORHEL-MAS_WSA_ENLIL~5.0) (Corona-Heliosphere), a suite of models for describing the solar corona and inner heliosphere and [CORHEL-CME](https://ccmc.gsfc.nasa.gov/models/CORHEL-CME~1), an interface-based system for modeling CME eruptions from the Sun to Earth, both of which are available for public runs-on-demand at NASA's [Community Coordinated Modeling Center](https://ccmc.gsfc.nasa.gov).  
+  
+For more information on MAS, including model/computational details and references, see [here](https://predsci.com/mas).  
+  
+`MAS` can be used with MacOS, Linux, and Windows (through [WSL](https://learn.microsoft.com/en-us/windows/wsl)) on CPUs and NVIDIA GPUs. 
 
 
 --------------------------------
   
-## HOW TO BUILD/INSTALL MAS ##
+## HOW TO INSTALL MAS ##
   
-Create or select a build configuration file in the `conf/` folder. 
-Then, run `./build.sh ./conf/<CONF_FILE>.conf` where `<CONF_FILE>.conf` is the configuration file for your system.
-  
-See the multiple build configuration files in the `conf/` folder for examples.  
-  
-After the build, the script will display a BASH environment modification line that shoudl be run in a terminal (or sourced in a script) before running MAS.  
-  
+### Compilers ###
 MAS has been tested to work with the following compilers:  
- - GCC `gfortran` v12.3.0
- - NVIDIA `nvfortran` v25.3 (both CPU and GPU)
- - INTEL `ifx` v2025.1.0  
- 
-### Run the Testsuite ###
-
-To ensure the installation was sucessfull, a testsuite is provided in the `testsuite` folder.  
-To run the testsuite, first ensure the code has been compiled and then run `./run_mas_testsuite`.
-The available options for running the testsuite can be viewed by running `./run_mas_testsuite -h`.  
   
-DEVELOPERS:  
-A more expansive testsuite with a braoder range of test and stricter PASS/FAIL requirements is available [[HERE]].  
-Its use is only recommended for developers of the MAS code.
+ - GCC's `gfortran` v12.3.0  
+ - NVIDIA's `nvfortran` v25.3 (both CPU and GPU)  
+ - INTEL's `ifx` v2025.1.0  
+  
+
+### Dependencies ###
+MAS requires the [HDF5](https://www.hdfgroup.org/solutions/hdf5) library and an MPI library (e.g. [OpenMPI](https://www.open-mpi.org), [MPICH](https://www.mpich.org), etc.).
+
+### Build Instructions ###
+Create or select a build configuration file in the `./conf` folder (see the included examples in `./conf`).  
+Build the code with:
+```
+> ./build.sh ./conf/<CONF_FILE>.conf
+```
+where `<CONF_FILE>.conf` is your created/chosen configuration file.  
+ 
+  
+After the build, you can add the MAS code and tools into your `bash` path by sourcing the included helper script:  
+```
+> . load_mas_env.sh
+```
+### Run the Testsuite ###
+  
+To ensure the installation was successful, a testsuite is provided in the `testsuite` folder.  
+To run the testsuite:
+```
+> cd testsuite
+> ./run_mas_testsuite.sh
+```
+The available options can be viewed by running `./run_mas_testsuite.sh -h`.  
   
 --------------------------------
   
@@ -45,19 +59,24 @@ Its use is only recommended for developers of the MAS code.
   
 ### Setting Input Options ###
 
-MAS uses a namelist in an input text file to set all non-default parameters of a run.  
-
-### Launching the Code ###
-  
-To run `MAS`, set the desired run parameters in a text file, then copy or link the `mas` executable into the same directory as the input file  
-and run the command:  
-  `<MPI_LAUNCHER> -np <N> ./mas <RUNNAME> <INPUT_FILE> `  
-where `<N>` is the total number of MPI ranks to use (typically equal to the number of CPU cores) and `<MPI_LAUNCHER>` is your MPI run command (e.g. `mpiexec`,`mpirun`, `ibrun`, `srun`, etc).  
-For example:  `mpiexec -np 1024 ./mas my_first_run mas.in`
+MAS uses a Fortran [namelist](https://cyber.dabamos.de/programming/modernfortran/namelists.html) text input file to set all non-default parameters of a run.  
   
 ### Example Runs ###
   
-In the `examples` folder, we provide several example input file sets for various use cases of MAS.  
+In the `examples` folder, we provide inputs for several use cases of MAS.  
+
+### Launching the Code ###
+  
+To run `MAS`, create an input namelist text file, then copy or link the `mas` executable into the same directory as the input file and run the command:  
+```
+> <MPI_LAUNCHER> -np <N> ./mas <RUN_NAME> <INPUT_FILE> 
+```
+where `<RUN_NAME>` is a chosen run name, `<INPUT_FILE>` is the created input file, `<N>` is the total number of MPI ranks to use (typically equal to the number of CPU cores or number of GPUs) and `<MPI_LAUNCHER>` is your MPI run command (e.g. `mpiexec`,`mpirun`, `ibrun`, `srun`, etc).  
+For example:  
+```
+> mpiexec -np 1024 ./mas my_first_run mas.in
+```
+
 
 --------------------------------
 
