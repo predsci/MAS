@@ -88,7 +88,7 @@
   bnfile = '../input_data/br_hmi_synoptic_mr_polfil_720s_cr2124_tp_180x360_smooth05_fluxbal.h5'
   b_in_gauss = .true.
   initial_plasma = '1dfile'
-  onedfile = '../input_data/initial_plasma_parker_1d.dat'
+  onedfile = '../input_data/initial_plasma_parker_r1d.dat'
 !
 ! *** Numerical algorithm options.
 !
