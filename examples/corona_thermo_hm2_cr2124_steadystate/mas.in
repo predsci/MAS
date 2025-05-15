@@ -206,7 +206,7 @@
   heatsource(4)%lambda1 = 0.15
   heatsource(4)%nl_mask = .false.
   heatsource(4)%use_mask = .false.
-  heat_mask_file = '../input_data/closed_field_mask_pfss.h5'
+  heat_mask_file = 'closed_field_mask_pfss.h5'
   heat_file = ' '
   add_ohmic_heating = .false.
 ! *** Pressure waves
