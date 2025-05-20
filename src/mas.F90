@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.4.1'
-      character(*), parameter :: update='05/19/2025'
+      character(*), parameter :: vers='0.9.4.2'
+      character(*), parameter :: update='05/20/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -6773,7 +6773,8 @@ subroutine afromb (b,a)
       real(r_typ), dimension(nt,np), target :: ar_slice,rhs1
       real(r_typ), dimension(ntm,npm), target :: br_slice,rhs2
 !
-      integer :: i,j,k,ierr
+      integer :: i,j,k
+      integer :: ierr=0
       real(r_typ) :: r2
 !
 !-----------------------------------------------------------------------
@@ -6813,7 +6814,7 @@ subroutine afromb (b,a)
           rhs1(j,k)=r2*sth(j)*dth(j)*dph(k)*jtmp%r(i,j,k)
         enddo
 !
-        call pot2dh_solver (ar_slice,rhs1)
+        call pot2dh_solver (ar_slice,rhs1,ierr)
 !
         do concurrent (k=1:np, j=1:nt)
           a%r(i,j,k)=ar_slice(j,k)
@@ -6824,6 +6825,8 @@ subroutine afromb (b,a)
           FLUSH (IO_OUT)
         end if
       enddo
+!
+      call check_error_on_any_proc (ierr)
 !
       call dealloc_avec (jtmp)
 !
@@ -6869,7 +6872,7 @@ subroutine afromb (b,a)
           enddo
         end if
 !
-        call pot2d_solver (br_slice,rhs2)
+        call pot2d_solver (br_slice,rhs2,ierr)
 !
         do concurrent (k=1:npm, j=1:ntm)
           psi_br(i,j,k)=br_slice(j,k)
@@ -6881,6 +6884,8 @@ subroutine afromb (b,a)
         end if
 !
       enddo
+!
+      call check_error_on_any_proc (ierr)
 !
 ! ****** Now compute other A components:
 !
@@ -15323,7 +15328,8 @@ subroutine potfld_compute (br0)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr,i,j,k
+      integer :: ierr=0
+      integer :: i,j,k
       real(r_typ) :: dv
       logical :: reset_ncghist=.false.
 !
@@ -15495,8 +15501,10 @@ subroutine potfld_compute (br0)
       end if
 !
 !$acc enter data copyin(psi_r0,rhs2d)
-      call pot2d_solver (psi_r0,rhs2d)
+      call pot2d_solver (psi_r0,rhs2d,ierr)
 !$acc exit data delete(rhs2d)
+!
+      call check_error_on_any_proc (ierr)
 !
       if (reset_ncghist) then
         ncghist=0
@@ -33933,7 +33941,7 @@ subroutine delsq_perp_pot2d (ps,q)
 !
 end subroutine
 !#######################################################################
-subroutine pot2d_solver (x,rhs)
+subroutine pot2d_solver (x,rhs,ierr)
 !
 !-----------------------------------------------------------------------
 !
@@ -34040,8 +34048,8 @@ subroutine pot2d_solver (x,rhs)
           write (*,*) '### CG solution of '//trim(capt)//':'
           write (*,*) '### CG solution did not converge.'
         end if
-        ifabort=.true.
-        call final_diags
+        if (use_timer) call timer (TIME_POT2D)
+        return
       end if
 !
       if (idebug.gt.0.or.ncghist.gt.0) then
@@ -34075,7 +34083,7 @@ subroutine pot2d_solver (x,rhs)
   900 format (/,tr1,a,' N=',i5,' |B|=',1pe9.2,' |R|=',1pe9.2)
 end subroutine
 !#######################################################################
-subroutine pot2dh_solver (x,rhs)
+subroutine pot2dh_solver (x,rhs,ierr)
 !
 !-----------------------------------------------------------------------
 !
@@ -34152,8 +34160,8 @@ subroutine pot2dh_solver (x,rhs)
           write (*,*) '### CG solution of '//trim(capt)//':'
           write (*,*) '### CG solution did not converge.'
         end if
-        ifabort=.true.
-        call final_diags
+        if (use_timer) call timer (TIME_POT2DH)
+        return
       end if
 !
       if (idebug.gt.0.or.ncghist.gt.0) then
@@ -60990,7 +60998,8 @@ subroutine newflux
 !
 !-----------------------------------------------------------------------
 !
-      integer :: j,k,ierr
+      integer :: j,k
+      integer :: ierr=0
       real(r_typ) :: dv
 !
       logical, save :: first=.true.
@@ -61156,7 +61165,13 @@ subroutine newflux
 !
         equation_solved=EQ_POT2D_NEWFLUX
 !
-        call pot2d_solver (psi,rhs2d)
+        call pot2d_solver (psi,rhs2d,ierr)
+!
+       end if
+!
+       call check_error_on_any_proc (ierr)
+!
+       if (rb0) then
 !
 ! ****** Save psi for use as guess in next time-step.
 !
@@ -61282,7 +61297,13 @@ subroutine newflux
 !
         equation_solved=EQ_POT2DH
 !
-        call pot2dh_solver (phi,dvxb)
+        call pot2dh_solver (phi,dvxb,ierr)
+!
+      end if
+!
+      call check_error_on_any_proc (ierr)
+!
+      if (rb0) then
 !
 ! ****** Save phi for use as guess in next time-step.
 !
@@ -63397,7 +63418,14 @@ subroutine get_ip_boundaries
             enddo
 !
             equation_solved=EQ_POT2D_NEWFLUX
-            call pot2d_solver (psi_n,rhs2d)
+            call pot2d_solver (psi_n,rhs2d,ierr)
+          end if
+        end if
+!
+        call check_error_on_any_proc (ierr)
+!
+        if (rb0) then
+          if (first_rb0.and.ip_bc_shift_psi_guess) then
             do concurrent (k=1:npm, j=1:ntm)
               psi_rn(j,k)=psi_n(j,k)
             enddo
@@ -63466,7 +63494,13 @@ subroutine get_ip_boundaries
 !
           equation_solved=EQ_POT2D_NEWFLUX
 !
-          call pot2d_solver (psi,rhs2d)
+          call pot2d_solver (psi,rhs2d,ierr)
+!
+        end if
+!
+        call check_error_on_any_proc (ierr)
+!
+        if (rb0) then
 !
 ! ****** Store psi in psi_old for use in vxb
 ! ****** and if using rotation guess, compute psi_n.
@@ -63554,7 +63588,13 @@ subroutine get_ip_boundaries
 !
           equation_solved=EQ_POT2DH
 !
-          call pot2dh_solver (phi,dvxb)
+          call pot2dh_solver (phi,dvxb,ierr)
+!
+        end if
+!
+        call check_error_on_any_proc (ierr)
+!
+        if (rb0) then
 !
 ! ****** Save phi for use as guess in next time-step.
 !
@@ -71761,8 +71801,11 @@ end subroutine
 !      - Added periodic solver output to initial pot2d and pot3d solves.
 !
 ! ### Version 0.9.4.1, 05/19/2025, modified by MS:
-!      - Updated solvers to allocate and set IA for PC 2 and 3 
+!      - Updated solvers to allocate and set IA for PC 2 and 3
 !        at the start of the code.  This allows the diacsr routines
 !        to be vectorized (and offloaded to gpus).
+!
+! ### Version 0.9.4.2, 05/20/2025, modified by RC:
+!      - Fixed error checking on 2D solves.
 !
 !#######################################################################
