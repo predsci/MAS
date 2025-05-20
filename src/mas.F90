@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.4.0'
-      character(*), parameter :: update='05/12/2025'
+      character(*), parameter :: vers='0.9.4.1'
+      character(*), parameter :: update='05/19/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -1384,7 +1384,6 @@ module matrix_storage_pot2d_solve
 !
       real(r_typ), dimension(:), allocatable :: a_csr
       real(r_typ), dimension(:), allocatable :: lu_csr
-      real(r_typ), dimension(:), allocatable :: a_csr_x
       real(r_typ), dimension(:), allocatable :: a_csr_d
       integer, dimension(:), allocatable :: lu_csr_ja
       integer, dimension(:), allocatable :: a_csr_ia
@@ -1415,7 +1414,6 @@ module matrix_storage_pot2dh_solve
 !
       real(r_typ), dimension(:), allocatable :: a_csr
       real(r_typ), dimension(:), allocatable :: lu_csr
-      real(r_typ), dimension(:), allocatable :: a_csr_x
       real(r_typ), dimension(:), allocatable :: a_csr_d
       integer, dimension(:), allocatable :: lu_csr_ja
       integer, dimension(:), allocatable :: a_csr_ia
@@ -1453,7 +1451,6 @@ module matrix_storage_pot3d_solve
 !
       real(r_typ), dimension(:), allocatable :: a_csr
       real(r_typ), dimension(:), allocatable :: lu_csr
-      real(r_typ), dimension(:), allocatable :: a_csr_x
       real(r_typ), dimension(:), allocatable :: a_csr_d
       integer, dimension(:), allocatable :: lu_csr_ja
       integer, dimension(:), allocatable :: a_csr_ia
@@ -1485,11 +1482,10 @@ module matrix_storage_divb_solve
 !
       real(r_typ), dimension(:),       allocatable :: a_csr
       real(r_typ), dimension(:),       allocatable :: lu_csr
+      real(r_typ), dimension(:),       allocatable :: a_csr_d
       integer,     dimension(:),       allocatable :: lu_csr_ja
       integer,     dimension(:),       allocatable :: a_csr_ia
       integer,     dimension(:),       allocatable :: a_csr_ja
-      real(r_typ), dimension(:),       allocatable :: a_csr_x
-      real(r_typ), dimension(:),       allocatable :: a_csr_d
       integer,     dimension(:),       allocatable :: a_N1
       integer,     dimension(:),       allocatable :: a_N2
       integer,     dimension(:),       allocatable :: a_csr_dptr
@@ -1535,11 +1531,10 @@ module matrix_storage_v_solve
 !
       real(r_typ), dimension(:),allocatable :: a_csr
       real(r_typ), dimension(:),allocatable :: lu_csr
+      real(r_typ), dimension(:),allocatable :: a_csr_d
       integer,     dimension(:),allocatable :: lu_csr_ja
       integer,     dimension(:),allocatable :: a_csr_ia
       integer,     dimension(:),allocatable :: a_csr_ja
-      real(r_typ), dimension(:),allocatable :: a_csr_x
-      real(r_typ), dimension(:),allocatable :: a_csr_d
       integer,     dimension(:),allocatable :: a_N1
       integer,     dimension(:),allocatable :: a_N2
       integer,     dimension(:),allocatable :: a_csr_dptr
@@ -1565,11 +1560,10 @@ module matrix_storage_v_par_solve
 !
       real(r_typ), dimension(:),       allocatable :: a_csr
       real(r_typ), dimension(:),       allocatable :: lu_csr
+      real(r_typ), dimension(:),       allocatable :: a_csr_d
       integer,     dimension(:),       allocatable :: lu_csr_ja
       integer,     dimension(:),       allocatable :: a_csr_ia
       integer,     dimension(:),       allocatable :: a_csr_ja
-      real(r_typ), dimension(:),       allocatable :: a_csr_x
-      real(r_typ), dimension(:),       allocatable :: a_csr_d
       integer,     dimension(:),       allocatable :: a_N1
       integer,     dimension(:),       allocatable :: a_N2
       integer,     dimension(:),       allocatable :: a_csr_dptr
@@ -1595,11 +1589,10 @@ module matrix_storage_t_solve
 !
       real(r_typ), dimension(:),       allocatable :: a_csr
       real(r_typ), dimension(:),       allocatable :: lu_csr
+      real(r_typ), dimension(:),       allocatable :: a_csr_d
       integer,     dimension(:),       allocatable :: lu_csr_ja
       integer,     dimension(:),       allocatable :: a_csr_ia
       integer,     dimension(:),       allocatable :: a_csr_ja
-      real(r_typ), dimension(:),       allocatable :: a_csr_x
-      real(r_typ), dimension(:),       allocatable :: a_csr_d
       integer,     dimension(:),       allocatable :: a_N1
       integer,     dimension(:),       allocatable :: a_N2
       integer,     dimension(:),       allocatable :: a_csr_dptr
@@ -6337,6 +6330,8 @@ subroutine start
             write (*,*) '''POTENTIAL_FIELD'''
             write (*,*) '''ALFVEN_WAVE1'''
             write (*,*) '''ALFVEN_WAVE2'''
+            write (*,*) '''ALFVEN_WAVE2_ROTATED'''
+            write (*,*) '''A_FILE'''
           end if
           call endrun (.true.)
         end if
@@ -7232,9 +7227,12 @@ subroutine load_temp_e_advance
 !       k-1:  1, 2, 3, 4, 5
 !       k+1: 15,16,17,18,19
 !
-! ****** Get number of non-zeros in A_dia:
+! ****** Get number of non-zeros in A_dia and compute IA:
 !
-        call getM_nnz_tc (N_cgvec,a_dia_offsets,M_nnz,1)
+!$acc enter data copyin(a_dia_offsets)
+        allocate (a_csr_ia(1+N_cgvec))
+        call getM_nnz_tc (N_cgvec,a_dia_offsets,M_nnz,1,a_csr_ia)
+!$acc enter data copyin(a_csr_ia)
 !
         if (iamp0) then
           write (9,*)
@@ -7360,10 +7358,13 @@ subroutine load_v_advance
 !       j+1:               P:14
 !       k+1: R:3,4  T:7,8  P:15
 !
-! ****** Get number of non-zeros in matrix.
+! ****** Get number of non-zeros in matrix and compute IA.
 !
-        call getM_nzz_v (N_cgvec,N_vr,N_vt, &
-                         a_vr_offsets,a_vt_offsets,a_vp_offsets,M_nzz)
+!$acc enter data copyin(a_vr_offsets,a_vt_offsets,a_vp_offsets)
+        allocate (a_csr_ia(1+N_cgvec))
+        call getM_nzz_v (N_cgvec,N_vr,N_vt,a_vr_offsets, &
+                         a_vt_offsets,a_vp_offsets,M_nzz,a_csr_ia)
+!$acc enter data copyin(a_csr_ia)
 !
         if (iamp0) then
           write (9,*)
@@ -7430,7 +7431,10 @@ subroutine load_v_par_advance
 !
 ! ****** Get number of non-zeros in A:
 !
-        call getM_nnz_v_par (N_cgvec,a_dia_offsets,M_nnz,1)
+!$acc enter data copyin(a_dia_offsets)
+        allocate (a_csr_ia(1+N_cgvec))
+        call getM_nnz_v_par (N_cgvec,a_dia_offsets,M_nnz,1,a_csr_ia)
+!$acc enter data copyin(a_csr_ia)
 !
         if (iamp0) then
           write (9,*)
@@ -7501,9 +7505,12 @@ subroutine load_divb_solver
 !       k-1:  1
 !       k+1:  7
 !
-! ****** Get number of non-zeros in A:
+! ****** Get number of non-zeros in A and compute IA:
 !
-        call getM_nnz_divb (N_cgvec,a_dia_offsets,M_nnz,1)
+!$acc enter data copyin(a_dia_offsets)
+        allocate (a_csr_ia(1+N_cgvec))
+        call getM_nnz_divb (N_cgvec,a_dia_offsets,M_nnz,1,a_csr_ia)
+!$acc enter data copyin(a_csr_ia)
 !
         if (iamp0) then
           write (9,*)
@@ -8393,7 +8400,9 @@ subroutine read_and_check_input_file
 !
 !-----------------------------------------------------------------------
 !
-      namelist /topology/ nprocs,auto_decompose,nr,nt,np, &
+      namelist /topology/ nprocs,                                      &
+                          auto_decompose,                              &
+                          nr,nt,np,                                    &
                           mp_r,mp_t,mp_p
 !
 !-----------------------------------------------------------------------
@@ -28920,13 +28929,15 @@ subroutine load_preconditioner_v_solve
         enddo
 !
       elseif (ifprec_v.ge.2) then
-!$acc update self(a_r,a_t,a_p,a_dia_i)
 !
 ! ****** Convert A matrix into CSR format:
 !
+!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_v (N_cgvec,M_nzz,a_r,a_t,a_p,a_vr_offsets, &
                        a_vt_offsets,a_vp_offsets,N_vr,N_vt,N_vp, &
                        a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
+!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
+!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -29119,12 +29130,14 @@ subroutine load_preconditioner_v_par_solve
         enddo
 !
       elseif (ifprec_v.ge.2) then
-!$acc update self(a_dia,a_dia_i)
 !
 ! ****** Convert A matrix into CSR format:
 !
+!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_v_par (N_cgvec,M_nnz,a_dia,a_dia_offsets,a_csr, &
                            a_csr_ja,a_csr_ia,a_csr_dptr,1)
+!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
+!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -29276,8 +29289,11 @@ subroutine load_preconditioner_divb_solve
 !
 ! ****** Convert A matrix into CSR format:
 !
+!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_divb (N_cgvec,M_nnz,a_dia,a_dia_offsets,a_csr, &
                            a_csr_ja,a_csr_ia,a_csr_dptr,1)
+!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
+!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -30307,12 +30323,14 @@ subroutine load_preconditioner_t_solve
         enddo
 !
       elseif (ifprec_t.ge.2) then
-!$acc update self(a_dia,a_dia_i)
 !
 ! ****** Convert A matrix into CSR format:
 !
+!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_tc (N_cgvec,M_nnz,a_dia,a_dia_offsets,a_csr, &
                         a_csr_ja,a_csr_ia,a_csr_dptr,1)
+!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
+!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -30481,15 +30499,14 @@ subroutine diacsr_tc (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
         x=0
       end if
 !
-      IA(1)=ind
-      ko=1
-      i=0
-!
+!$acc enter data create(ioffok)
+!$acc parallel loop collapse(3) default(present) private(ioffok)
       do mk=2,npm1
         do mj=2,ntm1
           do mi=2,nrm1
 ! ********* Set index of value and column indicies array:
-            i=i+1
+            i = (mk-2)*(ntm1-1)*(nrm1-1)+(mj-2)*(nrm1-1)+(mi-1)
+            ko = IA(i)
 !
 ! ********* Do not add coefs that multiply boundaries:
 !           For each boundary, there is a sub-set of coefs in the
@@ -30579,13 +30596,10 @@ subroutine diacsr_tc (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
                 end if
               end if
             enddo
-!
-! ********* Set row offset:
-!
-            IA(i+1)=ko-x
           enddo
         enddo
       enddo
+!$acc exit data delete(ioffok)
 !
 end subroutine
 !#######################################################################
@@ -30647,25 +30661,23 @@ subroutine diacsr_v (N,M,Adia_r,Adia_t,Adia_p,ioff_r,ioff_t, &
 !
 !-----------------------------------------------------------------------
 !
-      IA(1)=1
-      ko=1
-      i=0
-!
 ! *** Do not add coefs that multiply boundaries:
 !     For each boundary, there is a sub-set of coefs in the
 !     matrix row that should not be added.
 !     This makes "local" matrices have no bc info
 !
-      rowr =0
 ! *** Add r-rows:
+!$acc enter data create(ioffok)
+!$acc parallel loop collapse(3) default(present) private(ioffok)
       do mk=2,npm1
         do mj=2,ntm1
           do mi=2,nrm-1
 !
 ! ********* Set index of value and column indicies array:
 !
-            i=i+1
-            rowr=rowr+1
+            i=(mk-2)*(ntm1-1)*(nrm-2)+(mj-2)*(nrm-2)+(mi-1)
+            ko=IA(i)
+            rowr=i
 !
 ! ********* Reset "i-offset-ok-to-use-coef-jj" array:
 !
@@ -30713,23 +30725,21 @@ subroutine diacsr_v (N,M,Adia_r,Adia_t,Adia_p,ioff_r,ioff_t, &
                 end if
               end if
             enddo
-!
-! ********* Set row offset:
-!
-            IA(i+1)=ko
           enddo
         enddo
       enddo
 !
 ! *** Add t-rows:
 !
-      rowt=0
+!$acc parallel loop collapse(3) default(present) private(ioffok)
       do mk=2,npm1
         do mj=2,ntm-1
           do mi=2,nrm1
 !
-            i=i+1
-            rowt=rowt+1
+            rowr=(npm1-1)*(ntm1-1)*(nrm-2)
+            rowt=(mk-2)*(ntm-2)*(nrm1-1)+(mj-2)*(nrm1-1)+(mi-1)
+            i=rowr+rowt
+            ko=IA(i)
 !
             ioffok(:)=1
 !
@@ -30773,21 +30783,22 @@ subroutine diacsr_v (N,M,Adia_r,Adia_t,Adia_p,ioff_r,ioff_t, &
                 end if
               end if
             enddo
-! ********* Set row offset:
-            IA(i+1)=ko
           enddo
         enddo
       enddo
 !
 ! *** Add p-rows:
 !
-      rowp=0
+!$acc parallel loop collapse(3) default(present) private(ioffok)
       do mk=2,npm-1
         do mj=2,ntm1
           do mi=2,nrm1
 ! ********* Set index of value and column indicies array:
-            i=i+1
-            rowp=rowp+1
+            rowr=(npm1-1)*(ntm1-1)*(nrm-2)
+            rowt=(npm1-1)*(ntm-2)*(nrm1-1)
+            rowp=(mk-2)*(ntm1-1)*(nrm1-1)+(mj-2)*(nrm1-1)+(mi-1)
+            i=rowr+rowt+rowp
+            ko=IA(i)
 !           Reset "i-offset-ok-to-use-coef-jj" array:
             ioffok(:)=1
 !
@@ -30831,13 +30842,10 @@ subroutine diacsr_v (N,M,Adia_r,Adia_t,Adia_p,ioff_r,ioff_t, &
                 end if
               end if
             enddo
-!
-! ********* Set row offset:
-!
-            IA(i+1)=ko
           enddo
         enddo
       enddo
+!$acc exit data delete(ioffok)
 !
 end subroutine
 !#######################################################################
@@ -30909,15 +30917,14 @@ subroutine diacsr_v_par (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
         x=0
       end if
 !
-      IA(1)=ind
-      ko=1
-      i=0
-!
+!$acc enter data create(ioffok)
+!$acc parallel loop collapse(3) default(present) private(ioffok)
       do mk=2,npm1
         do mj=2,ntm1
           do mi=2,nrm1
 ! ********* Set index of value and column indicies array:
-            i=i+1
+            i = (mk-2)*(ntm1-1)*(nrm1-1)+(mj-2)*(nrm1-1)+(mi-1)
+            ko = IA(i)
 !
 ! ********* Do not add coefs that multiply boundaries:
 !           For each boundary, there is a sub-set of coefs in the
@@ -30999,13 +31006,10 @@ subroutine diacsr_v_par (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
                 end if
               end if
             enddo
-!
-! ********* Set row offset:
-!
-            IA(i+1)=ko-x
           enddo
         enddo
       enddo
+!$acc exit data delete(ioffok)
 !
 end subroutine
 !#######################################################################
@@ -31084,15 +31088,14 @@ subroutine diacsr_divb (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
         x=0
       end if
 !
-      IA(1)=ind
-      ko=1
-      i=0
-!
+!$acc enter data create(ioffok)
+!$acc parallel loop collapse(3) default(present) private(ioffok)
       do mk=2,npm-1
         do mj=2,ntm-1
           do mi=i0,nrm1
 ! ********* Set index of value and column indicies array:
-            i=i+1
+            i = (mk-2)*(ntm-2)*(nrm1-i0+1)+(mj-2)*(nrm1-i0+1)+(mi-i0)+1
+            ko = IA(i)
 !
 ! ********* Do not add coefs that multiply boundaries:
 !           For each boundary, there is a sub-set of coefs in the
@@ -31174,17 +31177,14 @@ subroutine diacsr_divb (N,M,Adia,ioff,Acsr,JA,IA,Adptr,ind)
                 end if
               end if
             enddo
-!
-! ********* Set row offset:
-!
-            IA(i+1)=ko-x
           enddo
         enddo
       enddo
+!$acc exit data delete(ioffok)
 !
 end subroutine
 !#######################################################################
-subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
+subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M,IA)
 !
 !-----------------------------------------------------------------------
 !
@@ -31208,9 +31208,10 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
       integer      :: rowr,rowt,rowp
       integer      :: ioff_r(IDIAG),ioff_t(IDIAG),ioff_p(IDIAG)
       integer      :: ioffok(IDIAG)
+      integer      :: IA(N+1)
 !
-      ko   =1
       i    =0
+      IA(1)=1
 !
       rowr =0
 !     Add r-rows:
@@ -31245,6 +31246,7 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
 !
             if (mk.eq.npm1) ioffok( 7)=0
 !
+            ko=0
             do jj=1, IDIAG
               if (ioffok(jj).eq.1) then
                 j=rowr+ioff_r(jj)
@@ -31259,6 +31261,7 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
                 end if
               end if
             enddo
+            IA(i+1)=IA(i)+ko
           enddo
         enddo
       enddo
@@ -31295,6 +31298,7 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
 !
             if (mk.eq.npm1) ioffok(11)=0
 !
+            ko=0
             do jj=1, IDIAG
               if (ioffok(jj).eq.1) then
                 j=rowt+ioff_t(jj)
@@ -31309,6 +31313,7 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
                 end if
               end if
             enddo
+            IA(i+1)=IA(i)+ko
           enddo
         enddo
       enddo
@@ -31343,6 +31348,7 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
               ioffok(15)=0
             end if
 !
+            ko=0
             do jj=1, IDIAG
               if (ioffok(jj).eq.1) then
                 j=rowp+ioff_p(jj)
@@ -31357,17 +31363,18 @@ subroutine getM_nzz_v (N, Nvr,Nvt,ioff_r,ioff_t,ioff_p,M)
                 end if
               end if
             enddo
+            IA(i+1)=IA(i)+ko
           enddo
         enddo
       enddo
 !
 ! *** Save number of non-zeros of matrix:
 !
-      M=ko-1
+      M=IA(N+1)-1
 !
 end subroutine
 !#######################################################################
-subroutine getM_nnz_v_par (N,ioff,M,ind)
+subroutine getM_nnz_v_par (N,ioff,M,ind,IA)
 !
 !-----------------------------------------------------------------------
 !
@@ -31392,14 +31399,16 @@ subroutine getM_nnz_v_par (N,ioff,M,ind)
       integer      :: N,M,i,j,jj,ko,mi,mj,mk,ind,x
       integer      :: ioff(IDIAG)
       integer      :: ioffok(IDIAG)
+      integer      :: IA(N+1)
 !
       if (ind.eq.0) then
          x=1
       else
          x=0
       end if
-      ko   =1
       i    =0
+!
+      IA(1)=ind
 !
       do mk=2,npm1
         do mj=2,ntm1
@@ -31434,43 +31443,24 @@ subroutine getM_nnz_v_par (N,ioff,M,ind)
               end if
             end if
 !
+            ko=0
             do jj=1, IDIAG
               if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j > N-x ) then
-                  ko=ko+1
-                end if
+                ko=ko+1
               end if
             enddo
-!
-            do jj=1, IDIAG
-              if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j.ge.ind.and.j.le.N-x ) then
-                  ko=ko+1
-                end if
-              end if
-            enddo
-!
-            do jj=1, IDIAG
-              if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j < ind ) then
-                   ko=ko+1
-                end if
-              end if
-            enddo
+            IA(i+1)=IA(i)+ko
           enddo
         enddo
       enddo
 !
 ! *** Save number of non-zeros of matrix:
 !
-      M=ko-1
+      M=IA(N+1)-1
 !
 end subroutine
 !#######################################################################
-subroutine getM_nnz_tc (N,ioff,M,ind)
+subroutine getM_nnz_tc (N,ioff,M,ind,IA)
 !
 !-----------------------------------------------------------------------
 !
@@ -31495,14 +31485,16 @@ subroutine getM_nnz_tc (N,ioff,M,ind)
       integer      :: N,M,i,j,jj,ko,mi,mj,mk,ind,x
       integer      :: ioff(IDIAG)
       integer      :: ioffok(IDIAG)
+      integer      :: IA(N+1)
 !
       if (ind.eq.0) then
          x=1
       else
          x=0
       end if
-      ko   =1
       i    =0
+!
+      IA(1)=ind
 !
       do mk=2,npm1
         do mj=2,ntm1
@@ -31543,43 +31535,24 @@ subroutine getM_nnz_tc (N,ioff,M,ind)
               end if
             end if
 !
+            ko=0
             do jj=1, IDIAG
               if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j > N-x ) then
-                  ko=ko+1
-                end if
+                ko=ko+1
               end if
             enddo
-!
-            do jj=1, IDIAG
-              if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j.ge.ind.and.j.le.N-x ) then
-                  ko=ko+1
-                end if
-              end if
-            enddo
-!
-            do jj=1, IDIAG
-              if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j < ind ) then
-                   ko=ko+1
-                end if
-              end if
-            enddo
+            IA(i+1)=IA(i)+ko
           enddo
         enddo
       enddo
 !
 ! *** Save number of non-zeros of matrix:
 !
-      M=ko-1
+      M=IA(N+1)-1
 !
 end subroutine
 !#######################################################################
-subroutine getM_nnz_divb (N,ioff,M,ind)
+subroutine getM_nnz_divb (N,ioff,M,ind,IA)
 !
 !-----------------------------------------------------------------------
 !
@@ -31605,6 +31578,7 @@ subroutine getM_nnz_divb (N,ioff,M,ind)
       integer      :: ioff(IDIAG)
       integer      :: ioffok(IDIAG)
       integer      :: i0
+      integer      :: IA(N+1)
 !
 !-----------------------------------------------------------------------
 !
@@ -31619,8 +31593,9 @@ subroutine getM_nnz_divb (N,ioff,M,ind)
       else
          x=0
       end if
-      ko   =1
       i    =0
+!
+      IA(1)=ind
 !
       do mk=2,npm-1
         do mj=2,ntm-1
@@ -31655,39 +31630,20 @@ subroutine getM_nnz_divb (N,ioff,M,ind)
               end if
             end if
 !
+            ko=0
             do jj=1, IDIAG
               if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j > N-x ) then
-                  ko=ko+1
-                end if
+                ko=ko+1
               end if
             enddo
-!
-            do jj=1, IDIAG
-              if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j.ge.ind.and.j.le.N-x ) then
-                  ko=ko+1
-                end if
-              end if
-            enddo
-!
-            do jj=1, IDIAG
-              if (ioffok(jj).eq.1) then
-                j=i+ioff(jj)-x
-                if ( j < ind ) then
-                   ko=ko+1
-                end if
-              end if
-            enddo
+            IA(i+1)=IA(i)+ko
           enddo
         enddo
       enddo
 !
 ! *** Save number of non-zeros of matrix:
 !
-      M=ko-1
+      M=IA(N+1)-1
 !
 end subroutine
 !#######################################################################
@@ -32186,13 +32142,11 @@ subroutine alloc_t_matrix_coefs
       if (ifprec_t.ge.2.and..not.use_sts_tc) then
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
+        allocate (a_csr_d (    N_cgvec))
         allocate (lu_csr_ja(   M_nnz))
         allocate (a_csr_ja(    M_nnz))
-        allocate (a_csr_ia(  1+N_cgvec))
-        allocate (a_csr_x(     N_cgvec))
         allocate (a_N1(        N_cgvec))
         allocate (a_N2(        N_cgvec))
-        allocate (a_csr_d(     N_cgvec))
         allocate (a_csr_dptr(  N_cgvec))
       end if
 !
@@ -32224,11 +32178,9 @@ subroutine dealloc_t_matrix_coefs
       if (ifprec_t.ge.2.and..not.use_sts_tc) then
         deallocate (a_csr)
         deallocate (lu_csr)
-        deallocate (lu_csr_ja)
-        deallocate (a_csr_ia)
-        deallocate (a_csr_ja)
-        deallocate (a_csr_x)
         deallocate (a_csr_d)
+        deallocate (lu_csr_ja)
+        deallocate (a_csr_ja)
         deallocate (a_N1)
         deallocate (a_N2)
         deallocate (a_csr_dptr)
@@ -32467,13 +32419,11 @@ subroutine alloc_v_matrix_coefs
       if (ifprec_v.ge.2) then
         allocate (a_csr   (   M_nzz))
         allocate (lu_csr  (   M_nzz))
+        allocate (a_csr_d (   N_cgvec))
         allocate (lu_csr_ja(  M_nzz))
         allocate (a_csr_ja(   M_nzz))
-        allocate (a_csr_ia( 1+N_cgvec))
-        allocate (a_csr_x(    N_cgvec))
         allocate (a_N1(       N_cgvec))
         allocate (a_N2(       N_cgvec))
-        allocate (a_csr_d(    N_cgvec))
         allocate (a_csr_dptr( N_cgvec))
       end if
 !
@@ -32506,11 +32456,9 @@ subroutine dealloc_v_matrix_coefs
       if (ifprec_v.ge.2) then
         deallocate (a_csr)
         deallocate (lu_csr)
-        deallocate (lu_csr_ja)
-        deallocate (a_csr_ia)
-        deallocate (a_csr_ja)
-        deallocate (a_csr_x)
         deallocate (a_csr_d)
+        deallocate (lu_csr_ja)
+        deallocate (a_csr_ja)
         deallocate (a_N1)
         deallocate (a_N2)
         deallocate (a_csr_dptr)
@@ -32546,13 +32494,11 @@ subroutine alloc_v_par_matrix_coefs
       if (ifprec_v.ge.2) then
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
+        allocate (a_csr_d (    N_cgvec))
         allocate (lu_csr_ja(   M_nnz))
         allocate (a_csr_ja(    M_nnz))
-        allocate (a_csr_ia(  1+N_cgvec))
-        allocate (a_csr_x(     N_cgvec))
         allocate (a_N1(        N_cgvec))
         allocate (a_N2(        N_cgvec))
-        allocate (a_csr_d(     N_cgvec))
         allocate (a_csr_dptr(  N_cgvec))
       end if
 !
@@ -32583,11 +32529,9 @@ subroutine dealloc_v_par_matrix_coefs
       if (ifprec_v.ge.2) then
         deallocate (a_csr)
         deallocate (lu_csr)
-        deallocate (lu_csr_ja)
-        deallocate (a_csr_ia)
-        deallocate (a_csr_ja)
-        deallocate (a_csr_x)
         deallocate (a_csr_d)
+        deallocate (lu_csr_ja)
+        deallocate (a_csr_ja)
         deallocate (a_N1)
         deallocate (a_N2)
         deallocate (a_csr_dptr)
@@ -32623,13 +32567,11 @@ subroutine alloc_divb_matrix_coefs
       if (ifprec_divb.ge.2) then
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
+        allocate (a_csr_d (    N_cgvec))
         allocate (lu_csr_ja(   M_nnz))
         allocate (a_csr_ja(    M_nnz))
-        allocate (a_csr_ia(  1+N_cgvec))
-        allocate (a_csr_x(     N_cgvec))
         allocate (a_N1(        N_cgvec))
         allocate (a_N2(        N_cgvec))
-        allocate (a_csr_d(     N_cgvec))
         allocate (a_csr_dptr(  N_cgvec))
       end if
 !
@@ -32660,11 +32602,9 @@ subroutine dealloc_divb_matrix_coefs
       if (ifprec_divb.ge.2) then
         deallocate (a_csr)
         deallocate (lu_csr)
-        deallocate (lu_csr_ja)
-        deallocate (a_csr_ia)
-        deallocate (a_csr_ja)
-        deallocate (a_csr_x)
         deallocate (a_csr_d)
+        deallocate (lu_csr_ja)
+        deallocate (a_csr_ja)
         deallocate (a_N1)
         deallocate (a_N2)
         deallocate (a_csr_dptr)
@@ -32892,7 +32832,8 @@ subroutine load_pot2d_solve
         a_dia_offsets(4)= 1          ! i+1
         a_dia_offsets(5)=    (ntm1-j0+1) !    j+1
 !
-        call getM_nnz_pot2d (N_cgvec,a_dia_offsets,M_nnz)
+        allocate (a_csr_ia(1+N_cgvec))
+        call getM_nnz_pot2d (N_cgvec,a_dia_offsets,M_nnz,a_csr_ia)
         if (iamp0) then
           write (9,*)
           write (9,*) '### COMMENT from LOAD_POT2D_SOLVE:'
@@ -32951,7 +32892,8 @@ subroutine load_pot2dh_solve
         a_dia_offsets(4)= 1          ! i+1
         a_dia_offsets(5)=    (ntm2)  !    j+1
 !
-        call getM_nnz_pot2dh (N_cgvec,a_dia_offsets,M_nnz)
+        allocate (a_csr_ia(1+N_cgvec))
+        call getM_nnz_pot2dh (N_cgvec,a_dia_offsets,M_nnz,a_csr_ia)
         if (iamp0) then
           write (9,*)
           write (9,*) '### COMMENT from LOAD_POT2DH_SOLVE:'
@@ -33066,13 +33008,11 @@ subroutine alloc_pot2d_matrix_coefs
       if (ifprec_pot2d.ge.2) then
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
+        allocate (a_csr_d(     N_cgvec))
         allocate (lu_csr_ja(   M_nnz))
         allocate (a_csr_ja(    M_nnz))
-        allocate (a_csr_ia(  1+N_cgvec))
-        allocate (a_csr_x(     N_cgvec))
         allocate (a_N1(        N_cgvec))
         allocate (a_N2(        N_cgvec))
-        allocate (a_csr_d(     N_cgvec))
         allocate (a_csr_dptr(  N_cgvec))
       end if
 !
@@ -33108,13 +33048,11 @@ subroutine alloc_pot2dh_matrix_coefs
       if (ifprec_pot2d.ge.2) then
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
+        allocate (a_csr_d (    N_cgvec))
         allocate (lu_csr_ja(   M_nnz))
         allocate (a_csr_ja(    M_nnz))
-        allocate (a_csr_ia(  1+N_cgvec))
-        allocate (a_csr_x(     N_cgvec))
         allocate (a_N1(        N_cgvec))
         allocate (a_N2(        N_cgvec))
-        allocate (a_csr_d(     N_cgvec))
         allocate (a_csr_dptr(  N_cgvec))
       end if
 !
@@ -33534,10 +33472,6 @@ subroutine diacsr_pot2d (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
 !
 !-----------------------------------------------------------------------
 !
-      IA(1)=1
-      ko=1
-      i=0
-!
       if (tb0) then
         j0=1
       else
@@ -33546,8 +33480,9 @@ subroutine diacsr_pot2d (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
 !
       do mk=2,npm-1
         do mj=j0,ntm1
-! ******* Set index of value and column indicies array:
-          i=i+1
+! ***** Set index of value and column indicies array:
+          i = (mk-2)*(ntm1-j0+1)+(mj-j0)+1
+          ko = IA(i)
 !
 ! ******* Do not add coefs that multiply boundaries:
 !         For each boundary, there is a sub-set of coefs in the
@@ -33598,16 +33533,12 @@ subroutine diacsr_pot2d (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
               end if
             end if
           enddo
-!
-! ********* Set row offset:
-!
-          IA(i+1)=ko
         enddo
       enddo
 !
 end subroutine
 !#######################################################################
-subroutine getM_nnz_pot2d (N,ioff,M)
+subroutine getM_nnz_pot2d (N,ioff,M,IA)
 !
 !-----------------------------------------------------------------------
 !
@@ -33639,11 +33570,11 @@ subroutine getM_nnz_pot2d (N,ioff,M)
 !
       integer :: i,j,jj,mj,mk,ko,j0
       integer :: ioffok(IDIAG)
+      integer :: IA(N+1)
 !
 !-----------------------------------------------------------------------
 !
-      ko=1
-      i=0
+      IA(1)=1
 !
       if (tb0) then
         j0=1
@@ -33654,7 +33585,7 @@ subroutine getM_nnz_pot2d (N,ioff,M)
       do mk=2,npm-1
         do mj=j0,ntm1
 ! ******* Set index of value and column indicies array:
-          i=i+1
+          i = (mk-2)*(ntm1-j0+1)+(mj-j0)+1
 !
           ioffok(:)=1
 !
@@ -33688,6 +33619,7 @@ subroutine getM_nnz_pot2d (N,ioff,M)
             ioffok(5)=0;
           end if
 !
+          ko=0
           do jj=1,IDIAG
             if (ioffok(jj).eq.1) then
               j=i+ioff(jj)
@@ -33696,13 +33628,14 @@ subroutine getM_nnz_pot2d (N,ioff,M)
               end if
             end if
           enddo
+          IA(i+1)=IA(i)+ko
 !
         enddo
       enddo
 !
 ! *** Save number of non-zeros of matrix:
 !
-      M=ko-1
+      M=IA(N+1)-1
 !
 end subroutine
 !#######################################################################
@@ -33758,14 +33691,11 @@ subroutine diacsr_pot2dh (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
 !
 !-----------------------------------------------------------------------
 !
-      IA(1)=1
-      ko=1
-      i=0
-!
       do mk=2,npm1
         do mj=2,ntm1
 ! ******* Set index of value and column indicies array:
-          i=i+1
+          i = (mk-2)*(ntm1-1)+(mj-2)+1
+          ko = IA(i)
 !
 ! ******* Do not add coefs that multiply boundaries:
 !         For each boundary, there is a sub-set of coefs in the
@@ -33792,25 +33722,21 @@ subroutine diacsr_pot2dh (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
           do jj=1,IDIAG
             if (ioffok(jj).eq.1) then
             j=i+ioff(jj)
-            if(j.ge.1.and.j.le.N) then
+              if(j.ge.1.and.j.le.N) then
 !             Store pointer to diagonal elements in A:
-              if (jj.eq.3) Adptr(i)=ko
-              Acsr(ko)=Adia(jj,i)
-              JA(ko)=j
-              ko=ko+1
-            end if
+                if (jj.eq.3) Adptr(i)=ko
+                Acsr(ko)=Adia(jj,i)
+                JA(ko)=j
+                ko=ko+1
+              end if
             end if
           enddo
-!
-! ********* Set row offset:
-!
-          IA(i+1)=ko
         enddo
       enddo
 !
 end subroutine
 !#######################################################################
-subroutine getM_nnz_pot2dh (N,ioff,M)
+subroutine getM_nnz_pot2dh (N,ioff,M,IA)
 !
 !-----------------------------------------------------------------------
 !
@@ -33842,11 +33768,12 @@ subroutine getM_nnz_pot2dh (N,ioff,M)
 !
       integer :: i,j,jj,mj,mk,ko
       integer :: ioffok(IDIAG)
+      integer :: IA(N+1)
 !
 !-----------------------------------------------------------------------
 !
-      ko=1
       i=0
+      IA(1)=1
 !
       do mk=2,npm1
         do mj=2,ntm1
@@ -33871,6 +33798,7 @@ subroutine getM_nnz_pot2dh (N,ioff,M)
             ioffok(5)=0;
           end if
 !
+          ko=0
           do jj=1,IDIAG
             if (ioffok(jj).eq.1) then
               j=i+ioff(jj)
@@ -33879,13 +33807,14 @@ subroutine getM_nnz_pot2dh (N,ioff,M)
               end if
             end if
           enddo
+          IA(i+1)=IA(i)+ko
 !
         enddo
       enddo
 !
 ! *** Save number of non-zeros of matrix:
 !
-      M=ko-1
+      M=IA(N+1)-1
 !
 end subroutine
 !#######################################################################
@@ -71830,5 +71759,10 @@ end subroutine
 !      - Made some quality of life changes to output file.
 !        More writes are flushed.
 !      - Added periodic solver output to initial pot2d and pot3d solves.
+!
+! ### Version 0.9.4.1, 05/19/2025, modified by MS:
+!      - Updated solvers to allocate and set IA for PC 2 and 3 
+!        at the start of the code.  This allows the diacsr routines
+!        to be vectorized (and offloaded to gpus).
 !
 !#######################################################################

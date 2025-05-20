@@ -352,7 +352,7 @@ do
   if [ ${norun} == 0 ]
   then
 
-    if [ -e ${RUNDIR}/omas ]
+    if [ -e ${RUNDIR}/mas.out ]
     then
       ${echo} "==> Clearing old run..."
       rm -fr ${RUNDIR}/*
@@ -367,23 +367,23 @@ do
     ${echo} "${cB}==> RUNNING MAS${cX}"
     ${echo} "======================================================="
     ${echo} "==> Running mas with command:"
-    ${echo} "==> ${mpicall} ${np} ${masexe} mas mas.in 1>mas.log 2>mas.err"
-    ${mpicall} ${np} ${masexe} mas mas.in 1>mas.log 2>mas.err
+    ${echo} "==> ${mpicall} ${np} ${masexe} ${TESTNAME} mas.in 1>mas.log 2>mas.err"
+    ${mpicall} ${np} ${masexe} ${TESTNAME} mas.in 1>mas.log 2>mas.err
 
     # Check that a completed run exists in the run folder
-    #if [ ! -e ${RUNDIR}/hmas ]
-    #then
-    #  if [ ${norun} == 0 ]
-    #  then
-    #    ${echo} "${cR}!!!> ERROR! Test ${TESTNAME} did not run correctly!${cX}"
-    #    ${echo} "${cR}!!!> Check the run folder: ${RUNDIR} ${cX}"
-    #    ${echo} "${cR}!!!> mas.log contents: ${cX}"
-    #    cat ${RUNDIR}/mas.log
-    #    ${echo} "${cR}!!!> mas.err contents: ${cX}"
-    #    cat ${RUNDIR}/mas.err
-    #    exit 1
-    #  fi
-    #fi
+    if [ ! -e ${RUNDIR}/mas_timing.out ]
+    then
+      if [ ${norun} == 0 ]
+      then
+        ${echo} "${cR}!!!> ERROR! Test ${TESTNAME} did not run correctly!${cX}"
+        ${echo} "${cR}!!!> Check the run folder: ${RUNDIR} ${cX}"
+        ${echo} "${cR}!!!> mas.log contents: ${cX}"
+        cat ${RUNDIR}/mas.log
+        ${echo} "${cR}!!!> mas.err contents: ${cX}"
+        cat ${RUNDIR}/mas.err
+        exit 1
+      fi
+    fi
 
   # Get timing data:
     TIME_RUN_TMP=($(grep "### CPU time used (on IPROC0):" ${RUNDIR}/mas.log))

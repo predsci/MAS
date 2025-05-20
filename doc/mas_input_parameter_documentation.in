@@ -1,81 +1,85 @@
 !
 ! ### INPUT PARAMETER OPTIONS FOR MAS ###
-! ### THIS FILE IS A VALID INPUT FILE ###
+! ### THIS FILE IS A VALID INPUT FILE WITH CODE DEFAULTS ###
 ! ### Note that this file is a work-in-progress and does not
 ! ### currently cover all input parameters.
+!
+! ### DOC Version: 0.1.0    MAS Version: 0.9.3.0
 !
 !
 ! *** Grid resolution.
 !
 &topology
-  nr = 61                      ! Grid resolution in the `r` direction.
-  nt = 31                      ! Grid resolution in the `theta` direction.
-  np = 61                      ! Grid resolution in the `phi` direction.
+  nr = 61                                                ! Grid resolution in the `r` direction.
+
+  nt = 31                                                ! Grid resolution in the `theta` direction.
+
+  np = 61                                                ! Grid resolution in the `phi` direction.
 /
 &data
-!
-! *** Use the new style output text files.
-!
-  legacy_output_filenames = .false.
-!
-! *** Radial domain.
-!
-  r0 = 1.0                     ! Coordinate of the lower radial boundary.
-  r1 = 30.0                    ! Coordinate of the upper radial boundary.
-!
-! *** Time domain.
-!
-  tmax = 0.5                                             ! End time of the simulation in MAS time units.
-!
-! *** Grid specifications.
-!
-  rfrac    = 0.0,3.103429E-04,9.198402E-03,1.206897E-02, ! Normalized positions of grid segment boundaries
-             1.020199E-01,1.034483E-01,1.0               ! (as a fraction of domain size) for radial grid.
 
-  drratio  = 7.001596E-01,2.142857E+01,1.0,7.957998,     ! Ratio of grid spacing at the end of each segment to that
-             1.0,1.197639E+01                            ! at the beginning for the radial grid
+  legacy_output_filenames = .false.                      ! Set to true to use the old-style file output.
+
+  r0 = 1.0                                               ! Coordinate of the lower radial boundary.
+
+  r1 = 30.0                                              ! Coordinate of the upper radial boundary.
+
+  tmax = 0.5                                             ! End time of the simulation in MAS time units.
+
+  rfrac    = 0.0,1.0                                     ! Normalized positions of grid segment boundaries
+                                                         ! (as a fraction of domain size) for radial grid.
+
+  drratio  = 1.0                                         ! Ratio of grid spacing at the end of each segment to that
+                                                         ! at the beginning for the radial grid
                                                          ! [ length(drratio) = length(rfrac)-1 ].
 
   nfrmesh  = 5                                           ! Number of times to filter/smooth the radial grid spacing.
-  tfrac    = 0.0                                         ! Normalized positions of grid segment boundaries
-                                                         ! (as a fraction of domain size) for theta grid.
-  dtratio  = 1.0                                         ! Ratio of grid spacing at the end of each segment to that
-                                                         ! at the beginning for the theta grid
-                                                         ! [ length(dtratio) = length(tfrac)-1 ].
-  nftmesh  = 5                                           ! Number of times to filter/smooth the theta grid spacing.
-  pfrac    = 0.0                                         ! Normalized positions of grid segment boundaries
-                                                         ! (as a fraction of domain size) for phi grid.
-  dpratio  = 1.0                                         ! Ratio of grid spacing at the end of each segment to that
-                                                         ! at the beginning for the phi grid
-                                                         ! [ length(dtratio) = length(pfrac) ].
-  nfpmesh  = 5                                           ! Number of times to filter/smooth the phi grid spacing.
+
+  tfrac    = 0.0,1.0                                     ! Same as rfrac but for theta grid.
+
+  dtratio  = 1.0                                         ! Same as drratio but for theta grid.
+
+  nftmesh  = 5                                           ! Same as nfrmesh but for theta grid.
+
+  pfrac    = 0.0                                         ! Same as rfrac but for phi grid.  
+                                                         ! Here there is one less value due to periodic boundary.
+
+  dpratio  = 1.0                                         ! Same as drratio but for phi grid. 
+                                                         ! Here, length(dpratio) = length(pfrac).
+
+  nfpmesh  = 5                                           ! Same as nfrmesh but for phi grid.
+
   phishift = 0.0                                         ! Apply an optional phi shift (radians) to the input phi grid.
-!
-! *** Time step specifications.
-!
-  dtmax = 0.01
-  dtmin = 1.e-5
-  dt_init = 0.005
-  dt_max_wave_cfl = 200.0
-!
-! *** Output options.
-!
-  plotlist = 'zp'
+
+  dtmax = 0.01                                           ! Maximum allowed time step.  
+                                                         ! Will be first time step to try unless dt_init is set.
+
+  dtmin = 1.e-5                                          ! Minimum allowed time step.  If time step drops below this, 
+                                                         ! a warning is issued.
+
+  dt_init = 0.005                                        ! Initial time step to use unless stability requires it lower.
+
+  dt_max_wave_cfl = 1000.0                               ! Limit the time step to dt_max_wave_cfl times 
+                                                         ! larger than the wave CFL limit.              
+
+  plotlist = 'zp'                                        ! List of 3D quantities to output.
+
   ipltxint = 2
   tpltxint = 0.0
-  slice_plotlist = 'rho'
+
+  slice_plotlist = 'rho'                                 ! List of 2D theta-phi slice quantities to output.
+
   slice_tp_radii = 10.0
   slice_ixint = 1
   slice_txint = 0.0
   trace_txint = 0.0
-  hdf32 = .false.                         ! Output precision:
-                                          !   .true.   Single-precision (32-bit) output.
-                                          !   .false.  Double-precision (64-bit) output.
+
+  hdf32 = .false.                                      ! Output hdf5 precision:
+                                                       !   .true.   Single-precision (32-bit) output.
+                                                       !   .false.  Double-precision (64-bit) output.
+
   rs_final = .false.
   trsdump = 0.0
-!
-! *** Model specification.
-!
   advance_a    = .true.
   advance_v    = .true.
   advance_t    = .true.
@@ -103,7 +107,6 @@
   max_alfven_speed_rho_mod = 100.0
   ubzero = .false.
   filter_poles = .true.
-! *** Thermal conduction:
   advance_tc = .true.
   tcond = 1.0
   t_cutoff1 = 400000.0
@@ -115,10 +118,8 @@
   tc_fac1 = 0.0
   tc_nocoll_r = 10.0
   tc_nocoll_dr = 1.0
-! *** Radiative loss:
   radloss = 1.0
   rad_law = 'CHIANTI_v713_HYBRID'
-! *** Heating:
   heatsource(1)%active = .true.
   heatsource(1)%name = 'NL'
   heatsource(1)%use_mask = .false.
@@ -134,7 +135,6 @@
   heating_flat_topped = .false.
   heat_mask_file = ' '
   add_ohmic_heating = .false.
-! WTD heating/pressure parameters
   wtd_z0 = 0.02
   wtd_b0 = 3.86834
   wtd_lambda0 = 0.02
@@ -172,36 +172,61 @@
   tprofile(3)%vars = 'zw_pressure_factor'
   wtd_icond = 'WKB_BR'
   wtd_icfac = 1.0
-!
-! *** Initial condition.
-!
-  initial_field = 'POTENTIAL_FIELD'
-  bnfile = 'br_input.h5'                       ! Filename (HDF5) of the input 2D (theta,phi) Br magnetic field at r0.
-  b_in_gauss = .true.
-  initial_plasma = '1dfile'
-  onedfile = 'initial_plasma_1d_r_rho40k.dat'
-!
-! *** Numerical algorithm options.
-!
+
+  initial_field = 'POTENTIAL_FIELD' ! Initial field.  Choices are:
+                                    !   DIPOLE                 Global and subsurface dipoles.
+                                    !   POTENTIAL_FIELD        Potential field based on input map.
+                                    !   ALFVEN_WAVE1           Analytic Alfven wave in theta.
+                                    !   ALFVEN_WAVE2           Analytic Alfven wave in phi.
+                                    !   ALFVEN_WAVE2_ROTATED   Same as WAVE2 but tilted.
+                                    !   A_FILE                 Read in initial vector potential.
+
+  bnfile = 'br_input.h5'            ! Filename (HDF5) of the input 2D (theta,phi) Br magnetic field at r0.
+
+  b_in_gauss = .true.               ! Set to true if the bnfile is in units of Gauss, otherwise code assumes MAS units.
+
+  initial_plasma = '1dfile'         ! Initial plasma.  Choices are:
+                                    !   ZERO-BETA              
+                                    !   STREAMER
+                                    !   HYDROSTATIC
+                                    !   1DFILE         Use onedfile text file to describe spherically symmetric initial plasma
+                                    !   2DFILE         Use 2D file (in r-theta) for axisymmetric initial conditions.
+                                    !   NONE
+
+  onedfile = 'initial_plasma_1d_r_rho40k.dat'  ! Name of text file describing the initial plasma.
+                                               ! Must be of the form:
+                                               ! 
+
   cfl = 0.4
   use_sts_visc = .true.
   use_sts_tc   = .true.
   visc_auto_subcycle = .true.
   tc_auto_subcycle   = .true.
   ifimplrad = 0
+
   ifprec_t     = 3                   ! Preconditioner method for the thermal conduction solves:
-                                     !   1    Diagonal (use for heliospheric CPU runs, and/or GPU runs)
-                                     !   2    SGS      (use for CPU runs)
-                                     !   3    ILUB0    (use for CPU runs)
+                                     !   1    Diagonal (recommended for heliospheric CPU runs, and/or GPU runs)
+                                     !   2    SGS      (available for CPU runs)
+                                     !   3    ILUB0    (recommended for CPU runs)
+
   ifprec_v     = 3                   ! Preconditioner method for the velocity solves (see above).
+
   ifprec_pot2d = 3                   ! Preconditioner method for the boundary potential solves.
+
   ifprec_divb  = 3                   ! Preconditioner method for the remesh divergence cleaning solve.
+
   epscg_a       = 1.e-9              ! Solver (resistivity) convergence tolerance, |residual|/|right-hand-side|.
+
   epscg_v       = 1.e-9              ! Solver (velocity) convergence tolerance, |residual|/|right-hand-side|.
+
   epscg_t       = 1.e-9              ! Solver (thermal conduction) convergence tolerance, |residual|/|right-hand-side|.
+
   epscg_potfld  = 1.e-9              ! Solver (potnetial fields) convergence tolerance, |residual|/|right-hand-side|.
+
   epscg_newflux = 1.e-9              ! Solver (boundary potential fields) convergence tolerance, |residual|/|right-hand-side|.
+
   epscg_divb    = 1.e-9              ! Solver (divergence cleaning) convergence tolerance, |residual|/|right-hand-side|.
+
   ncgmax = 100000                    ! Maximum solver iterations.
                                      ! If solver does not converge in ncgmax iterations,
                                      ! the code will exit with an error.
