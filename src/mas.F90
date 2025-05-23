@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.4.2'
-      character(*), parameter :: update='05/20/2025'
+      character(*), parameter :: vers='0.9.4.3'
+      character(*), parameter :: update='05/23/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -161,6 +161,7 @@ module number_types
 ! ****** Select the number type for REALs (one of: R4|R8).
 !
       integer, parameter :: r_typ=r8
+      integer, parameter :: r_typ_sp=r4
 !
 end module
 !#######################################################################
@@ -1253,6 +1254,7 @@ module cgcom
       integer :: ifprec_pot2d=3
       integer :: ifprec_pot3d=1
       integer :: ifprec_divb=3
+      logical :: ifprec_32=.false.
 !
       integer :: ncgmax=100000
       integer :: ncghist=0
@@ -1300,6 +1302,13 @@ module cgcom
 !-----------------------------------------------------------------------
 !
       integer :: N_CG
+!
+!-----------------------------------------------------------------------
+! ****** Scratch space for the CG iteration vectors.
+!-----------------------------------------------------------------------
+!
+      real(r_typ),    dimension(:), allocatable :: p_cg
+      real(r_typ),    dimension(:), allocatable :: ap_cg
 !
 !-----------------------------------------------------------------------
 ! ****** Scratch storage for use in ax.
@@ -8570,7 +8579,8 @@ subroutine read_and_check_input_file
                       vp_tdcff_file,phi_tdcff_file,deltat_tdcff, &
                       tdcff_sequence,tdcff_node, &
                       time_dependent_corona_from_files, &
-                      legacy_output_filenames
+                      legacy_output_filenames, &
+                      ifprec_32
 !
       namelist /fcs_nl/ nelem,natom_list,path_eigen
 !
@@ -25797,12 +25807,6 @@ subroutine cgsolve (x,r,ierr)
 !
 !-----------------------------------------------------------------------
 !
-! ****** Scratch space for the CG iteration vectors.
-!
-      real(r_typ), dimension(N_CG) :: p,ap
-!
-!-----------------------------------------------------------------------
-!
       integer     :: i
       real(r_typ) :: bdotb,rdotr,rdotr_old,pdotap,alphai,betai
 !
@@ -25814,7 +25818,10 @@ subroutine cgsolve (x,r,ierr)
 !
 ! ****** Allocate temporary field storage for use in ax routine.
 !
-!$acc enter data create(p,ap)
+      allocate(p_cg(N_CG))
+      allocate(ap_cg(N_CG))
+!$acc enter data create(p_cg,ap_cg)
+!
       call alloc_cg_ax_tmp
 !
       ncg=0
@@ -25822,10 +25829,10 @@ subroutine cgsolve (x,r,ierr)
 ! ****** Get the norm of the RHS.  dot(b,prec_inv[b])
 !
       do concurrent (i=1:N_CG)
-        p(i)=r(i)
+        p_cg(i)=r(i)
       enddo
-      call prec_inv (p)
-      bdotb=cgdot(r,p)
+      call prec_inv (p_cg)
+      bdotb=cgdot(r,p_cg)
       bnrm=sign(one,bdotb)*sqrt(abs(bdotb))
 !
 ! ****** If the RHS is zero, return with a zero solution.
@@ -25838,7 +25845,9 @@ subroutine cgsolve (x,r,ierr)
         epsn=0.
         ierr=0
         call dealloc_cg_ax_tmp
-!$acc exit data delete(p,ap)
+!$acc exit data delete(p_cg,ap_cg)
+        deallocate (p_cg)
+        deallocate (ap_cg)
         return
       end if
 !
@@ -25846,23 +25855,25 @@ subroutine cgsolve (x,r,ierr)
 ! ****** Initialization.
 !-----------------------------------------------------------------------
 !
-      call ax (x,ap)
+      call ax (x,ap_cg)
 !
       do concurrent (i=1:N_CG)
-        r(i)=r(i)-ap(i)
-        p(i)=r(i)
+        r(i)=r(i)-ap_cg(i)
+        p_cg(i)=r(i)
       enddo
 !
 ! ****** Find the initial error norm.
 !
-      call prec_inv (p)
+      call prec_inv (p_cg)
 !
-      rdotr=cgdot(r,p)
+      rdotr=cgdot(r,p_cg)
 !
       call err_norm (rdotr,ierr)
       if (ierr.ge.0) then
         call dealloc_cg_ax_tmp
-!$acc exit data delete(p,ap)
+!$acc exit data delete(p_cg,ap_cg)
+        deallocate (p_cg)
+        deallocate (ap_cg)
         return
       end if
 !
@@ -25875,23 +25886,23 @@ subroutine cgsolve (x,r,ierr)
 !
 ! ***** Get matrix-vector product:
 !
-        call ax (p,ap)
+        call ax (p_cg,ap_cg)
 !
-        pdotap=cgdot(p,ap)
+        pdotap=cgdot(p_cg,ap_cg)
         alphai=rdotr/pdotap
 !
         do concurrent (i=1:N_CG)
-          x(i)=x(i)+alphai*p(i)
-          r(i)=r(i)-alphai*ap(i)
-          ap(i)=r(i)
+          x(i)=x(i)+alphai*p_cg(i)
+          r(i)=r(i)-alphai*ap_cg(i)
+          ap_cg(i)=r(i)
         enddo
 !
 ! ***** Apply preconditioner:
 !
-        call prec_inv (ap)
+        call prec_inv (ap_cg)
 !
         rdotr_old=rdotr
-        rdotr=cgdot(r,ap)
+        rdotr=cgdot(r,ap_cg)
 !
 ! ****** Check for convergence.
 !
@@ -25901,13 +25912,16 @@ subroutine cgsolve (x,r,ierr)
         betai=rdotr/rdotr_old
 !
         do concurrent (i=1:N_CG)
-          p(i)=betai*p(i)+ap(i)
+          p_cg(i)=betai*p_cg(i)+ap_cg(i)
         enddo
 !
       enddo
 !
       call dealloc_cg_ax_tmp
-!$acc exit data delete(p,ap)
+!
+!$acc exit data delete(p_cg,ap_cg)
+      deallocate (p_cg)
+      deallocate (ap_cg)
 !
 end subroutine
 !#######################################################################
@@ -26443,7 +26457,7 @@ subroutine prec_inv_v (p)
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
       use matrix_storage_v_solve
 !
 !-----------------------------------------------------------------------
@@ -26471,9 +26485,7 @@ subroutine prec_inv_v (p)
 !
 ! ****** SGS or ILU Partial-Block-Jacobi:
 !
-!$acc update self(p)
        call lusol (N_cgvec,M_nzz,p,lu_csr,lu_csr_ja,a_N1,a_N2,a_csr_d)
-!$acc update device(p)
 !
       end if
 !
@@ -26516,10 +26528,8 @@ subroutine prec_inv_v_par (p)
 !
 ! ****** SGS or ILU:
 !
-!$acc update self(p)
         call lusol (N_cgvec,M_nnz,p,lu_csr, &
                     lu_csr_ja,a_N1,a_N2,a_csr_d)
-!$acc update device(p)
 !
       end if
 !
@@ -26562,10 +26572,8 @@ subroutine prec_inv_t (p)
 !
 ! ****** SGS or ILU:
 !
-!$acc update self(p)
         call lusol (N_cgvec,M_nnz,p,lu_csr, &
                     lu_csr_ja,a_N1,a_N2,a_csr_d)
-!$acc update device(p)
 !
       end if
 !
@@ -26609,10 +26617,8 @@ subroutine prec_inv_pot2d (p)
 !
 ! ****** SGS or ILU:
 !
-!$acc update self(p)
         call lusol (N_cgvec,M_nnz,p,lu_csr, &
                     lu_csr_ja,a_N1,a_N2,a_csr_d)
-!$acc update device(p)
 !
       end if
 !
@@ -26656,10 +26662,8 @@ subroutine prec_inv_pot2dh (p)
 !
 ! ****** SGS or ILU:
 !
-!$acc update self(p)
         call lusol (N_cgvec,M_nnz,p,lu_csr, &
                     lu_csr_ja,a_N1,a_N2,a_csr_d)
-!$acc update device(p)
 !
       end if
 !
@@ -26739,10 +26743,8 @@ subroutine prec_inv_divb (p)
 !
 ! ****** SGS or ILU:
 !
-!$acc update self(p)
         call lusol (N_cgvec,M_nnz,p,lu_csr, &
                     lu_csr_ja,a_N1,a_N2,a_csr_d)
-!$acc update device(p)
 !
       end if
 !
@@ -28940,12 +28942,9 @@ subroutine load_preconditioner_v_solve
 !
 ! ****** Convert A matrix into CSR format:
 !
-!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_v (N_cgvec,M_nzz,a_r,a_t,a_p,a_vr_offsets, &
                        a_vt_offsets,a_vp_offsets,N_vr,N_vt,N_vp, &
                        a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
-!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
-!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -29141,11 +29140,8 @@ subroutine load_preconditioner_v_par_solve
 !
 ! ****** Convert A matrix into CSR format:
 !
-!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_v_par (N_cgvec,M_nnz,a_dia,a_dia_offsets,a_csr, &
                            a_csr_ja,a_csr_ia,a_csr_dptr,1)
-!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
-!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -29297,11 +29293,8 @@ subroutine load_preconditioner_divb_solve
 !
 ! ****** Convert A matrix into CSR format:
 !
-!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_divb (N_cgvec,M_nnz,a_dia,a_dia_offsets,a_csr, &
                            a_csr_ja,a_csr_ia,a_csr_dptr,1)
-!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
-!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -30301,7 +30294,7 @@ subroutine load_preconditioner_t_solve
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_t
+      use cgcom, ONLY : ifprec_t,ifprec_32
       use globals
       use matrix_storage_t_solve
 !
@@ -30334,11 +30327,8 @@ subroutine load_preconditioner_t_solve
 !
 ! ****** Convert A matrix into CSR format:
 !
-!$acc enter data create(a_csr,a_csr_ja,a_csr_dptr)
         call diacsr_tc (N_cgvec,M_nnz,a_dia,a_dia_offsets,a_csr, &
                         a_csr_ja,a_csr_ia,a_csr_dptr,1)
-!$acc update self(a_csr,a_csr_ja,a_csr_ia,a_csr_dptr)
-!$acc exit data delete(a_csr,a_csr_ja,a_csr_dptr)
 !
 ! ****** Overwrite CSR A with preconditioner L and U matrices:
 !
@@ -31687,6 +31677,7 @@ subroutine lusol (N,M,x,LU,LU_ja,N1,N2,LUd_i)
 !------------------------------------------------------------
 !
       use number_types
+      use cgcom, ONLY : ifprec_32
 !
 !-----------------------------------------------------------------------
 !
@@ -32119,7 +32110,7 @@ subroutine alloc_t_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use globals, ONLY : nrm1,ntm1,npm1
-      use cgcom,   ONLY : ifprec_t
+      use cgcom,   ONLY : ifprec_t,ifprec_32
       use sts,     ONLY : use_sts_tc
       use matrix_storage_t_solve
 !
@@ -32170,7 +32161,7 @@ subroutine dealloc_t_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use matrix_storage_t_solve
-      use cgcom, ONLY : ifprec_t
+      use cgcom, ONLY : ifprec_t,ifprec_32
       use sts
 !
 !-----------------------------------------------------------------------
@@ -32384,7 +32375,7 @@ subroutine alloc_v_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use globals
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
       use matrix_storage_v_solve
 !
 !-----------------------------------------------------------------------
@@ -32447,7 +32438,7 @@ subroutine dealloc_v_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use matrix_storage_v_solve
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
 !
 !-----------------------------------------------------------------------
 !
@@ -32484,7 +32475,7 @@ subroutine alloc_v_par_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use globals
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
       use matrix_storage_v_par_solve
 !
 !-----------------------------------------------------------------------
@@ -32522,7 +32513,7 @@ subroutine dealloc_v_par_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use matrix_storage_v_par_solve
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
 !
 !-----------------------------------------------------------------------
 !
@@ -32557,7 +32548,7 @@ subroutine alloc_divb_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use globals
-      use cgcom, ONLY : ifprec_divb
+      use cgcom, ONLY : ifprec_divb,ifprec_32
       use matrix_storage_divb_solve
 !
 !-----------------------------------------------------------------------
@@ -32595,7 +32586,7 @@ subroutine dealloc_divb_matrix_coefs
 !-----------------------------------------------------------------------
 !
       use matrix_storage_divb_solve
-      use cgcom, ONLY : ifprec_divb
+      use cgcom, ONLY : ifprec_divb,ifprec_32
 !
 !-----------------------------------------------------------------------
 !
@@ -32816,7 +32807,7 @@ subroutine load_pot2d_solve
       use globals
       use mpidefs
       use matrix_storage_pot2d_solve
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
 !
 !-----------------------------------------------------------------------
 !
@@ -32882,7 +32873,7 @@ subroutine load_pot2dh_solve
       use globals
       use mpidefs
       use matrix_storage_pot2dh_solve
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
 !
 !-----------------------------------------------------------------------
 !
@@ -32997,7 +32988,7 @@ subroutine alloc_pot2d_matrix_coefs
 !
       use number_types
       use globals
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
       use matrix_storage_pot2d_solve
 !
 !-----------------------------------------------------------------------
@@ -33037,7 +33028,7 @@ subroutine alloc_pot2dh_matrix_coefs
 !
       use number_types
       use globals
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
       use matrix_storage_pot2dh_solve
 !
 !-----------------------------------------------------------------------
@@ -71807,5 +71798,9 @@ end subroutine
 !
 ! ### Version 0.9.4.2, 05/20/2025, modified by RC:
 !      - Fixed error checking on 2D solves.
+!
+! ### Version 0.9.4.3, 05/23/2025, modified by MS:
+!      - Changed "p" and "ap" temporary arrays in CG solver to be
+!        allocatable instead of local stack arrays.
 !
 !#######################################################################

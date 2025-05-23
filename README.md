@@ -8,12 +8,17 @@
   
 ## OVERVIEW ##
 
-<a href="https://fortran-lang.org)"><img align="right" height=200 src="doc/mas_bast_vis_sml.png" alt="MAS"/></a>MAS is a [Fortran](https://fortran-lang.org) code that integrates the time-dependent resistive thermodynamic magnetohydrodynamic (MHD) equations in three-dimensional spherical coordinates and is used extensively to compute models of coronal structure, coronal dynamics, and coronal mass ejections out to the Earth. It is the primary MHD model in [CORHEL](https://ccmc.gsfc.nasa.gov/models/CORHEL-MAS_WSA_ENLIL~5.0) (Corona-Heliosphere), a suite of models for describing the solar corona and inner heliosphere and [CORHEL-CME](https://ccmc.gsfc.nasa.gov/models/CORHEL-CME~1), an interface-based system for modeling CME eruptions from the Sun to Earth, both of which are available for public runs-on-demand at NASA's [Community Coordinated Modeling Center](https://ccmc.gsfc.nasa.gov).  
+<a href="https://fortran-lang.org)"><img align="right" height=200 src="doc/mas_bast_vis_sml.png" alt="MAS"/></a>MAS is a [Fortran](https://fortran-lang.org) code that integrates the time-dependent resistive thermodynamic magnetohydrodynamic (MHD) equations in three-dimensional spherical coordinates and is used extensively to compute models of coronal structure, coronal dynamics, and coronal mass ejections out to the Earth. It is the primary MHD model in [CORHEL](https://ccmc.gsfc.nasa.gov/models/CORHEL-MAS_WSA_ENLIL~5.0) (Corona-Heliosphere), a suite of models for describing the solar corona and inner heliosphere and [CORHEL-CME](https://ccmc.gsfc.nasa.gov/models/CORHEL-CME~1), an interface-based system for modeling CME eruptions from the Sun to Earth, both of which are available for public runs-on-demand at NASA's [Community Coordinated Modeling Center (CCMC)](https://ccmc.gsfc.nasa.gov).  
   
 For more information on MAS, including model/computational details and references, see [here](https://predsci.com/mas).  
   
 `MAS` can be used with MacOS, Linux, and Windows (through [WSL](https://learn.microsoft.com/en-us/windows/wsl)) on CPUs and NVIDIA GPUs. 
 
+
+### <span style="color: red;">Please Read First:</span> ###
+  
+<span style="color: darkred;">
+MAS is a complex code with many years of development and contains numerous input parameters, use cases, experimental features, deprecated features, etc.  We recommend that, if possible, MAS should be used through the public interfaces hosted at the CCMC - specifically the [CORHEL](https://ccmc.gsfc.nasa.gov/models/CORHEL-MAS_WSA_ENLIL~5.0) and [CORHEL-CME](https://ccmc.gsfc.nasa.gov/models/CORHEL-CME~1) interfaces.  These allow users to run MAS for steady-state coronal and heliospheric MHD relaxations, zero-beta flux rope relaxations and eruptions, and full MHD CME eruptions from the Sun to Earth.  The MAS code provided here will become part of future CORHEL-like open-source releases as a sub-module.  Until then, it is primarily intended for reference purposes and/or for advanced users/developers.  Please contact PSI at support@predsci.com if you plan to use the code for research purposes.</span>  
 
 --------------------------------
   
@@ -56,7 +61,7 @@ The available options can be viewed by running `./run_mas_testsuite.sh -h`.
 --------------------------------
   
 ## HOW TO RUN MAS ##
-  
+
 ### Setting Input Options ###
 
 MAS uses a Fortran [namelist](https://cyber.dabamos.de/programming/modernfortran/namelists.html) text input file to set all non-default parameters of a run.  
@@ -75,9 +80,11 @@ where `<RUN_NAME>` is a chosen run name, `<INPUT_FILE>` is the created input fil
 For example:  
 ```
 > mpiexec -np 1024 ./mas my_first_run mas.in
-```
+```  
+  
+--------------------------------  
+  
+[Predictive Science Inc.](https://www.predsci.com)   
 
-
---------------------------------
-
+--------------------------------  
 
