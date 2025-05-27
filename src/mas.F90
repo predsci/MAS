@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.4.3'
-      character(*), parameter :: update='05/23/2025'
+      character(*), parameter :: vers='0.9.5.0'
+      character(*), parameter :: update='05/27/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -1308,7 +1308,9 @@ module cgcom
 !-----------------------------------------------------------------------
 !
       real(r_typ),    dimension(:), allocatable :: p_cg
+      real(r_typ_sp), dimension(:), allocatable :: p_cg_sp
       real(r_typ),    dimension(:), allocatable :: ap_cg
+      real(r_typ_sp), dimension(:), allocatable :: ap_cg_sp
 !
 !-----------------------------------------------------------------------
 ! ****** Scratch storage for use in ax.
@@ -1385,15 +1387,18 @@ module matrix_storage_pot2d_solve
 !
       real(r_typ), dimension(:,:,:), allocatable :: a_dia
 !
-      real(r_typ), dimension(:), allocatable :: a_dia_i
+      real(r_typ),    dimension(:), allocatable :: a_dia_i
+      real(r_typ_sp), dimension(:), allocatable :: a_dia_i_sp
 !
       integer, dimension(5) :: a_dia_offsets
 !
       integer :: N_cgvec,M_nnz,j0
 !
-      real(r_typ), dimension(:), allocatable :: a_csr
-      real(r_typ), dimension(:), allocatable :: lu_csr
-      real(r_typ), dimension(:), allocatable :: a_csr_d
+      real(r_typ),    dimension(:), allocatable :: a_csr
+      real(r_typ),    dimension(:), allocatable :: lu_csr
+      real(r_typ_sp), dimension(:), allocatable :: lu_csr_sp
+      real(r_typ),    dimension(:), allocatable :: a_csr_d
+      real(r_typ_sp), dimension(:), allocatable :: a_csr_d_sp
       integer, dimension(:), allocatable :: lu_csr_ja
       integer, dimension(:), allocatable :: a_csr_ia
       integer, dimension(:), allocatable :: a_csr_ja
@@ -1415,15 +1420,18 @@ module matrix_storage_pot2dh_solve
 !
       real(r_typ), dimension(:,:,:), allocatable :: a_dia
 !
-      real(r_typ), dimension(:), allocatable :: a_dia_i
+      real(r_typ),    dimension(:), allocatable :: a_dia_i
+      real(r_typ_sp), dimension(:), allocatable :: a_dia_i_sp
 !
       integer, dimension(5) :: a_dia_offsets
 !
       integer :: N_cgvec,M_nnz
 !
-      real(r_typ), dimension(:), allocatable :: a_csr
-      real(r_typ), dimension(:), allocatable :: lu_csr
-      real(r_typ), dimension(:), allocatable :: a_csr_d
+      real(r_typ),    dimension(:), allocatable :: a_csr
+      real(r_typ),    dimension(:), allocatable :: lu_csr
+      real(r_typ_sp), dimension(:), allocatable :: lu_csr_sp
+      real(r_typ),    dimension(:), allocatable :: a_csr_d
+      real(r_typ_sp), dimension(:), allocatable :: a_csr_d_sp
       integer, dimension(:), allocatable :: lu_csr_ja
       integer, dimension(:), allocatable :: a_csr_ia
       integer, dimension(:), allocatable :: a_csr_ja
@@ -1483,21 +1491,24 @@ module matrix_storage_divb_solve
       integer :: i0
 !
       real(r_typ), dimension(:,:,:,:), allocatable :: a_dia
-      real(r_typ), dimension(:),       allocatable :: a_dia_i
+      real(r_typ),    dimension(:),    allocatable :: a_dia_i
+      real(r_typ_sp), dimension(:),    allocatable :: a_dia_i_sp
 !
       integer,     dimension(7) :: a_dia_offsets
 !
       integer :: M_nnz, N_cgvec
 !
-      real(r_typ), dimension(:),       allocatable :: a_csr
-      real(r_typ), dimension(:),       allocatable :: lu_csr
-      real(r_typ), dimension(:),       allocatable :: a_csr_d
-      integer,     dimension(:),       allocatable :: lu_csr_ja
-      integer,     dimension(:),       allocatable :: a_csr_ia
-      integer,     dimension(:),       allocatable :: a_csr_ja
-      integer,     dimension(:),       allocatable :: a_N1
-      integer,     dimension(:),       allocatable :: a_N2
-      integer,     dimension(:),       allocatable :: a_csr_dptr
+      real(r_typ),    dimension(:), allocatable :: a_csr
+      real(r_typ),    dimension(:), allocatable :: lu_csr
+      real(r_typ_sp), dimension(:), allocatable :: lu_csr_sp
+      real(r_typ),    dimension(:), allocatable :: a_csr_d
+      real(r_typ_sp), dimension(:), allocatable :: a_csr_d_sp
+      integer, dimension(:), allocatable :: lu_csr_ja
+      integer, dimension(:), allocatable :: a_csr_ia
+      integer, dimension(:), allocatable :: a_csr_ja
+      integer, dimension(:), allocatable :: a_N1
+      integer, dimension(:), allocatable :: a_N2
+      integer, dimension(:), allocatable :: a_csr_dptr
 !
 end module
 !#######################################################################
@@ -1530,7 +1541,8 @@ module matrix_storage_v_solve
       real(r_typ), dimension(:,:,:,:), allocatable :: a_r
       real(r_typ), dimension(:,:,:,:), allocatable :: a_t
       real(r_typ), dimension(:,:,:,:), allocatable :: a_p
-      real(r_typ), dimension(:),       allocatable :: a_dia_i
+      real(r_typ),    dimension(:), allocatable :: a_dia_i
+      real(r_typ_sp), dimension(:), allocatable :: a_dia_i_sp
 !
       integer, dimension(15) :: a_vr_offsets
       integer, dimension(15) :: a_vt_offsets
@@ -1538,15 +1550,17 @@ module matrix_storage_v_solve
 !
       integer :: N_vr,N_vt,N_vp,N_cgvec,M_nzz
 !
-      real(r_typ), dimension(:),allocatable :: a_csr
-      real(r_typ), dimension(:),allocatable :: lu_csr
-      real(r_typ), dimension(:),allocatable :: a_csr_d
-      integer,     dimension(:),allocatable :: lu_csr_ja
-      integer,     dimension(:),allocatable :: a_csr_ia
-      integer,     dimension(:),allocatable :: a_csr_ja
-      integer,     dimension(:),allocatable :: a_N1
-      integer,     dimension(:),allocatable :: a_N2
-      integer,     dimension(:),allocatable :: a_csr_dptr
+      real(r_typ),    dimension(:), allocatable :: a_csr
+      real(r_typ),    dimension(:), allocatable :: lu_csr
+      real(r_typ_sp), dimension(:), allocatable :: lu_csr_sp
+      real(r_typ),    dimension(:), allocatable :: a_csr_d
+      real(r_typ_sp), dimension(:), allocatable :: a_csr_d_sp
+      integer, dimension(:), allocatable :: lu_csr_ja
+      integer, dimension(:), allocatable :: a_csr_ia
+      integer, dimension(:), allocatable :: a_csr_ja
+      integer, dimension(:), allocatable :: a_N1
+      integer, dimension(:), allocatable :: a_N2
+      integer, dimension(:), allocatable :: a_csr_dptr
 !
 end module
 !#######################################################################
@@ -1561,21 +1575,24 @@ module matrix_storage_v_par_solve
       implicit none
 !
       real(r_typ), dimension(:,:,:,:), allocatable :: a_dia
-      real(r_typ), dimension(:),       allocatable :: a_dia_i
+      real(r_typ),    dimension(:), allocatable :: a_dia_i
+      real(r_typ_sp), dimension(:), allocatable :: a_dia_i_sp
 !
       integer,     dimension(7) :: a_dia_offsets
 !
       integer :: M_nnz, N_cgvec
 !
-      real(r_typ), dimension(:),       allocatable :: a_csr
-      real(r_typ), dimension(:),       allocatable :: lu_csr
-      real(r_typ), dimension(:),       allocatable :: a_csr_d
-      integer,     dimension(:),       allocatable :: lu_csr_ja
-      integer,     dimension(:),       allocatable :: a_csr_ia
-      integer,     dimension(:),       allocatable :: a_csr_ja
-      integer,     dimension(:),       allocatable :: a_N1
-      integer,     dimension(:),       allocatable :: a_N2
-      integer,     dimension(:),       allocatable :: a_csr_dptr
+      real(r_typ),    dimension(:), allocatable :: a_csr
+      real(r_typ),    dimension(:), allocatable :: lu_csr
+      real(r_typ_sp), dimension(:), allocatable :: lu_csr_sp
+      real(r_typ),    dimension(:), allocatable :: a_csr_d
+      real(r_typ_sp), dimension(:), allocatable :: a_csr_d_sp
+      integer, dimension(:), allocatable :: lu_csr_ja
+      integer, dimension(:), allocatable :: a_csr_ia
+      integer, dimension(:), allocatable :: a_csr_ja
+      integer, dimension(:), allocatable :: a_N1
+      integer, dimension(:), allocatable :: a_N2
+      integer, dimension(:), allocatable :: a_csr_dptr
 !
 end module
 !#######################################################################
@@ -1590,21 +1607,24 @@ module matrix_storage_t_solve
       implicit none
 !
       real(r_typ), dimension(:,:,:,:), allocatable :: a_dia
-      real(r_typ), dimension(:),       allocatable :: a_dia_i
+      real(r_typ),    dimension(:), allocatable :: a_dia_i
+      real(r_typ_sp), dimension(:), allocatable :: a_dia_i_sp
 !
       integer,     dimension(19) :: a_dia_offsets
 !
       integer :: M_nnz, N_cgvec
 !
-      real(r_typ), dimension(:),       allocatable :: a_csr
-      real(r_typ), dimension(:),       allocatable :: lu_csr
-      real(r_typ), dimension(:),       allocatable :: a_csr_d
-      integer,     dimension(:),       allocatable :: lu_csr_ja
-      integer,     dimension(:),       allocatable :: a_csr_ia
-      integer,     dimension(:),       allocatable :: a_csr_ja
-      integer,     dimension(:),       allocatable :: a_N1
-      integer,     dimension(:),       allocatable :: a_N2
-      integer,     dimension(:),       allocatable :: a_csr_dptr
+      real(r_typ),    dimension(:), allocatable :: a_csr
+      real(r_typ),    dimension(:), allocatable :: lu_csr
+      real(r_typ_sp), dimension(:), allocatable :: lu_csr_sp
+      real(r_typ),    dimension(:), allocatable :: a_csr_d
+      real(r_typ_sp), dimension(:), allocatable :: a_csr_d_sp
+      integer, dimension(:), allocatable :: lu_csr_ja
+      integer, dimension(:), allocatable :: a_csr_ia
+      integer, dimension(:), allocatable :: a_csr_ja
+      integer, dimension(:), allocatable :: a_N1
+      integer, dimension(:), allocatable :: a_N2
+      integer, dimension(:), allocatable :: a_csr_dptr
 end module
 !#######################################################################
 module sts
@@ -15486,6 +15506,7 @@ subroutine potfld_compute (br0)
           rhs2d(ntm1,k)=dv*br0(ntm1,k)
         end if
       enddo
+!$acc enter data copyin(rhs2d)
 !
 ! ****** Solve the 2D implicit equations for the boundary potential.
 !
@@ -15494,6 +15515,7 @@ subroutine potfld_compute (br0)
 ! ****** Use a guess equal to zero.
 !
       psi_r0(:,:)=0.
+!$acc enter data copyin(psi_r0)
 !
 ! ****** Solve the implicit equations.
 !
@@ -15510,7 +15532,6 @@ subroutine potfld_compute (br0)
         reset_ncghist=.true.
       end if
 !
-!$acc enter data copyin(psi_r0,rhs2d)
       call pot2d_solver (psi_r0,rhs2d,ierr)
 !$acc exit data delete(rhs2d)
 !
@@ -15557,10 +15578,7 @@ subroutine potfld_compute (br0)
         reset_ncghist=.false.
       end if
 !
-!$acc update self(psi3d)
-!      if (idebug.gt.0) then
-        call write_field ('potfld_psi.h5',IFLD_BR,psi3d)
-!      end if
+      call write_field ('potfld_psi.h5',IFLD_BR,psi3d)
 !
 ! ****** Get the vector potential from PSI.
 !
@@ -25822,6 +25840,12 @@ subroutine cgsolve (x,r,ierr)
       allocate(ap_cg(N_CG))
 !$acc enter data create(p_cg,ap_cg)
 !
+      if (ifprec_32) then
+        allocate(p_cg_sp(N_CG))
+        allocate(ap_cg_sp(N_CG))
+!$acc enter data create(p_cg_sp,ap_cg_sp)
+      end if
+!
       call alloc_cg_ax_tmp
 !
       ncg=0
@@ -25831,7 +25855,7 @@ subroutine cgsolve (x,r,ierr)
       do concurrent (i=1:N_CG)
         p_cg(i)=r(i)
       enddo
-      call prec_inv (p_cg)
+      call prec_inv (p_cg,p_cg_sp)
       bdotb=cgdot(r,p_cg)
       bnrm=sign(one,bdotb)*sqrt(abs(bdotb))
 !
@@ -25848,6 +25872,11 @@ subroutine cgsolve (x,r,ierr)
 !$acc exit data delete(p_cg,ap_cg)
         deallocate (p_cg)
         deallocate (ap_cg)
+        if (ifprec_32) then
+!$acc exit data delete(p_cg_sp,ap_cg_sp)
+          deallocate (p_cg_sp)
+          deallocate (ap_cg_sp)
+        end if
         return
       end if
 !
@@ -25864,7 +25893,7 @@ subroutine cgsolve (x,r,ierr)
 !
 ! ****** Find the initial error norm.
 !
-      call prec_inv (p_cg)
+      call prec_inv (p_cg,p_cg_sp)
 !
       rdotr=cgdot(r,p_cg)
 !
@@ -25874,6 +25903,11 @@ subroutine cgsolve (x,r,ierr)
 !$acc exit data delete(p_cg,ap_cg)
         deallocate (p_cg)
         deallocate (ap_cg)
+        if (ifprec_32) then
+!$acc exit data delete(p_cg_sp,ap_cg_sp)
+          deallocate (p_cg_sp)
+          deallocate (ap_cg_sp)
+        end if
         return
       end if
 !
@@ -25899,7 +25933,7 @@ subroutine cgsolve (x,r,ierr)
 !
 ! ***** Apply preconditioner:
 !
-        call prec_inv (ap_cg)
+        call prec_inv (ap_cg,ap_cg_sp)
 !
         rdotr_old=rdotr
         rdotr=cgdot(r,ap_cg)
@@ -25922,6 +25956,11 @@ subroutine cgsolve (x,r,ierr)
 !$acc exit data delete(p_cg,ap_cg)
       deallocate (p_cg)
       deallocate (ap_cg)
+      if (ifprec_32) then
+!$acc exit data delete(p_cg_sp,ap_cg_sp)
+        deallocate (p_cg_sp)
+        deallocate (ap_cg_sp)
+      end if
 !
 end subroutine
 !#######################################################################
@@ -26362,7 +26401,7 @@ subroutine ax (p,q)
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv (p)
+subroutine prec_inv (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26380,25 +26419,26 @@ subroutine prec_inv (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_CG) :: p
+      real(r_typ),    dimension(N_CG) :: p
+      real(r_typ_sp), dimension(N_CG) :: p_32
 !
       select case (solve_type)
       case (ST_A)
         call prec_inv_a (p)
       case (ST_V)
-        call prec_inv_v (p)
+        call prec_inv_v (p,p_32)
       case (ST_V_PAR)
-        call prec_inv_v_par (p)
+        call prec_inv_v_par (p,p_32)
       case (ST_POT2D)
-        call prec_inv_pot2d (p)
+        call prec_inv_pot2d (p,p_32)
       case (ST_POT2DH)
-        call prec_inv_pot2dh (p)
+        call prec_inv_pot2dh (p,p_32)
       case (ST_POT3D)
         call prec_inv_pot3d (p)
       case (ST_T)
-        call prec_inv_t (p)
+        call prec_inv_t (p,p_32)
       case (ST_DIVB)
-        call prec_inv_divb (p)
+        call prec_inv_divb (p,p_32)
       case default
         if (iamp0) then
           write (*,*)
@@ -26448,7 +26488,7 @@ subroutine prec_inv_a (p)
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv_v (p)
+subroutine prec_inv_v (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26466,7 +26506,8 @@ subroutine prec_inv_v (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_cgvec) :: p
+      real(r_typ),    dimension(N_cgvec) :: p
+      real(r_typ_sp), dimension(N_cgvec) :: p_32
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -26477,21 +26518,27 @@ subroutine prec_inv_v (p)
 !
 ! ****** Point-Jacobi (diagonal scaling):
 !
-        do concurrent (i=1:N_cgvec)
-          p(i)=a_dia_i(i)*p(i)
-        enddo
-!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i_sp(i)*p(i)
+          enddo
+        else
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i(i)*p(i)
+          enddo
+        end if
       elseif (ifprec_v.ge.2) then
 !
 ! ****** SGS or ILU Partial-Block-Jacobi:
 !
-       call lusol (N_cgvec,M_nzz,p,lu_csr,lu_csr_ja,a_N1,a_N2,a_csr_d)
+        call lusol (N_cgvec,M_nzz,p,p_32,lu_csr,lu_csr_sp, &
+                    lu_csr_ja,a_N1,a_N2,a_csr_d,a_csr_d_sp)
 !
       end if
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv_v_par (p)
+subroutine prec_inv_v_par (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26509,7 +26556,8 @@ subroutine prec_inv_v_par (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_cgvec) :: p
+      real(r_typ),    dimension(N_cgvec) :: p
+      real(r_typ_sp), dimension(N_cgvec) :: p_32
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -26520,22 +26568,28 @@ subroutine prec_inv_v_par (p)
 !
 ! ****** Jacobi (diagonal):
 !
-        do concurrent (i=1:N_cgvec)
-          p(i)=a_dia_i(i)*p(i)
-        enddo
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i_sp(i)*p(i)
+          enddo
+        else
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i(i)*p(i)
+          enddo
+        end if
 !
       elseif (ifprec_v.ge.2) then
 !
 ! ****** SGS or ILU:
 !
-        call lusol (N_cgvec,M_nnz,p,lu_csr, &
-                    lu_csr_ja,a_N1,a_N2,a_csr_d)
+        call lusol (N_cgvec,M_nnz,p,p_32,lu_csr,lu_csr_sp, &
+                    lu_csr_ja,a_N1,a_N2,a_csr_d,a_csr_d_sp)
 !
       end if
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv_t (p)
+subroutine prec_inv_t (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26553,7 +26607,8 @@ subroutine prec_inv_t (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_cgvec) :: p
+      real(r_typ),    dimension(N_cgvec) :: p
+      real(r_typ_sp), dimension(N_cgvec) :: p_32
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -26564,22 +26619,28 @@ subroutine prec_inv_t (p)
 !
 ! ****** Jacobi (diagonal):
 !
-        do concurrent (i=1:N_cgvec)
-          p(i)=p(i)*a_dia_i(i)
-        enddo
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i_sp(i)*p(i)
+          enddo
+        else
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i(i)*p(i)
+          enddo
+        end if
 !
       elseif (ifprec_t.ge.2) then
 !
 ! ****** SGS or ILU:
 !
-        call lusol (N_cgvec,M_nnz,p,lu_csr, &
-                    lu_csr_ja,a_N1,a_N2,a_csr_d)
+        call lusol (N_cgvec,M_nnz,p,p_32,lu_csr,lu_csr_sp, &
+                    lu_csr_ja,a_N1,a_N2,a_csr_d,a_csr_d_sp)
 !
       end if
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv_pot2d (p)
+subroutine prec_inv_pot2d (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26598,7 +26659,8 @@ subroutine prec_inv_pot2d (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_cgvec) :: p
+      real(r_typ),    dimension(N_cgvec) :: p
+      real(r_typ_sp), dimension(N_cgvec) :: p_32
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -26609,22 +26671,28 @@ subroutine prec_inv_pot2d (p)
 !
 ! ****** Jacobi (diagonal):
 !
-        do concurrent (i=1:N_cgvec)
-          p(i)=p(i)*a_dia_i(i)
-        enddo
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i_sp(i)*p(i)
+          enddo
+        else
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i(i)*p(i)
+          enddo
+        end if
 !
       elseif (ifprec_pot2d.ge.2) then
 !
 ! ****** SGS or ILU:
 !
-        call lusol (N_cgvec,M_nnz,p,lu_csr, &
-                    lu_csr_ja,a_N1,a_N2,a_csr_d)
+        call lusol (N_cgvec,M_nnz,p,p_32,lu_csr,lu_csr_sp, &
+                    lu_csr_ja,a_N1,a_N2,a_csr_d,a_csr_d_sp)
 !
       end if
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv_pot2dh (p)
+subroutine prec_inv_pot2dh (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26634,7 +26702,7 @@ subroutine prec_inv_pot2dh (p)
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
       use matrix_storage_pot2dh_solve
 !
 !-----------------------------------------------------------------------
@@ -26643,7 +26711,8 @@ subroutine prec_inv_pot2dh (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_cgvec) :: p
+      real(r_typ),    dimension(N_cgvec) :: p
+      real(r_typ_sp), dimension(N_cgvec) :: p_32
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -26654,16 +26723,22 @@ subroutine prec_inv_pot2dh (p)
 !
 ! ****** Jacobi (diagonal):
 !
-        do concurrent (i=1:N_cgvec)
-          p(i)=p(i)*a_dia_i(i)
-        enddo
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i_sp(i)*p(i)
+          enddo
+        else
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i(i)*p(i)
+          enddo
+        end if
 !
       elseif (ifprec_pot2d.ge.2) then
 !
 ! ****** SGS or ILU:
 !
-        call lusol (N_cgvec,M_nnz,p,lu_csr, &
-                    lu_csr_ja,a_N1,a_N2,a_csr_d)
+        call lusol (N_cgvec,M_nnz,p,p_32,lu_csr,lu_csr_sp, &
+                    lu_csr_ja,a_N1,a_N2,a_csr_d,a_csr_d_sp)
 !
       end if
 !
@@ -26706,7 +26781,7 @@ subroutine prec_inv_pot3d (p)
 !
 end subroutine
 !#######################################################################
-subroutine prec_inv_divb (p)
+subroutine prec_inv_divb (p,p_32)
 !
 !-----------------------------------------------------------------------
 !
@@ -26715,7 +26790,7 @@ subroutine prec_inv_divb (p)
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_divb
+      use cgcom, ONLY : ifprec_divb,ifprec_32
       use matrix_storage_divb_solve
 !
 !-----------------------------------------------------------------------
@@ -26724,7 +26799,8 @@ subroutine prec_inv_divb (p)
 !
 !-----------------------------------------------------------------------
 !
-      real(r_typ), dimension(N_cgvec) :: p
+      real(r_typ),    dimension(N_cgvec) :: p
+      real(r_typ_sp), dimension(N_cgvec) :: p_32
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -26735,16 +26811,22 @@ subroutine prec_inv_divb (p)
 !
 ! ****** Jacobi (diagonal):
 !
-        do concurrent (i=1:N_cgvec)
-          p(i)=p(i)*a_dia_i(i)
-        enddo
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i_sp(i)*p(i)
+          enddo
+        else
+          do concurrent (i=1:N_cgvec)
+            p(i)=a_dia_i(i)*p(i)
+          enddo
+        end if
 !
       elseif (ifprec_divb.ge.2) then
 !
 ! ****** SGS or ILU:
 !
-        call lusol (N_cgvec,M_nnz,p,lu_csr, &
-                    lu_csr_ja,a_N1,a_N2,a_csr_d)
+        call lusol (N_cgvec,M_nnz,p,p_32,lu_csr,lu_csr_sp, &
+                    lu_csr_ja,a_N1,a_N2,a_csr_d,a_csr_d_sp)
 !
       end if
 !
@@ -28897,7 +28979,7 @@ subroutine load_preconditioner_v_solve
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
       use globals
       use matrix_storage_v_solve
 !
@@ -28921,22 +29003,41 @@ subroutine load_preconditioner_v_solve
 !
 ! ****** Diagonal scaling:
 !
-        do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1)
-          ii=ntm2*(nrm-2)*(k-2)+(nrm-2)*(j-2)+(i-1)
-          a_dia_i(ii)=one/a_r(4,i,j,k)
-        enddo
+        if (ifprec_32) then
+          do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1)
+            ii=ntm2*(nrm-2)*(k-2)+(nrm-2)*(j-2)+(i-1)
+            a_dia_i_sp(ii)=real(one/a_r(4,i,j,k),r_typ_sp)
+          enddo
 !
-        do concurrent (k=2:npm1, j=2:ntm-1, i=2:nrm1)
-          ii=(npm2*ntm2*(nrm-2)) &
-            +(ntm-2)*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-          a_dia_i(ii)=one/a_t(8,i,j,k)
-        enddo
+          do concurrent (k=2:npm1, j=2:ntm-1, i=2:nrm1)
+            ii=(npm2*ntm2*(nrm-2)) &
+              +(ntm-2)*nrm2*(k-2)+nrm2*(j-2)+(i-1)
+            a_dia_i_sp(ii)=real(one/a_t(8,i,j,k),r_typ_sp)
+          enddo
 !
-        do concurrent (k=2:npm-1, j=2:ntm1, i=2:nrm1)
-          ii=(npm2*ntm2*(nrm-2))+(npm2*(ntm-2)*nrm2) &
-            +ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-          a_dia_i(ii)=one/a_p(12,i,j,k)
-        enddo
+          do concurrent (k=2:npm-1, j=2:ntm1, i=2:nrm1)
+            ii=(npm2*ntm2*(nrm-2))+(npm2*(ntm-2)*nrm2) &
+              +ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
+            a_dia_i_sp(ii)=real(one/a_p(12,i,j,k),r_typ_sp)
+          enddo
+        else
+          do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1)
+            ii=ntm2*(nrm-2)*(k-2)+(nrm-2)*(j-2)+(i-1)
+            a_dia_i(ii)=one/a_r(4,i,j,k)
+          enddo
+!
+          do concurrent (k=2:npm1, j=2:ntm-1, i=2:nrm1)
+            ii=(npm2*ntm2*(nrm-2)) &
+              +(ntm-2)*nrm2*(k-2)+nrm2*(j-2)+(i-1)
+            a_dia_i(ii)=one/a_t(8,i,j,k)
+          enddo
+!
+          do concurrent (k=2:npm-1, j=2:ntm1, i=2:nrm1)
+            ii=(npm2*ntm2*(nrm-2))+(npm2*(ntm-2)*nrm2) &
+              +ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
+            a_dia_i(ii)=one/a_p(12,i,j,k)
+          enddo
+        end if
 !
       elseif (ifprec_v.ge.2) then
 !
@@ -28984,6 +29085,15 @@ subroutine load_preconditioner_v_solve
         do i=1,N_cgvec
           a_csr_d(i)=one/a_csr(a_csr_dptr(i))
         enddo
+!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            a_csr_d_sp(i)=real(a_csr_d(i),r_typ_sp)
+          enddo
+          do concurrent (i=1:M_nzz)
+            lu_csr_sp(i)=real(lu_csr(i),r_typ_sp)
+          enddo
+        end if
 !
       end if
 !
@@ -29107,7 +29217,7 @@ subroutine load_preconditioner_v_par_solve
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_v
+      use cgcom, ONLY : ifprec_v,ifprec_32
       use globals
       use matrix_storage_v_par_solve
 !
@@ -29131,10 +29241,17 @@ subroutine load_preconditioner_v_par_solve
 !
 ! ****** Diagonal scaling:
 !
-        do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
-          ii=ntm2*(nrm2)*(k-2)+(nrm2)*(j-2)+(i-1)
-          a_dia_i(ii)=one/a_dia(4,i,j,k)
-        enddo
+        if (ifprec_32) then
+          do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
+            ii=ntm2*(nrm2)*(k-2)+(nrm2)*(j-2)+(i-1)
+            a_dia_i_sp(ii)=real(one/a_dia(4,i,j,k),r_typ_sp)
+          enddo
+        else
+          do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
+            ii=ntm2*(nrm2)*(k-2)+(nrm2)*(j-2)+(i-1)
+            a_dia_i(ii)=one/a_dia(4,i,j,k)
+          enddo
+        end if
 !
       elseif (ifprec_v.ge.2) then
 !
@@ -29183,6 +29300,15 @@ subroutine load_preconditioner_v_par_solve
         do i=1,N_cgvec
           a_csr_d(i)=one/a_csr(a_csr_dptr(i))
         enddo
+!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            a_csr_d_sp(i)=real(a_csr_d(i),r_typ_sp)
+          enddo
+          do concurrent (i=1:M_nnz)
+            lu_csr_sp(i)=real(lu_csr(i),r_typ_sp)
+          enddo
+        end if
 !
       end if
 !
@@ -29260,7 +29386,7 @@ subroutine load_preconditioner_divb_solve
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_divb
+      use cgcom, ONLY : ifprec_divb,ifprec_32
       use globals
       use matrix_storage_divb_solve
 !
@@ -29284,10 +29410,17 @@ subroutine load_preconditioner_divb_solve
 !
 ! ****** Diagonal scaling:
 !
-      do concurrent (k=2:npm-1, j=2:ntm-1, i=i0:nrm1)
-        ii=(ntm-2)*(nrm1-i0+1)*(k-2)+(nrm1-i0+1)*(j-2)+(i-(i0-1))
-        a_dia_i(ii)=one/a_dia(4,i,j,k)
-      enddo
+        if (ifprec_32) then
+          do concurrent (k=2:npm-1, j=2:ntm-1, i=i0:nrm1)
+            ii=(ntm-2)*(nrm1-i0+1)*(k-2)+(nrm1-i0+1)*(j-2)+(i-(i0-1))
+            a_dia_i_sp(ii)=real(one/a_dia(4,i,j,k),r_typ_sp)
+          enddo
+        else
+          do concurrent (k=2:npm-1, j=2:ntm-1, i=i0:nrm1)
+            ii=(ntm-2)*(nrm1-i0+1)*(k-2)+(nrm1-i0+1)*(j-2)+(i-(i0-1))
+            a_dia_i(ii)=one/a_dia(4,i,j,k)
+          enddo
+        end if
 !
       elseif (ifprec_divb.ge.2) then
 !
@@ -29336,6 +29469,15 @@ subroutine load_preconditioner_divb_solve
         do i=1,N_cgvec
           a_csr_d(i)=one/a_csr(a_csr_dptr(i))
         enddo
+!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            a_csr_d_sp(i)=real(a_csr_d(i),r_typ_sp)
+          enddo
+          do concurrent (i=1:M_nnz)
+            lu_csr_sp(i)=real(lu_csr(i),r_typ_sp)
+          enddo
+        end if
 !
       end if
 !
@@ -30318,10 +30460,17 @@ subroutine load_preconditioner_t_solve
 !
 ! ****** Diagonal scaling:
 !
-        do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
-          ii=ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-          a_dia_i(ii)=one/a_dia(10,i,j,k)
-        enddo
+        if (ifprec_32) then
+          do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
+            ii=ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
+            a_dia_i_sp(ii)=real(one/a_dia(10,i,j,k),r_typ_sp)
+          enddo
+        else
+          do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1)
+            ii=ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
+            a_dia_i(ii)=one/a_dia(10,i,j,k)
+          enddo
+        end if
 !
       elseif (ifprec_t.ge.2) then
 !
@@ -30370,6 +30519,15 @@ subroutine load_preconditioner_t_solve
         do i=1,N_cgvec
           a_csr_d(i)=one/a_csr(a_csr_dptr(i))
         enddo
+!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            a_csr_d_sp(i)=real(a_csr_d(i),r_typ_sp)
+          enddo
+          do concurrent (i=1:M_nnz)
+            lu_csr_sp(i)=real(lu_csr(i),r_typ_sp)
+          enddo
+        end if
 !
       end if
 !
@@ -31645,7 +31803,7 @@ subroutine getM_nnz_divb (N,ioff,M,ind,IA)
 !
 end subroutine
 !#######################################################################
-subroutine lusol (N,M,x,LU,LU_ja,N1,N2,LUd_i)
+subroutine lusol (N,M,x,x_sp,LU,LU_sp,LU_ja,N1,N2,LUd_i,LUd_i_sp)
 !
 !-----------------------------------------------------------
 !
@@ -31687,6 +31845,7 @@ subroutine lusol (N,M,x,LU,LU_ja,N1,N2,LUd_i)
 !
       integer :: N,M
       real(r_typ) :: x(N),LUd_i(N),LU(M)
+      real(r_typ_sp) :: x_sp(N),LUd_i_sp(N),LU_sp(M)
       integer :: N1(N),N2(N),LU_ja(M)
 !
 !-----------------------------------------------------------------------
@@ -31695,32 +31854,75 @@ subroutine lusol (N,M,x,LU,LU_ja,N1,N2,LUd_i)
 !
 !-----------------------------------------------------------------------
 !
-! ****** FORWARD SOLVE: Solve L x'=y
-!
       k2=0
-      do i=1,N
-!       Compute xi := xi - sum Lij*xj
-        k1=k2+1
-        k2=k1+N1(i)
-        do k=k1,k2
-          x(i)=x(i)-LU(k)*x(LU_ja(k))
-        enddo
-!       Compute xi := xi/Lii
-!       Diagonal is always 1 for L so no computation nessesary.
-      enddo
+      if (ifprec_32) then
 !
-! ****** BACKWARD SOLVE: Solve U x=x'
+! ****** Convert input array to single precision.
 !
-      do i=N,1,-1
-!       Compute xi := xi - sum Uij*xj
-        k1=k2+1
-        k2=k1+N2(i)
-        do k=k1,k2
-          x(i)=x(i)-LU(k)*x(LU_ja(k))
+        do concurrent (i=1:N)
+          x_sp(i) = real(x(i),r_typ_sp)
         enddo
-!       Compute xi := xi/Uii
-        x(i)=x(i)*LUd_i(i)
-      enddo
+!
+! ***** FORWARD SOLVE: Solve L x'=y
+!
+        do i=1,N
+!         Compute xi := xi - sum Lij*xj
+          k1=k2+1
+          k2=k1+N1(i)
+          do k=k1,k2
+            x_sp(i)=x_sp(i)-LU_sp(k)*x_sp(LU_ja(k))
+          enddo
+!         Compute xi := xi/Lii
+!         Diagonal is always 1 for L so no computation nessesary.
+        enddo
+!
+! ***** BACKWARD SOLVE: Solve U x=x'
+!
+        do i=N,1,-1
+!         Compute xi := xi - sum Uij*xj
+          k1=k2+1
+          k2=k1+N2(i)
+          do k=k1,k2
+            x_sp(i)=x_sp(i)-LU_sp(k)*x_sp(LU_ja(k))
+          enddo
+!         Compute xi := xi/Uii
+          x_sp(i)=x_sp(i)*LUd_i_sp(i)
+        enddo
+!
+! ****** Convert result back to double precision.
+!
+        do concurrent (i=1:N)
+          x(i) = real(x_sp(i),r_typ)
+        enddo
+!
+      else
+!
+! ***** FORWARD SOLVE: Solve L x'=y
+!
+        do i=1,N
+!         Compute xi := xi - sum Lij*xj
+          k1=k2+1
+          k2=k1+N1(i)
+          do k=k1,k2
+            x(i)=x(i)-LU(k)*x(LU_ja(k))
+          enddo
+!         Compute xi := xi/Lii
+!         Diagonal is always 1 for L so no computation nessesary.
+        enddo
+!
+! ***** BACKWARD SOLVE: Solve U x=x'
+!
+        do i=N,1,-1
+!         Compute xi := xi - sum Uij*xj
+          k1=k2+1
+          k2=k1+N2(i)
+          do k=k1,k2
+            x(i)=x(i)-LU(k)*x(LU_ja(k))
+          enddo
+!         Compute xi := xi/Uii
+          x(i)=x(i)*LUd_i(i)
+        enddo
+      end if
 !
 end subroutine
 !#######################################################################
@@ -32125,20 +32327,33 @@ subroutine alloc_t_matrix_coefs
 !-----------------------------------------------------------------------
 !
       allocate (a_dia(19,2:nrm1,2:ntm1,2:npm1))
-      allocate (a_dia_i(N_cgvec))
-!$acc enter data create(a_dia,a_dia_i)
+!$acc enter data create(a_dia)
 !
       do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm1, l=1:19)
         a_dia(l,i,j,k)=0.
       enddo
 !
-      do concurrent (i=1:N_cgvec)
-        a_dia_i(i)=0.
-      enddo
+      if (ifprec_32) then
+        allocate (a_dia_i_sp(N_cgvec))
+!$acc enter data create(a_dia_i_sp)
+        do concurrent (i=1:N_cgvec)
+          a_dia_i_sp(i)=0.
+        enddo
+      else
+        allocate (a_dia_i(N_cgvec))
+!$acc enter data create(a_dia_i)
+        do concurrent (i=1:N_cgvec)
+          a_dia_i(i)=0.
+        enddo
+      endif
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
       if (ifprec_t.ge.2.and..not.use_sts_tc) then
+        if (ifprec_32) then
+          allocate (lu_csr_sp  (    M_nnz))
+          allocate (a_csr_d_sp (  N_cgvec))
+        end if
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
         allocate (a_csr_d (    N_cgvec))
@@ -32170,11 +32385,22 @@ subroutine dealloc_t_matrix_coefs
 !
 !-----------------------------------------------------------------------
 !
-!$acc exit data delete(a_dia,a_dia_i)
+!$acc exit data delete(a_dia)
       deallocate (a_dia)
-      deallocate (a_dia_i)
+!
+      if (ifprec_32) then
+!$acc exit data delete(a_dia_i_sp)
+        deallocate (a_dia_i_sp)
+      else
+!$acc exit data delete(a_dia_i)
+        deallocate (a_dia_i)
+      endif
 !
       if (ifprec_t.ge.2.and..not.use_sts_tc) then
+        if (ifprec_32) then
+          deallocate (lu_csr_sp)
+          deallocate (a_csr_d_sp)
+        end if
         deallocate (a_csr)
         deallocate (lu_csr)
         deallocate (a_csr_d)
@@ -32394,8 +32620,7 @@ subroutine alloc_v_matrix_coefs
       allocate (a_r(15, 2:nrm-1, 2:ntm1,  2:npm1  ))
       allocate (a_t(15, 2:nrm1,  2:ntm-1, 2:npm1  ))
       allocate (a_p(15, 2:nrm1,  2:ntm1,  2:npm-1 ))
-      allocate (a_dia_i(N_cgvec))
-!$acc enter data create(a_r,a_t,a_p,a_dia_i)
+!$acc enter data create(a_r,a_t,a_p)
 !
       do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1, l=1:15)
         a_r(l,i,j,k)=0.
@@ -32409,13 +32634,27 @@ subroutine alloc_v_matrix_coefs
         a_p(l,i,j,k)=0.
       enddo
 !
-      do concurrent (i=1:N_cgvec)
-        a_dia_i(i)=0.
-      enddo
+      if (ifprec_32) then
+        allocate (a_dia_i_sp(N_cgvec))
+!$acc enter data create(a_dia_i_sp)
+        do concurrent (i=1:N_cgvec)
+          a_dia_i_sp(i)=0.
+        enddo
+      else
+        allocate (a_dia_i(N_cgvec))
+!$acc enter data create(a_dia_i)
+        do concurrent (i=1:N_cgvec)
+          a_dia_i(i)=0.
+        enddo
+      endif
 !
 ! ****** Allocate CSR storage of matrix:
 !
       if (ifprec_v.ge.2) then
+        if (ifprec_32) then
+          allocate (lu_csr_sp  (    M_nzz))
+          allocate (a_csr_d_sp (    N_cgvec))
+        end if
         allocate (a_csr   (   M_nzz))
         allocate (lu_csr  (   M_nzz))
         allocate (a_csr_d (   N_cgvec))
@@ -32446,13 +32685,23 @@ subroutine dealloc_v_matrix_coefs
 !
 !-----------------------------------------------------------------------
 !
-!$acc exit data delete(a_r,a_t,a_p,a_dia_i)
+!$acc exit data delete(a_r,a_t,a_p)
       deallocate (a_r)
       deallocate (a_t)
       deallocate (a_p)
-      deallocate (a_dia_i)
+      if (ifprec_32) then
+!$acc exit data delete(a_dia_i_sp)
+        deallocate (a_dia_i_sp)
+      else
+!$acc exit data delete(a_dia_i)
+        deallocate (a_dia_i)
+      endif
 !
       if (ifprec_v.ge.2) then
+        if (ifprec_32) then
+          deallocate (lu_csr_sp)
+          deallocate (a_csr_d_sp)
+        end if
         deallocate (a_csr)
         deallocate (lu_csr)
         deallocate (a_csr_d)
@@ -32485,12 +32734,22 @@ subroutine alloc_v_par_matrix_coefs
 !-----------------------------------------------------------------------
 !
       allocate (a_dia(7,2:nrm1,2:ntm1,2:npm1))
-      allocate (a_dia_i(N_cgvec))
-!$acc enter data create(a_dia,a_dia_i)
+!$acc enter data create(a_dia)
+      if (ifprec_32) then
+        allocate (a_dia_i_sp(N_cgvec))
+!$acc enter data create(a_dia_i_sp)
+      else
+        allocate (a_dia_i(N_cgvec))
+!$acc enter data create(a_dia_i)
+      endif
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
       if (ifprec_v.ge.2) then
+        if (ifprec_32) then
+          allocate (lu_csr_sp  (    M_nnz))
+          allocate (a_csr_d_sp (    N_cgvec))
+        end if
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
         allocate (a_csr_d (    N_cgvec))
@@ -32521,11 +32780,21 @@ subroutine dealloc_v_par_matrix_coefs
 !
 !-----------------------------------------------------------------------
 !
-!$acc exit data delete(a_dia,a_dia_i)
+!$acc exit data delete(a_dia)
       deallocate (a_dia)
-      deallocate (a_dia_i)
+      if (ifprec_32) then
+!$acc exit data delete(a_dia_i_sp)
+        deallocate (a_dia_i_sp)
+      else
+!$acc exit data delete(a_dia_i)
+        deallocate (a_dia_i)
+      endif
 !
       if (ifprec_v.ge.2) then
+        if (ifprec_32) then
+          deallocate (lu_csr_sp)
+          deallocate (a_csr_d_sp)
+        end if
         deallocate (a_csr)
         deallocate (lu_csr)
         deallocate (a_csr_d)
@@ -32558,12 +32827,22 @@ subroutine alloc_divb_matrix_coefs
 !-----------------------------------------------------------------------
 !
       allocate (a_dia(7,i0:nrm1,2:ntm-1,2:npm-1))
-      allocate (a_dia_i(N_cgvec))
-!$acc enter data create(a_dia,a_dia_i)
+!$acc enter data create(a_dia)
+      if (ifprec_32) then
+        allocate (a_dia_i_sp(N_cgvec))
+!$acc enter data create(a_dia_i_sp)
+      else
+        allocate (a_dia_i(N_cgvec))
+!$acc enter data create(a_dia_i)
+      endif
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
       if (ifprec_divb.ge.2) then
+        if (ifprec_32) then
+          allocate (lu_csr_sp  (    M_nnz))
+          allocate (a_csr_d_sp (    N_cgvec))
+        end if
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
         allocate (a_csr_d (    N_cgvec))
@@ -32594,11 +32873,21 @@ subroutine dealloc_divb_matrix_coefs
 !
 !-----------------------------------------------------------------------
 !
-!$acc exit data delete(a_dia,a_dia_i)
+!$acc exit data delete(a_dia)
       deallocate (a_dia)
-      deallocate (a_dia_i)
+      if (ifprec_32) then
+!$acc exit data delete(a_dia_i_sp)
+        deallocate (a_dia_i_sp)
+      else
+!$acc exit data delete(a_dia_i)
+        deallocate (a_dia_i)
+      endif
 !
       if (ifprec_divb.ge.2) then
+        if (ifprec_32) then
+          deallocate (lu_csr_sp)
+          deallocate (a_csr_d_sp)
+        end if
         deallocate (a_csr)
         deallocate (lu_csr)
         deallocate (a_csr_d)
@@ -32807,7 +33096,7 @@ subroutine load_pot2d_solve
       use globals
       use mpidefs
       use matrix_storage_pot2d_solve
-      use cgcom, ONLY : ifprec_pot2d,ifprec_32
+      use cgcom, ONLY : ifprec_pot2d
 !
 !-----------------------------------------------------------------------
 !
@@ -32855,7 +33144,6 @@ subroutine load_pot2d_solve
       call load_matrix_pot2d_solve
 !
       call load_preconditioner_pot2d_solve
-!$acc enter data copyin(a_dia,a_dia_i)
 !
 end subroutine
 !#######################################################################
@@ -32873,7 +33161,7 @@ subroutine load_pot2dh_solve
       use globals
       use mpidefs
       use matrix_storage_pot2dh_solve
-      use cgcom, ONLY : ifprec_pot2d,ifprec_32
+      use cgcom, ONLY : ifprec_pot2d
 !
 !-----------------------------------------------------------------------
 !
@@ -32914,7 +33202,6 @@ subroutine load_pot2dh_solve
       call load_matrix_pot2dh_solve
 !
       call load_preconditioner_pot2dh_solve
-!$acc enter data copyin(a_dia,a_dia_i)
 !
 end subroutine
 !#######################################################################
@@ -32999,12 +33286,26 @@ subroutine alloc_pot2d_matrix_coefs
 !
       allocate (a_dia(5,j0:ntm1,2:npm-1))
       a_dia(:,:,:)=0.
-      allocate (a_dia_i(N_cgvec))
-      a_dia_i(:)=0.
+!$acc enter data copyin(a_dia)
+!
+      if (ifprec_32) then
+        allocate (a_dia_i_sp(N_cgvec))
+        a_dia_i_sp(:)=0.
+!$acc enter data copyin(a_dia_i_sp)
+      else
+        allocate (a_dia_i(N_cgvec))
+        a_dia_i(:)=0.
+!$acc enter data copyin(a_dia_i)
+      end if
+
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
       if (ifprec_pot2d.ge.2) then
+        if (ifprec_32) then
+          allocate (lu_csr_sp  (    M_nnz))
+          allocate (a_csr_d_sp (    N_cgvec))
+        end if
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
         allocate (a_csr_d(     N_cgvec))
@@ -33039,12 +33340,24 @@ subroutine alloc_pot2dh_matrix_coefs
 !
       allocate (a_dia(5,2:ntm1,2:npm1))
       a_dia(:,:,:)=0.
-      allocate (a_dia_i(N_cgvec))
-      a_dia_i(:)=0.
+!$acc enter data copyin(a_dia)
+      if (ifprec_32) then
+        allocate (a_dia_i_sp(N_cgvec))
+        a_dia_i_sp(:)=0.
+!$acc enter data copyin(a_dia_i_sp)
+      else
+        allocate (a_dia_i(N_cgvec))
+        a_dia_i(:)=0.
+!$acc enter data copyin(a_dia_i)
+      end if
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
       if (ifprec_pot2d.ge.2) then
+        if (ifprec_32) then
+          allocate (lu_csr_sp  (    M_nnz))
+          allocate (a_csr_d_sp (    N_cgvec))
+        end if
         allocate (a_csr   (    M_nnz))
         allocate (lu_csr  (    M_nnz))
         allocate (a_csr_d (    N_cgvec))
@@ -33129,6 +33442,7 @@ subroutine load_matrix_pot2d_solve
         end if
 !
       enddo
+!$acc update device(a_dia)
 !
 end subroutine
 !#######################################################################
@@ -33188,6 +33502,7 @@ subroutine load_matrix_pot2dh_solve
 !
         enddo
       enddo
+!$acc update device(a_dia)
 !
 end subroutine
 !#######################################################################
@@ -33200,7 +33515,7 @@ subroutine load_preconditioner_pot2dh_solve
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
       use globals
       use matrix_storage_pot2dh_solve
 !
@@ -33224,13 +33539,24 @@ subroutine load_preconditioner_pot2dh_solve
 !
 ! ****** Diagonal scaling:
 !
-      ll=0
-      do j=2,npm1
-        do i=2,ntm1
-          ll=ll+1
-          a_dia_i(ll)=one/a_dia(3,i,j)
-        enddo
-      enddo
+        ll=0
+        if (ifprec_32) then
+          do j=2,npm1
+            do i=2,ntm1
+              ll=ll+1
+              a_dia_i_sp(ll)=real(one/a_dia(3,i,j),r_typ_sp)
+            enddo
+          enddo
+!$acc update device(a_dia_i_sp)
+        else
+          do j=2,npm1
+            do i=2,ntm1
+              ll=ll+1
+              a_dia_i(ll)=one/a_dia(3,i,j)
+            enddo
+          enddo
+!$acc update device(a_dia_i)
+        end if
 !
       elseif (ifprec_pot2d.ge.2) then
 !
@@ -33277,6 +33603,15 @@ subroutine load_preconditioner_pot2dh_solve
         do i=1,N_cgvec
           a_csr_d(i)=one/a_csr(a_csr_dptr(i))
         enddo
+!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            a_csr_d_sp(i)=real(a_csr_d(i),r_typ_sp)
+          enddo
+          do concurrent (i=1:M_nnz)
+            lu_csr_sp(i)=real(lu_csr(i),r_typ_sp)
+          enddo
+        end if
 !
       end if
 !
@@ -33337,7 +33672,7 @@ subroutine load_preconditioner_pot2d_solve
 !-----------------------------------------------------------------------
 !
       use number_types
-      use cgcom, ONLY : ifprec_pot2d
+      use cgcom, ONLY : ifprec_pot2d,ifprec_32
       use globals
       use matrix_storage_pot2d_solve
 !
@@ -33361,13 +33696,24 @@ subroutine load_preconditioner_pot2d_solve
 !
 ! ****** Diagonal scaling:
 !
-      ll=0
-      do k=2,npm-1
-        do j=j0,ntm1
-          ll=ll+1
-          a_dia_i(ll)=one/a_dia(3,j,k)
-        enddo
-      enddo
+        ll=0
+        if (ifprec_32) then
+          do k=2,npm-1
+            do j=j0,ntm1
+              ll=ll+1
+              a_dia_i_sp(ll)=real(one/a_dia(3,j,k),r_typ_sp)
+            enddo
+          enddo
+!$acc update device(a_dia_i_sp)
+        else
+          do k=2,npm-1
+            do j=j0,ntm1
+              ll=ll+1
+              a_dia_i(ll)=one/a_dia(3,j,k)
+            enddo
+          enddo
+!$acc update device(a_dia_i)
+        end if
 !
       elseif (ifprec_pot2d.ge.2) then
 !
@@ -33414,6 +33760,16 @@ subroutine load_preconditioner_pot2d_solve
         do i=1,N_cgvec
           a_csr_d(i)=one/a_csr(a_csr_dptr(i))
         enddo
+!
+        if (ifprec_32) then
+          do concurrent (i=1:N_cgvec)
+            a_csr_d_sp(i)=real(a_csr_d(i),r_typ_sp)
+          enddo
+          do concurrent (i=1:M_nnz)
+            lu_csr_sp(i)=real(lu_csr(i),r_typ_sp)
+          enddo
+        end if
+!
 !
       end if
 !
@@ -71802,5 +72158,10 @@ end subroutine
 ! ### Version 0.9.4.3, 05/23/2025, modified by MS:
 !      - Changed "p" and "ap" temporary arrays in CG solver to be
 !        allocatable instead of local stack arrays.
+!
+! ### Version 0.9.5.0, 05/27/2025, modified by MS+RC:
+!      - Added IFPREC_32 input parameter.  If set,
+!        the preconditioner for the solves will use
+!        single precision instead of double.
 !
 !#######################################################################

@@ -68,6 +68,7 @@ clean=0
 nochecksetup=0
 nocolor=0
 setrefdata=0
+ifprec32=0
 masexe="mas"
 mpicall="mpirun -np"
 
@@ -122,6 +123,9 @@ case $i in
     ;;
     -mpicall=*)
     mpicall="${i#*=}"
+    ;;
+    -pc32)
+    ifprec32=1
     ;;
     -np=*)
     np="${i#*=}"
@@ -360,6 +364,14 @@ do
 
     ${echo} "==> Copying input files..."
     cp -r ${INPUTDIR}/* ${RUNDIR}/ 2>/dev/null
+
+    if [ ${ifprec32} == 1 ]
+    then
+      ${echo} "==> Setting preconditioners to single precision ..."
+      match="\&data"
+      insert="  ifprec_32=.true."
+      sed -i "s/${match}/${match}\n${insert}/" "mas.in"
+    fi
 
     cd ${RUNDIR}
 
