@@ -12,7 +12,7 @@
   
 For more information on MAS, including model/computational details and references, see [here](https://predsci.com/mas).  
   
-`MAS` can be used with MacOS, Linux, and Windows (through [WSL](https://learn.microsoft.com/en-us/windows/wsl)) on CPUs and NVIDIA GPUs. 
+`MAS` can be used with MacOS, Linux, and Windows (through [WSL](https://github.com/microsoft/WSL) on CPUs and NVIDIA GPUs. 
 
 
 ### Please Read First: ###
@@ -27,8 +27,8 @@ MAS is a complex code with many years of development and contains numerous input
 ### Compilers ###
 MAS has been tested to work with the following compilers:  
   
- - GCC's `gfortran` v12.3.0  
- - NVIDIA's `nvfortran` v25.3 (both CPU and GPU)  
+ - GCC's `gfortran` v14.2.0  
+ - NVIDIA's `nvfortran` v25.5 (both CPU and GPU)  
  - INTEL's `ifx` v2025.1.0  
   
 
