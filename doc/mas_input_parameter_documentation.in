@@ -4,90 +4,109 @@
 ! ### Note that this file is a work-in-progress and does not
 ! ### currently cover all input parameters.
 !
-! ### DOC Version: 0.1.0    MAS Version: 0.9.3.0
+! ### DOC Version: 0.2.0    MAS Version: 0.9.4.0
 !
 !
 ! *** Grid resolution.
 !
 &topology
-  nr = 61                                                ! Grid resolution in the `r` direction.
 
-  nt = 31                                                ! Grid resolution in the `theta` direction.
+  nr = 61                                     ! Grid resolution in the `r` direction.
 
-  np = 61                                                ! Grid resolution in the `phi` direction.
+  nt = 31                                     ! Grid resolution in the `theta` direction.
+
+  np = 61                                     ! Grid resolution in the `phi` direction.
+
 /
 &data
 
-  legacy_output_filenames = .false.                      ! Set to true to use the old-style file output.
+  legacy_output_filenames = .false.           ! Set to true to use the old-style file output.
 
-  r0 = 1.0                                               ! Coordinate of the lower radial boundary.
+  r0 = 1.0                                    ! Coordinate of the lower radial boundary.
 
-  r1 = 30.0                                              ! Coordinate of the upper radial boundary.
+  r1 = 30.0                                   ! Coordinate of the upper radial boundary.
 
-  tmax = 0.5                                             ! End time of the simulation in MAS time units.
+  tmax = 0.5                                  ! End time of the simulation in MAS time units.
 
-  rfrac    = 0.0,1.0                                     ! Normalized positions of grid segment boundaries
-                                                         ! (as a fraction of domain size) for radial grid.
+  rfrac    = 0.0,1.0                          ! Normalized positions of grid segment boundaries
+                                              !   (as a fraction of domain size) for radial grid.
 
-  drratio  = 1.0                                         ! Ratio of grid spacing at the end of each segment to that
-                                                         ! at the beginning for the radial grid
-                                                         ! [ length(drratio) = length(rfrac)-1 ].
+  drratio  = 1.0                              ! Ratio of grid spacing at the end of each segment to that
+                                              !   at the beginning for the radial grid
+                                              !   [ length(drratio) = length(rfrac)-1 ].
 
-  nfrmesh  = 5                                           ! Number of times to filter/smooth the radial grid spacing.
+  nfrmesh  = 5                                ! Number of times to filter/smooth the radial grid spacing.
 
-  tfrac    = 0.0,1.0                                     ! Same as rfrac but for theta grid.
+  tfrac    = 0.0,1.0                          ! Same as rfrac but for theta grid.
 
-  dtratio  = 1.0                                         ! Same as drratio but for theta grid.
+  dtratio  = 1.0                              ! Same as drratio but for theta grid.
 
-  nftmesh  = 5                                           ! Same as nfrmesh but for theta grid.
+  nftmesh  = 5                                ! Same as nfrmesh but for theta grid.
 
-  pfrac    = 0.0                                         ! Same as rfrac but for phi grid.  
-                                                         ! Here there is one less value due to periodic boundary.
+  pfrac    = 0.0                              ! Same as rfrac but for phi grid.  
+                                              !   Here there is one less value due to periodic boundary.
 
-  dpratio  = 1.0                                         ! Same as drratio but for phi grid. 
-                                                         ! Here, length(dpratio) = length(pfrac).
+  dpratio  = 1.0                              ! Same as drratio but for phi grid. 
+                                              !   Here, length(dpratio) = length(pfrac).
 
-  nfpmesh  = 5                                           ! Same as nfrmesh but for phi grid.
+  nfpmesh  = 5                                ! Same as nfrmesh but for phi grid.
 
-  phishift = 0.0                                         ! Apply an optional phi shift (radians) to the input phi grid.
+  phishift = 0.0                              ! Apply an optional phi shift (radians) to the input phi grid.
 
-  dtmax = 0.01                                           ! Maximum allowed time step.  
-                                                         ! Will be first time step to try unless dt_init is set.
+  dtmax = 0.01                                ! Maximum allowed time step.  
+                                              !   Will be first time step to try unless dt_init is set.
 
-  dtmin = 1.e-5                                          ! Minimum allowed time step.  If time step drops below this, 
-                                                         ! a warning is issued.
+  dtmin = 1.e-5                               ! Minimum allowed time step.  If time step drops below this, 
+                                              !   a warning is issued.
 
-  dt_init = 0.005                                        ! Initial time step to use unless stability requires it lower.
+  dt_init = 0.005                             ! Initial time step to use unless stability requires it lower.
 
-  dt_max_wave_cfl = 1000.0                               ! Limit the time step to dt_max_wave_cfl times 
-                                                         ! larger than the wave CFL limit.              
+  dt_max_wave_cfl = 1000.0                    ! Limit the time step to dt_max_wave_cfl times 
+                                              !   larger than the wave CFL limit.              
 
-  plotlist = 'zp'                                        ! List of 3D quantities to output.
+  plotlist = 'br'                             ! List of 3D quantities to output.
 
-  ipltxint = 2
-  tpltxint = 0.0
+  ipltxint = 1                                ! Cadence in iteration number to write 3D outputs.
 
-  slice_plotlist = 'rho'                                 ! List of 2D theta-phi slice quantities to output.
+  tpltxint = 0.0                              ! Cadence in MAS units of time to write 3D outputs.
 
-  slice_tp_radii = 10.0
-  slice_ixint = 1
-  slice_txint = 0.0
-  trace_txint = 0.0
+  slice_plotlist = 'rho'                      ! List of 2D theta-phi slice quantities to output.
 
-  hdf32 = .false.                                      ! Output hdf5 precision:
-                                                       !   .true.   Single-precision (32-bit) output.
-                                                       !   .false.  Double-precision (64-bit) output.
+  slice_tp_radii = 1.0,10.0                   ! List of solar radii to take desired theta-phi slice outputs.
 
-  rs_final = .false.
-  trsdump = 0.0
-  advance_a    = .true.
-  advance_v    = .true.
-  advance_t    = .true.
-  advance_rho  = .true.
+  slice_ixint = 1                             ! Cadence in iteration number to write slice outputs.
+
+  slice_txint = 0.0                           ! Cadence in MAS units of time to write slice outputs.
+
+  trace_particles = .false.                   ! Trace particles during the run.
+
+  trace_txint = 0.0                           ! Cadence in MAS units of time to write tracer outputs.
+
+  hdf32 = .false.                             ! Output hdf5 precision:
+                                              !   .true.   Single-precision (32-bit) output.
+                                              !   .false.  Double-precision (64-bit) output.
+
+  rs_final = .false.                          ! Output a final restart file at the end of the run named "rs<RUNiD>.h5"
+
+  trsdump = 0.0                               ! Time cadence to output restart files named "rs<RUNID>###.h5"  Set to 0 to disable.
+
+  advance_a    = .true.                       ! Advance the vector potential ar, at, and ap.
+
+  advance_v    = .true.                       ! Advance the velocity vr, vt, and vp.
+
+  advance_rho  = .true.                       ! Advance the (electron number) density rho.
+
+  advance_t    = .true.                       ! Advance the electron temperature te.
+
+  advance_tc   = .true.                       ! Activate Spitzer thermal conduction in the temperature 
+                                              !   advance (must also set tcond>0).
+
+  tcond        = 1.0                          ! Scalar factor to multiply thermal conduction term.
+
   advance_pw   = .false.
   advance_zw   = .true.
   advance_fcs  = .false.
-  trace_particles = .false.
+
   slund = 1.e5
   visc = .002
   gamma = 1.666666666666667
@@ -107,8 +126,7 @@
   max_alfven_speed_rho_mod = 100.0
   ubzero = .false.
   filter_poles = .true.
-  advance_tc = .true.
-  tcond = 1.0
+
   t_cutoff1 = 400000.0
   nfilt_kappa = 0
   alpha_nocoll = 1.0
@@ -193,16 +211,17 @@
                                     !   2DFILE         Use 2D file (in r-theta) for axisymmetric initial conditions.
                                     !   NONE
 
-  onedfile = 'initial_plasma_1d_r_rho40k.dat'  ! Name of text file describing the initial plasma.
-                                               ! Must be of the form:
-                                               ! 
+  onedfile = 'initial_plasma.dat'   ! Name of text file describing the initial plasma.
+                                    !   Must be of the form:
+                                    ! 
 
   cfl = 0.4
   use_sts_visc = .true.
   use_sts_tc   = .true.
   visc_auto_subcycle = .true.
   tc_auto_subcycle   = .true.
-  ifimplrad = 0
+
+  ifimplrad = 0                      ! Set to 1 to use an implicit form of the radiative loss advance.
 
   ifprec_t     = 3                   ! Preconditioner method for the thermal conduction solves:
                                      !   1    Diagonal (recommended for heliospheric CPU runs, and/or GPU runs)
@@ -228,9 +247,9 @@
   epscg_divb    = 1.e-9              ! Solver (divergence cleaning) convergence tolerance, |residual|/|right-hand-side|.
 
   ncgmax = 100000                    ! Maximum solver iterations.
-                                     ! If solver does not converge in ncgmax iterations,
-                                     ! the code will exit with an error.
+                                     !   If solver does not converge in ncgmax iterations,
+                                     !   the code will exit with an error.
 /
 !
-! Description of run should go here.
+! Description of run can go here.
 !
