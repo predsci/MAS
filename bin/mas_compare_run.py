@@ -15,17 +15,8 @@ np.seterr(divide='ignore', invalid='ignore')
 # Python script to compare the results of two MAS runs at a single time-step.
 # If any components of a vector are specified to compare, the 2D or 3D vectore
 # Magnitudes are compared as well.
-# The values reported are
-# 1) CV(NRMSD): Coefficient of Variation of the Root-Mean-Square-Deviation
-#    =SQRT(SUM(y-y*)^2/n)/MEAN(y) tweaked to-> SQRT(SUM(y-y*)^2/n)/SQRT(SUM(y*^2)/n)
-# 2) MAPE: Mean Absolute Percentage Error
-#    =SUM(|(y*-y)/y|)/n
-# 3) Max Absolute Difference
-#    =Max |(y*-y)|
 
 long_file_seq=0
-
-
 
 def argParsing():
 
@@ -56,14 +47,6 @@ def argParsing():
                         required=False,                        
                         help="longfileseq")
 
-    parser.add_argument('-fmthdf4',
-                        default=False,
-                        dest='hdf4',
-                        action='store_true',
-                        required=False,
-                        help="hdf4")
-
-
     if len(sys.argv) < 5:
         print("Usage:  mas_compare_run runname new_rundir ref_rundir fieldlist idx [-long_file_seq]\n")
         print("Dirs have no end slash, comma-seperated field list (vr,vt,rho,...)\n")
@@ -80,6 +63,14 @@ def getdiff_rmsd(x,y):
     d = np.sqrt(np.sum((x - y) ** 2)/N)
     return d
 
+def getdiff_hhabs(x,y):
+    top = np.sum((x - y) ** 2)
+    bot = np.sum(np.abs(y)*np.abs(x))
+    if bot == 0:
+        d = -1
+    else:
+        d = np.sqrt(top/bot)
+    return d
 
 def getdiff_maxabs(x, y):
     d = np.max(np.abs(x - y))
@@ -125,19 +116,7 @@ N = len(sys.argv)
 
 ext='h5'
 
-if args.hdf4:
-    ext='hdf'
-
 CALLDIR = os.getcwd()
-
-# ---------------------------------------------------
-#  Manual override of inputs:
-# ---------------------------------------------------
-# RUNNAME = "poly_1d_parker"
-# RUNDIR1 = "../example/compare/poly_1d_parker/run"
-# RUNDIR2 = "../example/compare/poly_1d_parker/reference"
-# fieldlist = "ar,at,ap,br,bt,bp,jr,jt,jp,rho,t,vr,vt,vp".split(',')
-# idx = 51
 
 #---------------------------------------------------
 # Start the comparisons:
@@ -167,7 +146,7 @@ for field in fieldlist:
 
 # Initialize results matrix:
 Nresults = len(fieldlist) + len(fieldlistsDict)
-results = np.full((Nresults, 5), 0.0)
+results = np.full((Nresults, 6), 0.0)
 
 # Iterate through the fields and compute differences between reference and the run
 for field in fieldlist:
@@ -186,12 +165,14 @@ for field in fieldlist:
     err_mape = getdiff_mape(fieldData1, fieldData2)
     err_maxabs = getdiff_maxabs(fieldData1, fieldData2)
     err_maxape = getdiff_maxape(fieldData1, fieldData2)
+    err_hhabs = getdiff_hhabs(fieldData1, fieldData2)
 
-    results[fidx, 0] = err_rmsd
-    results[fidx, 1] = err_maxabs
-    results[fidx, 2] = err_cvrmsd
-    results[fidx, 3] = err_mape
-    results[fidx, 4] = err_maxape
+    results[fidx, 0] = err_hhabs
+    results[fidx, 1] = err_rmsd
+    results[fidx, 2] = err_maxabs
+    results[fidx, 3] = err_cvrmsd
+    results[fidx, 4] = err_mape
+    results[fidx, 5] = err_maxape
     fidx += 1
 
 
@@ -280,20 +261,22 @@ for key in sorted(fieldlistsDict.keys()):
     err_mape = getdiff_mape(vmag1, vmag2)
     err_maxabs = getdiff_maxabs(vmag1, vmag2)
     err_maxape = getdiff_maxape(vmag1, vmag2)
+    err_hhabs = getdiff_hhabs(vmag1, vmag2)
 
-    results[fidx, 0] = err_rmsd
-    results[fidx, 1] = err_maxabs
-    results[fidx, 2] = err_cvrmsd
-    results[fidx, 3] = err_mape
-    results[fidx, 4] = err_maxape
+    results[fidx, 0] = err_hhabs
+    results[fidx, 1] = err_rmsd
+    results[fidx, 2] = err_maxabs
+    results[fidx, 3] = err_cvrmsd
+    results[fidx, 4] = err_mape
+    results[fidx, 5] = err_maxape
     fidx += 1
 
 # Output formatted resulting values
 fOut = RUNNAME + "_solution-compare.txt"
 
-out = "================================================================================================\n"
-out += "%-11s%17s%17s%17s%17s%17s\n" % ("Field", "RMSD", "MAX[|X-Y|]", "MCV(RMSD)", "MEAN[|(X-Y)/Y|]", "MAX[|(X-Y)/Y|]")
-out += "================================================================================================\n"
+out = "=================================================================================================================\n"
+out += "%-11s%17s%17s%17s%17s%17s%17s\n" % ("Field", "HHabs", "RMSD", "MAX[|X-Y|]", "MCV(RMSD)", "MEAN[|(X-Y)/Y|]", "MAX[|(X-Y)/Y|]")
+out += "=================================================================================================================\n"
 
 numberOfMags = 0
 for field in fieldlist:
@@ -305,7 +288,7 @@ fieldlist = fieldlist[:len(fieldlist) - numberOfMags]
 fieldlist.extend(listToSort)
 for i in range(Nresults):
     out += "%11s" % fieldlist[i]
-    for j in range(5):
+    for j in range(6):
         if results[i, j] != -1 and results[i, j] != 0:
             out += "   %.8e" % results[i, j]
         else:

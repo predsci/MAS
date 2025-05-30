@@ -79,14 +79,6 @@ def run(args):
   else:
     STATUS=1
     
-#  if (compare_files(args.run1dir+'/mas_history_b.out', 
-#                    args.run2dir+'/mas_history_b.out', args.p, args.v)):
-#    STATUS=0
-#  else:
-#    STATUS=1
-
-
-
 # Return STATUS to the calling shell.
 
   sys.exit(STATUS)
