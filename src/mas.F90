@@ -107,8 +107,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.5.0'
-      character(*), parameter :: update='05/27/2025'
+      character(*), parameter :: vers='0.9.6.0'
+      character(*), parameter :: update='06/19/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -577,9 +577,9 @@ module types
 ! ****** Vector on the v mesh.
 !
       type :: vvec
-        real(r_typ), dimension(:,:,:), allocatable :: r !(nrm,nt,np)
-        real(r_typ), dimension(:,:,:), allocatable :: t !(nr,ntm,np)
-        real(r_typ), dimension(:,:,:), allocatable :: p !(nr,nt,npm)
+        real(r_typ), dimension(:,:,:), pointer, contiguous :: r !(nrm,nt,np)
+        real(r_typ), dimension(:,:,:), pointer, contiguous :: t !(nr,ntm,np)
+        real(r_typ), dimension(:,:,:), pointer, contiguous :: p !(nr,nt,npm)
       end type
 !
 ! ****** Vector on the half mesh.
@@ -612,10 +612,10 @@ module types
 ! ****** Components of v at the r boundaries.
 !
       type :: vvec_bcr
-        real(r_typ), dimension(:,:), allocatable :: r !(nt,np)
-        real(r_typ), dimension(:,:), allocatable :: t !(ntm,np)
-        real(r_typ), dimension(:,:), allocatable :: p !(nt,npm)
-        real(r_typ), dimension(:,:), allocatable :: par !(nt,np)
+        real(r_typ), dimension(:,:), pointer, contiguous :: r !(nt,np)
+        real(r_typ), dimension(:,:), pointer, contiguous :: t !(ntm,np)
+        real(r_typ), dimension(:,:), pointer, contiguous :: p !(nt,npm)
+        real(r_typ), dimension(:,:), pointer, contiguous :: par !(nt,np)
       end type
 !
 ! ****** Tangential components of A at the boundaries.
@@ -22783,6 +22783,7 @@ subroutine set_pole_bc_vvec (v)
       integer :: i,k
       real(r_typ) :: temp_sum1,temp_sum2
       real(r_typ), allocatable, dimension(:) :: sum0,sum1
+      real(r_typ),dimension(:,:,:),pointer,contiguous :: v_r,v_t,v_p
 !
 !-----------------------------------------------------------------------
 !
@@ -22790,6 +22791,13 @@ subroutine set_pole_bc_vvec (v)
 ! ****** pole, return.
 !
       if (.not.(tb0.or.tb1)) return
+!
+!
+! ****** Optimization: use ptrs to avoid type hopping within GPU kernel.
+!
+      v_r=>v%r
+      v_t=>v%t
+      v_p=>v%p
 !
 ! ****** Get the local sums (on this processor).
 ! ****** The m=0 and m=1 components are all stored in one long array
@@ -22813,7 +22821,7 @@ subroutine set_pole_bc_vvec (v)
         do concurrent (i=1:nrm)
           temp_sum1=0.
           do k=2,npm1
-            temp_sum1=temp_sum1+v%r(i,2,k)*dph(k)*pl_i*two
+            temp_sum1=temp_sum1+v_r(i,2,k)*dph(k)*pl_i*two
           enddo
           sum0(i)=temp_sum1
         enddo
@@ -22823,7 +22831,7 @@ subroutine set_pole_bc_vvec (v)
         do concurrent (i=1:nrm)
           temp_sum1=0.
           do k=2,npm1
-            temp_sum1=temp_sum1+v%r(i,ntm1,k)*dph(k)*pl_i*two
+            temp_sum1=temp_sum1+v_r(i,ntm1,k)*dph(k)*pl_i*two
           enddo
           sum1(i)=temp_sum1
         enddo
@@ -22836,8 +22844,8 @@ subroutine set_pole_bc_vvec (v)
           temp_sum1=0.
           temp_sum2=0.
           do k=2,npm1
-            temp_sum1=temp_sum1+v%p(i,2,k)*sp(k)*dp(k)*pl_i*two
-            temp_sum2=temp_sum2+v%p(i,2,k)*cp(k)*dp(k)*pl_i*two
+            temp_sum1=temp_sum1+v_p(i,2,k)*sp(k)*dp(k)*pl_i*two
+            temp_sum2=temp_sum2+v_p(i,2,k)*cp(k)*dp(k)*pl_i*two
           enddo
           sum0(nrm+i)=temp_sum1
           sum0(nrm+nr+i)=temp_sum2
@@ -22849,8 +22857,8 @@ subroutine set_pole_bc_vvec (v)
           temp_sum1=0.
           temp_sum2=0.
           do k=2,npm1
-            temp_sum1=temp_sum1+v%p(i,ntm1,k)*sp(k)*dp(k)*pl_i*two
-            temp_sum2=temp_sum2+v%p(i,ntm1,k)*cp(k)*dp(k)*pl_i*two
+            temp_sum1=temp_sum1+v_p(i,ntm1,k)*sp(k)*dp(k)*pl_i*two
+            temp_sum2=temp_sum2+v_p(i,ntm1,k)*cp(k)*dp(k)*pl_i*two
           enddo
           sum1(nrm+i)=temp_sum1
           sum1(nrm+nr+i)=temp_sum2
@@ -22865,31 +22873,31 @@ subroutine set_pole_bc_vvec (v)
 !
       if (tb0) then
         do concurrent (k=1:np, i=1:nrm)
-          v%r(i,1,k)=sum0(i)-v%r(i,2,k)
+          v_r(i,1,k)=sum0(i)-v_r(i,2,k)
         enddo
 !
         do concurrent (k=1:np, i=1:nr)
-          v%t(i,1,k)=sum0(nrm+nr+i)*sph(k)-sum0(nrm+i)*cph(k)
+          v_t(i,1,k)=sum0(nrm+nr+i)*sph(k)-sum0(nrm+i)*cph(k)
         enddo
 !
         do concurrent (k=1:npm1, i=1:nr)
-          v%p(i,1,k)= two*( sum0(nrm+i)*sp(k)+sum0(nrm+nr+i)*cp(k) ) &
-                      -v%p(i,2,k)
+          v_p(i,1,k)= two*( sum0(nrm+i)*sp(k)+sum0(nrm+nr+i)*cp(k) ) &
+                      -v_p(i,2,k)
         enddo
       end if
 !
       if (tb1) then
         do concurrent (k=1:np, i=1:nrm)
-          v%r(i,nt,k)=sum1(i)-v%r(i,ntm1,k)
+          v_r(i,nt,k)=sum1(i)-v_r(i,ntm1,k)
         enddo
 !
         do concurrent (k=1:np, i=1:nr)
-          v%t(i,ntm1,k)=-sum1(nrm+nr+i)*sph(k)+sum1(nrm+i)*cph(k)
+          v_t(i,ntm1,k)=-sum1(nrm+nr+i)*sph(k)+sum1(nrm+i)*cph(k)
         enddo
 !
         do concurrent (k=1:npm1, i=1:nr)
-          v%p(i,nt,k)= two*( sum1(nrm+i)*sp(k)+sum1(nrm+nr+i)*cp(k)) &
-                       -v%p(i,ntm1,k)
+          v_p(i,nt,k)= two*( sum1(nrm+i)*sp(k)+sum1(nrm+nr+i)*cp(k)) &
+                       -v_p(i,ntm1,k)
         enddo
       end if
 !
@@ -27316,14 +27324,21 @@ subroutine pack_vvec (v,x)
 !-----------------------------------------------------------------------
 !
       integer :: i,j,k,l
+      real(r_typ),dimension(:,:,:),pointer,contiguous :: v_r,v_t,v_p
 !
 !-----------------------------------------------------------------------
+!
+! ****** Optimization: use ptrs to avoid type hopping within GPU kernel.
+!
+      v_r=>v%r
+      v_t=>v%t
+      v_p=>v%p
 !
 ! ****** Pack the r component.
 !
       do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1)
         l=ntm2*(nrm-2)*(k-2)+(nrm-2)*(j-2)+(i-1)
-        x(l)=v%r(i,j,k)
+        x(l)=v_r(i,j,k)
       enddo
 !
 ! ****** Pack the theta component.
@@ -27331,7 +27346,7 @@ subroutine pack_vvec (v,x)
       do concurrent (k=2:npm1, j=2:ntm-1, i=2:nrm1)
         l=(npm2*ntm2*(nrm-2)) &
          +(ntm-2)*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-        x(l)=v%t(i,j,k)
+        x(l)=v_t(i,j,k)
       enddo
 !
 ! ****** Pack the phi component.
@@ -27339,7 +27354,7 @@ subroutine pack_vvec (v,x)
       do concurrent (k=2:npm-1, j=2:ntm1, i=2:nrm1)
         l=(npm2*ntm2*(nrm-2))+(npm2*(ntm-2)*nrm2) &
           +ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-        x(l)=v%p(i,j,k)
+        x(l)=v_p(i,j,k)
       enddo
 !
 end subroutine
@@ -27370,14 +27385,21 @@ subroutine unpack_vvec (v,x)
 !-----------------------------------------------------------------------
 !
       integer :: i,j,k,l
+      real(r_typ),dimension(:,:,:),pointer,contiguous :: v_r,v_t,v_p
 !
 !-----------------------------------------------------------------------
+!
+! ****** Optimization: use ptrs to avoid type hopping within GPU kernel.
+!
+      v_r=>v%r
+      v_t=>v%t
+      v_p=>v%p
 !
 ! ****** Unpack the r component.
 !
       do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1)
         l=ntm2*(nrm-2)*(k-2)+(nrm-2)*(j-2)+(i-1)
-        v%r(i,j,k) = x(l)
+        v_r(i,j,k) = x(l)
       enddo
 !
 ! ****** Unpack the theta component.
@@ -27385,7 +27407,7 @@ subroutine unpack_vvec (v,x)
       do concurrent (k=2:npm1, j=2:ntm-1, i=2:nrm1)
         l=(npm2*ntm2*(nrm-2)) &
          +(ntm-2)*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-        v%t(i,j,k)=x(l)
+        v_t(i,j,k)=x(l)
       enddo
 !
 ! ****** Unpack the phi component.
@@ -27393,7 +27415,7 @@ subroutine unpack_vvec (v,x)
       do concurrent (k=2:npm-1, j=2:ntm1, i=2:nrm1)
         l=(npm2*ntm2*(nrm-2))+(npm2*(ntm-2)*nrm2) &
           +ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
-        v%p(i,j,k)=x(l)
+        v_p(i,j,k)=x(l)
       enddo
 !
 end subroutine
@@ -28144,28 +28166,35 @@ subroutine one_minus_div_grad_v (ps,q)
 !-----------------------------------------------------------------------
 !
       integer :: i,j,k,ii
+      real(r_typ),dimension(:,:,:),pointer,contiguous :: ps_r,ps_t,ps_p
 !
 !-----------------------------------------------------------------------
+!
+! ****** Optimization: use ptrs to avoid type hopping within GPU kernel.
+!
+      ps_r=>ps%r
+      ps_t=>ps%t
+      ps_p=>ps%p
 !
 ! ****** Get the r component.
 !
       do concurrent (k=2:npm1, j=2:ntm1, i=2:nrm-1)
         ii=ntm2*(nrm-2)*(k-2)+(nrm-2)*(j-2)+(i-1)
-        q(ii)=a_r( 1,i,j,k)*ps%r(i  ,j  ,k-1) &
-             +a_r( 2,i,j,k)*ps%r(i  ,j-1,k  ) &
-             +a_r( 3,i,j,k)*ps%r(i-1,j  ,k  ) &
-             +a_r( 4,i,j,k)*ps%r(i  ,j  ,k  ) &
-             +a_r( 5,i,j,k)*ps%r(i+1,j  ,k  ) &
-             +a_r( 6,i,j,k)*ps%r(i  ,j+1,k  ) &
-             +a_r( 7,i,j,k)*ps%r(i  ,j  ,k+1) &
-             +a_r( 8,i,j,k)*ps%t(i  ,j-1,k  ) &
-             +a_r( 9,i,j,k)*ps%t(i+1,j-1,k  ) &
-             +a_r(10,i,j,k)*ps%t(i  ,j  ,k  ) &
-             +a_r(11,i,j,k)*ps%t(i+1,j  ,k  ) &
-             +a_r(12,i,j,k)*ps%p(i  ,j  ,k-1) &
-             +a_r(13,i,j,k)*ps%p(i+1,j  ,k-1) &
-             +a_r(14,i,j,k)*ps%p(i  ,j  ,k  ) &
-             +a_r(15,i,j,k)*ps%p(i+1,j  ,k  )
+        q(ii)=a_r( 1,i,j,k)*ps_r(i  ,j  ,k-1) &
+             +a_r( 2,i,j,k)*ps_r(i  ,j-1,k  ) &
+             +a_r( 3,i,j,k)*ps_r(i-1,j  ,k  ) &
+             +a_r( 4,i,j,k)*ps_r(i  ,j  ,k  ) &
+             +a_r( 5,i,j,k)*ps_r(i+1,j  ,k  ) &
+             +a_r( 6,i,j,k)*ps_r(i  ,j+1,k  ) &
+             +a_r( 7,i,j,k)*ps_r(i  ,j  ,k+1) &
+             +a_r( 8,i,j,k)*ps_t(i  ,j-1,k  ) &
+             +a_r( 9,i,j,k)*ps_t(i+1,j-1,k  ) &
+             +a_r(10,i,j,k)*ps_t(i  ,j  ,k  ) &
+             +a_r(11,i,j,k)*ps_t(i+1,j  ,k  ) &
+             +a_r(12,i,j,k)*ps_p(i  ,j  ,k-1) &
+             +a_r(13,i,j,k)*ps_p(i+1,j  ,k-1) &
+             +a_r(14,i,j,k)*ps_p(i  ,j  ,k  ) &
+             +a_r(15,i,j,k)*ps_p(i+1,j  ,k  )
       enddo
 !
 ! ****** Get the t component.
@@ -28174,21 +28203,21 @@ subroutine one_minus_div_grad_v (ps,q)
         ii=(npm2*ntm2*(nrm-2)) &
           +(ntm-2)*nrm2*(k-2)+nrm2*(j-2)+(i-1)
         q(ii)= &
-             a_t( 1,i,j,k)*ps%r(i-1,j  ,k  ) &
-            +a_t( 2,i,j,k)*ps%r(i  ,j  ,k  ) &
-            +a_t( 3,i,j,k)*ps%r(i-1,j+1,k  ) &
-            +a_t( 4,i,j,k)*ps%r(i  ,j+1,k  ) &
-            +a_t( 5,i,j,k)*ps%t(i  ,j  ,k-1) &
-            +a_t( 6,i,j,k)*ps%t(i  ,j-1,k  ) &
-            +a_t( 7,i,j,k)*ps%t(i-1,j  ,k  ) &
-            +a_t( 8,i,j,k)*ps%t(i  ,j  ,k  ) &
-            +a_t( 9,i,j,k)*ps%t(i+1,j  ,k  ) &
-            +a_t(10,i,j,k)*ps%t(i  ,j+1,k  ) &
-            +a_t(11,i,j,k)*ps%t(i  ,j  ,k+1) &
-            +a_t(12,i,j,k)*ps%p(i  ,j  ,k-1) &
-            +a_t(13,i,j,k)*ps%p(i  ,j+1,k-1) &
-            +a_t(14,i,j,k)*ps%p(i  ,j  ,k  ) &
-            +a_t(15,i,j,k)*ps%p(i  ,j+1,k  )
+             a_t( 1,i,j,k)*ps_r(i-1,j  ,k  ) &
+            +a_t( 2,i,j,k)*ps_r(i  ,j  ,k  ) &
+            +a_t( 3,i,j,k)*ps_r(i-1,j+1,k  ) &
+            +a_t( 4,i,j,k)*ps_r(i  ,j+1,k  ) &
+            +a_t( 5,i,j,k)*ps_t(i  ,j  ,k-1) &
+            +a_t( 6,i,j,k)*ps_t(i  ,j-1,k  ) &
+            +a_t( 7,i,j,k)*ps_t(i-1,j  ,k  ) &
+            +a_t( 8,i,j,k)*ps_t(i  ,j  ,k  ) &
+            +a_t( 9,i,j,k)*ps_t(i+1,j  ,k  ) &
+            +a_t(10,i,j,k)*ps_t(i  ,j+1,k  ) &
+            +a_t(11,i,j,k)*ps_t(i  ,j  ,k+1) &
+            +a_t(12,i,j,k)*ps_p(i  ,j  ,k-1) &
+            +a_t(13,i,j,k)*ps_p(i  ,j+1,k-1) &
+            +a_t(14,i,j,k)*ps_p(i  ,j  ,k  ) &
+            +a_t(15,i,j,k)*ps_p(i  ,j+1,k  )
       enddo
 !
 ! ****** Get the p component.
@@ -28197,21 +28226,21 @@ subroutine one_minus_div_grad_v (ps,q)
         ii=(npm2*ntm2*(nrm-2))+(npm2*(ntm-2)*nrm2) &
            +ntm2*nrm2*(k-2)+nrm2*(j-2)+(i-1)
         q(ii)= &
-              a_p( 1,i,j,k)*ps%r(i-1,j  ,k  ) &
-             +a_p( 2,i,j,k)*ps%r(i  ,j  ,k  ) &
-             +a_p( 3,i,j,k)*ps%r(i-1,j  ,k+1) &
-             +a_p( 4,i,j,k)*ps%r(i  ,j  ,k+1) &
-             +a_p( 5,i,j,k)*ps%t(i  ,j-1,k  ) &
-             +a_p( 6,i,j,k)*ps%t(i  ,j  ,k  ) &
-             +a_p( 7,i,j,k)*ps%t(i  ,j-1,k+1) &
-             +a_p( 8,i,j,k)*ps%t(i  ,j  ,k+1) &
-             +a_p( 9,i,j,k)*ps%p(i  ,j  ,k-1) &
-             +a_p(10,i,j,k)*ps%p(i  ,j-1,k  ) &
-             +a_p(11,i,j,k)*ps%p(i-1,j  ,k  ) &
-             +a_p(12,i,j,k)*ps%p(i  ,j  ,k  ) &
-             +a_p(13,i,j,k)*ps%p(i+1,j  ,k  ) &
-             +a_p(14,i,j,k)*ps%p(i  ,j+1,k  ) &
-             +a_p(15,i,j,k)*ps%p(i  ,j  ,k+1)
+              a_p( 1,i,j,k)*ps_r(i-1,j  ,k  ) &
+             +a_p( 2,i,j,k)*ps_r(i  ,j  ,k  ) &
+             +a_p( 3,i,j,k)*ps_r(i-1,j  ,k+1) &
+             +a_p( 4,i,j,k)*ps_r(i  ,j  ,k+1) &
+             +a_p( 5,i,j,k)*ps_t(i  ,j-1,k  ) &
+             +a_p( 6,i,j,k)*ps_t(i  ,j  ,k  ) &
+             +a_p( 7,i,j,k)*ps_t(i  ,j-1,k+1) &
+             +a_p( 8,i,j,k)*ps_t(i  ,j  ,k+1) &
+             +a_p( 9,i,j,k)*ps_p(i  ,j  ,k-1) &
+             +a_p(10,i,j,k)*ps_p(i  ,j-1,k  ) &
+             +a_p(11,i,j,k)*ps_p(i-1,j  ,k  ) &
+             +a_p(12,i,j,k)*ps_p(i  ,j  ,k  ) &
+             +a_p(13,i,j,k)*ps_p(i+1,j  ,k  ) &
+             +a_p(14,i,j,k)*ps_p(i  ,j+1,k  ) &
+             +a_p(15,i,j,k)*ps_p(i  ,j  ,k+1)
       enddo
 !
 end subroutine
@@ -35232,23 +35261,42 @@ subroutine set_bc_v (vv,bcmask)
 !-----------------------------------------------------------------------
 !
       integer :: j,k
+      real(r_typ),dimension(:,:,:),pointer,contiguous :: vv_r,vv_t,vv_p
+      real(r_typ),dimension(:,:),pointer,contiguous :: vb_r0_r, &
+                                                       vb_r0_t,vb_r0_p
+      real(r_typ),dimension(:,:),pointer,contiguous :: vb_r1_r, &
+                                                       vb_r1_t,vb_r1_p
 !
 !-----------------------------------------------------------------------
+!
+! ****** Optimization: use ptrs to avoid type hopping within GPU kernel.
+!
+      vv_r=>vv%r
+      vv_t=>vv%t
+      vv_p=>vv%p
+!
+      vb_r0_r=>vb%r0%r
+      vb_r0_t=>vb%r0%t
+      vb_r0_p=>vb%r0%p
+!
+      vb_r1_r=>vb%r1%r
+      vb_r1_t=>vb%r1%t
+      vb_r1_p=>vb%r1%p
 !
 ! ****** Boundary at r=R0.
 !
       if (rb0) then
 !
         do concurrent (k=2:npm1, j=2:ntm1)
-          vv%r(1,j,k)=bcmask*vb%r0%r(j,k)
+          vv_r(1,j,k)=bcmask*vb_r0_r(j,k)
         enddo
 !
         do concurrent (k=2:npm1, j=2:ntm-1)
-          vv%t(1,j,k)=bcmask*two*vb%r0%t(j,k)-vv%t(2,j,k)
+          vv_t(1,j,k)=bcmask*two*vb_r0_t(j,k)-vv_t(2,j,k)
         enddo
 !
         do concurrent (k=2:npm-1, j=2:ntm1)
-          vv%p(1,j,k)=bcmask*two*vb%r0%p(j,k)-vv%p(2,j,k)
+          vv_p(1,j,k)=bcmask*two*vb_r0_p(j,k)-vv_p(2,j,k)
         enddo
 !
       end if
@@ -35258,15 +35306,15 @@ subroutine set_bc_v (vv,bcmask)
       if (rb1) then
 !
         do concurrent (k=2:npm1, j=2:ntm1)
-          vv%r(nrm1,j,k)=bcmask*vb%r1%r(j,k)
+          vv_r(nrm1,j,k)=bcmask*vb_r1_r(j,k)
         enddo
 !
         do concurrent (k=2:npm1, j=2:ntm-1)
-          vv%t(nr,j,k)=bcmask*vb%r1%t(j,k)
+          vv_t(nr,j,k)=bcmask*vb_r1_t(j,k)
         enddo
 !
         do concurrent (k=2:npm-1, j=2:ntm1)
-          vv%p(nr,j,k)=bcmask*vb%r1%p(j,k)
+          vv_p(nr,j,k)=bcmask*vb_r1_p(j,k)
         enddo
 !
       end if
@@ -43627,6 +43675,7 @@ subroutine seam_vvec (v)
       use types, ONLY : vvec
       use mpidefs
       use timing
+      use globals
 !
 !-----------------------------------------------------------------------
 !
@@ -43635,6 +43684,7 @@ subroutine seam_vvec (v)
 !-----------------------------------------------------------------------
 !
       type(vvec) :: v
+      real(r_typ), dimension(:,:,:), pointer, contiguous :: vr,vt,vp
 !
 !-----------------------------------------------------------------------
 !
@@ -43670,11 +43720,15 @@ subroutine seam_vvec (v)
 !
 !-----------------------------------------------------------------------
 !
+      vr=>v%r
+      vt=>v%t
+      vp=>v%p
+!
 ! ****** Get the dimensions of the arrays and buffer sizes:
 !
-      n1r=size(v%r,1);   n2r=size(v%r,2);   n3r=size(v%r,3)
-      n1t=size(v%t,1);   n2t=size(v%t,2);   n3t=size(v%t,3)
-      n1p=size(v%p,1);   n2p=size(v%p,2);   n3p=size(v%p,3)
+      n1r=nrm;  n2r=nt;   n3r=np
+      n1t=nr;   n2t=ntm;  n3t=np
+      n1p=nr;   n2p=nt;   n3p=npm
 !
       lbuf3r=n1r*n2r;    lbuf3t=n1t*n2t;    lbuf3p=n1p*n2p
       lbuf1r=n2r*n3r;    lbuf1t=n2t*n3t;    lbuf1p=n2p*n3p
@@ -43685,33 +43739,33 @@ subroutine seam_vvec (v)
 !
 ! ****** Launch async receives.
 !
-!$acc host_data use_device(v%r,v%t,v%p)
-      call MPI_Irecv (v%r(:,:,  1),lbuf3r,ntype_real,iproc_pm,tagr, &
+!$acc host_data use_device(vr,vt,vp)
+      call MPI_Irecv (vr(:,:,  1),lbuf3r,ntype_real,iproc_pm,tagr, &
                       comm_all,req(1),ierr)
-      call MPI_Irecv (v%r(:,:,n3r),lbuf3r,ntype_real,iproc_pp,tagr, &
+      call MPI_Irecv (vr(:,:,n3r),lbuf3r,ntype_real,iproc_pp,tagr, &
                       comm_all,req(2),ierr)
-      call MPI_Irecv (v%t(:,:,  1),lbuf3t,ntype_real,iproc_pm,tagt, &
+      call MPI_Irecv (vt(:,:,  1),lbuf3t,ntype_real,iproc_pm,tagt, &
                       comm_all,req(3),ierr)
-      call MPI_Irecv (v%t(:,:,n3t),lbuf3t,ntype_real,iproc_pp,tagt, &
+      call MPI_Irecv (vt(:,:,n3t),lbuf3t,ntype_real,iproc_pp,tagt, &
                       comm_all,req(4),ierr)
-      call MPI_Irecv (v%p(:,:,  1),lbuf3p,ntype_real,iproc_pm,tagp, &
+      call MPI_Irecv (vp(:,:,  1),lbuf3p,ntype_real,iproc_pm,tagp, &
                       comm_all,req(5),ierr)
-      call MPI_Irecv (v%p(:,:,n3p),lbuf3p,ntype_real,iproc_pp,tagp, &
+      call MPI_Irecv (vp(:,:,n3p),lbuf3p,ntype_real,iproc_pp,tagp, &
                       comm_all,req(6),ierr)
 !
 ! ****** Launch async sends.
 !
-      call MPI_Isend (v%r(:,:,n3r-1),lbuf3r,ntype_real,iproc_pp,tagr, &
+      call MPI_Isend (vr(:,:,n3r-1),lbuf3r,ntype_real,iproc_pp,tagr, &
                       comm_all,req(7),ierr)
-      call MPI_Isend (v%r(:,:,    2),lbuf3r,ntype_real,iproc_pm,tagr, &
+      call MPI_Isend (vr(:,:,    2),lbuf3r,ntype_real,iproc_pm,tagr, &
                       comm_all,req(8),ierr)
-      call MPI_Isend (v%t(:,:,n3t-1),lbuf3t,ntype_real,iproc_pp,tagt, &
+      call MPI_Isend (vt(:,:,n3t-1),lbuf3t,ntype_real,iproc_pp,tagt, &
                       comm_all,req(9),ierr)
-      call MPI_Isend (v%t(:,:,    2),lbuf3t,ntype_real,iproc_pm,tagt, &
+      call MPI_Isend (vt(:,:,    2),lbuf3t,ntype_real,iproc_pm,tagt, &
                       comm_all,req(10),ierr)
-      call MPI_Isend (v%p(:,:,n3p-1),lbuf3p,ntype_real,iproc_pp,tagp, &
+      call MPI_Isend (vp(:,:,n3p-1),lbuf3p,ntype_real,iproc_pp,tagp, &
                       comm_all,req(11),ierr)
-      call MPI_Isend (v%p(:,:,    2),lbuf3p,ntype_real,iproc_pm,tagp, &
+      call MPI_Isend (vp(:,:,    2),lbuf3p,ntype_real,iproc_pm,tagp, &
                       comm_all,req(12),ierr)
 !
 ! ****** Wait for all seams to complete.
@@ -43735,18 +43789,18 @@ subroutine seam_vvec (v)
 !$acc                   rbuf1r,rbuf2r,rbuf1t,rbuf2t,rbuf1p,rbuf2p)
 !
         do concurrent (k=1:n3r, j=1:n2r)
-          sbuf1r(j,k)=v%r(n1r-1,j,k)
-          sbuf2r(j,k)=v%r(    2,j,k)
+          sbuf1r(j,k)=vr(n1r-1,j,k)
+          sbuf2r(j,k)=vr(    2,j,k)
         enddo
 !
         do concurrent (k=1:n3t, j=1:n2t)
-          sbuf1t(j,k)=v%t(n1t-1,j,k)
-          sbuf2t(j,k)=v%t(    2,j,k)
+          sbuf1t(j,k)=vt(n1t-1,j,k)
+          sbuf2t(j,k)=vt(    2,j,k)
         enddo
 !
         do concurrent (k=1:n3p, j=1:n2p)
-          sbuf1p(j,k)=v%p(n1p-1,j,k)
-          sbuf2p(j,k)=v%p(    2,j,k)
+          sbuf1p(j,k)=vp(n1p-1,j,k)
+          sbuf2p(j,k)=vp(    2,j,k)
         enddo
 !
 !$acc host_data use_device(sbuf1r,sbuf2r,sbuf1t,sbuf2t,sbuf1p,sbuf2p, &
@@ -43788,29 +43842,29 @@ subroutine seam_vvec (v)
 !
         if (iproc_rm.ne.MPI_PROC_NULL) then
           do concurrent (k=1:n3r, j=1:n2r)
-            v%r(1,j,k)=rbuf1r(j,k)
+            vr(1,j,k)=rbuf1r(j,k)
           enddo
 !
           do concurrent (k=1:n3t, j=1:n2t)
-            v%t(1,j,k)=rbuf1t(j,k)
+            vt(1,j,k)=rbuf1t(j,k)
           enddo
 !
           do concurrent (k=1:n3p, j=1:n2p)
-            v%p(1,j,k)=rbuf1p(j,k)
+            vp(1,j,k)=rbuf1p(j,k)
           enddo
         end if
 !
         if (iproc_rp.ne.MPI_PROC_NULL) then
           do concurrent (k=1:n3r, j=1:n2r)
-            v%r(n1r,j,k)=rbuf2r(j,k)
+            vr(n1r,j,k)=rbuf2r(j,k)
           enddo
 !
           do concurrent (k=1:n3t, j=1:n2t)
-            v%t(n1t,j,k)=rbuf2t(j,k)
+            vt(n1t,j,k)=rbuf2t(j,k)
           enddo
 !
           do concurrent (k=1:n3p, j=1:n2p)
-            v%p(n1p,j,k)=rbuf2p(j,k)
+            vp(n1p,j,k)=rbuf2p(j,k)
           enddo
         end if
 !
@@ -43835,18 +43889,18 @@ subroutine seam_vvec (v)
 !$acc                   rbuf1r,rbuf2r,rbuf1t,rbuf2t,rbuf1p,rbuf2p)
 !
         do concurrent (k=1:n3r, j=1:n1r)
-          sbuf1r(j,k)=v%r(j,n2r-1,k)
-          sbuf2r(j,k)=v%r(j,    2,k)
+          sbuf1r(j,k)=vr(j,n2r-1,k)
+          sbuf2r(j,k)=vr(j,    2,k)
         enddo
 !
         do concurrent (k=1:n3t, j=1:n1t)
-          sbuf1t(j,k)=v%t(j,n2t-1,k)
-          sbuf2t(j,k)=v%t(j,    2,k)
+          sbuf1t(j,k)=vt(j,n2t-1,k)
+          sbuf2t(j,k)=vt(j,    2,k)
         enddo
 !
         do concurrent (k=1:n3p, j=1:n1p)
-          sbuf1p(j,k)=v%p(j,n2p-1,k)
-          sbuf2p(j,k)=v%p(j,    2,k)
+          sbuf1p(j,k)=vp(j,n2p-1,k)
+          sbuf2p(j,k)=vp(j,    2,k)
         enddo
 !
 !$acc host_data use_device(sbuf1r,sbuf2r,sbuf1t,sbuf2t,sbuf1p,sbuf2p, &
@@ -43888,29 +43942,29 @@ subroutine seam_vvec (v)
 !
         if (iproc_tm.ne.MPI_PROC_NULL) then
           do concurrent (k=1:n3r, j=1:n1r)
-            v%r(j,1,k)=rbuf1r(j,k)
+            vr(j,1,k)=rbuf1r(j,k)
           enddo
 !
           do concurrent (k=1:n3t, j=1:n1t)
-            v%t(j,1,k)=rbuf1t(j,k)
+            vt(j,1,k)=rbuf1t(j,k)
           enddo
 !
           do concurrent (k=1:n3p, j=1:n1p)
-            v%p(j,1,k)=rbuf1p(j,k)
+            vp(j,1,k)=rbuf1p(j,k)
           enddo
         end if
 !
         if (iproc_tp.ne.MPI_PROC_NULL) then
           do concurrent (k=1:n3r, j=1:n1r)
-            v%r(j,n2r,k)=rbuf2r(j,k)
+            vr(j,n2r,k)=rbuf2r(j,k)
           enddo
 !
           do concurrent (k=1:n3t,j=1:n1t)
-            v%t(j,n2t,k)=rbuf2t(j,k)
+            vt(j,n2t,k)=rbuf2t(j,k)
           enddo
 !
           do concurrent (k=1:n3p, j=1:n1p)
-            v%p(j,n2p,k)=rbuf2p(j,k)
+            vp(j,n2p,k)=rbuf2p(j,k)
           enddo
         end if
 !
@@ -72163,5 +72217,9 @@ end subroutine
 !      - Added IFPREC_32 input parameter.  If set,
 !        the preconditioner for the solves will use
 !        single precision instead of double.
+!
+! ### Version 0.9.6.0, 06/19/2025, modified by RC:
+!      - Started adding optimizations for GPU runs by using pointers
+!        instead of derived type redirection within DC loops.
 !
 !#######################################################################
