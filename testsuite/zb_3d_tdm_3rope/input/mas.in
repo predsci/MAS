@@ -91,7 +91,7 @@
   bnfile = 'br_map_input.h5'
   zb_rho_profile = 'READ_FROM_FILE'
   zb_rho_file = 'rho_bastille_test_reduced.h5'
-  tdm_preserve_br0 = .true.
+  fluxrope_preserve_br0 = .true.
 ! *** FR1: along E-W segment of PIL
   tdm_fluxrope(1)%add = .true.
   tdm_fluxrope(1)%rope_type = 'hollow_nonff'

@@ -1,29 +1,30 @@
+!#######################################################################
 !
-!   ##################################################################
-!   #                                                                #
-!   #      _|      _|     _|_|       _|_|_|                          #
-!   #      _|_|  _|_|   _|    _|   _|                                #
-!   #      _|  _|  _|   _|_|_|_|     _|_|                            #
-!   #      _|      _|   _|    _|         _|                          #
-!   #      _|      _|   _|    _|   _|_|_|                            #
-!   #                                                                #
-!   #      MAS: Magnetohydrodynamic Algorithm outside a Sphere       #
-!   #                                                                #
-!   #      Authors:  Z. Mikic                                        #
-!   #                J. Linker                                       #
-!   #                R. Lionello                                     #
-!   #                P. Riley                                        #
-!   #                C. Downs                                        #
-!   #                R. Caplan                                       #
-!   #                M. Stulajter                                    #
-!   #                                                                #
-!   #      Predictive Science Inc.                                   #
-!   #      San Diego, California, USA 92121                          #
-!   #                                                                #
-!   #      A code for the study of resistive MHD evolution           #
-!   #      in 3D spherical geometry.                                 #
-!   #                                                                #
-!   ##################################################################
+!   #################################################################
+!   #                                                               #
+!   #      _|      _|     _|_|       _|_|_|                         #
+!   #      _|_|  _|_|   _|    _|   _|                               #
+!   #      _|  _|  _|   _|_|_|_|     _|_|                           #
+!   #      _|      _|   _|    _|         _|                         #
+!   #      _|      _|   _|    _|   _|_|_|                           #
+!   #                                                               #
+!   #      MAS: Magnetohydrodynamic Algorithm outside a Sphere      #
+!   #                                                               #
+!   #      Authors:  Z. Mikic                                       #
+!   #                J. Linker                                      #
+!   #                R. Lionello                                    #
+!   #                P. Riley                                       #
+!   #                C. Downs                                       #
+!   #                R. Caplan                                      #
+!   #                M. Stulajter                                   #
+!   #                                                               #
+!   #      Predictive Science Inc.                                  #
+!   #      San Diego, California, USA 92121                         #
+!   #                                                               #
+!   #      A code for the study of resistive MHD evolution          #
+!   #      in 3D spherical geometry.                                #
+!   #                                                               #
+!   #################################################################
 !
 !#######################################################################
 ! Copyright 2025 Predictive Science Inc.
@@ -107,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.6.0'
-      character(*), parameter :: update='06/19/2025'
+      character(*), parameter :: vers='0.9.7.0'
+      character(*), parameter :: update='07/07/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -2004,7 +2005,6 @@ module vars
       real(r_typ) :: upwind_ar=0.
       real(r_typ) :: upwind_at=0.
       real(r_typ) :: upwind_ap=0.
-      real(r_typ) :: upwind_a_r0=0.
       real(r_typ) :: upwind_v=1._r_typ
       real(r_typ) :: upwind_t=1._r_typ
       real(r_typ) :: upwind_rho=1._r_typ
@@ -2016,7 +2016,6 @@ module vars
       logical :: dryrun=.false.
       logical :: ifabort=.false.
       logical :: ifend=.false.
-      logical :: old_jxb_diag=.true.
       logical :: use_old_jxb=.false.
       logical :: use_old_vdgv=.true.
 !
@@ -2167,8 +2166,6 @@ module vars
 ! ****** Characteristic BCs.
 !-----------------------------------------------------------------------
 !
-      logical :: char_bc=.true.
-!
       logical :: char_bc0=.true.
       logical :: char_bc1=.true.
 !
@@ -2316,7 +2313,6 @@ module vars
 !
       real(r_typ) :: t_cutoff1=500000._r_typ
 !$acc declare create(t_cutoff1)
-      real(r_typ) :: p_cutoff1=0.
 !
 ! ****** Number of times to filter kappa.
 !
@@ -2356,8 +2352,7 @@ module vars
       real(r_typ) :: he_rho,he_frac=0.,he_p,he_np,he_p_e,he_p_p,he_p_x, &
                      fnorml,fnormt,fnormm, &
                      fn_n,fn_rho,fn_p,fn_t,fn_v,fn_b,fn_heat, &
-                     fn_q0,fn_rd1,fn_rd2, &
-                     thprof_dth=0.,thprof_th=0.
+                     fn_q0,fn_rd1,fn_rd2
 !
       logical :: iftfloor=.false.
       real(r_typ) :: tfloor=20000._r_typ
@@ -2409,9 +2404,6 @@ module vars
 ! ****** from being aligned along B to being radially aligned.
 !
       character(256) :: bhat_mask_file=' '
-!
-      real(r_typ) :: bhat_factor_br0=1._r_typ
-      real(r_typ) :: bhat_factor_mult=10._r_typ
 !
 !-----------------------------------------------------------------------
 ! ****** Radiative loss.
@@ -2853,10 +2845,6 @@ module fluxrope_parameters
 ! ****** Flag to indicate that flux ropes have been added.
 !
       logical :: fluxropes_added=.false.
-!
-! ****** This variable is depreciated. Keep it here for compatibility.
-!
-      logical :: tdm_preserve_br0=.false.
 !
 end module
 !#######################################################################
@@ -4163,7 +4151,7 @@ module heating_parameters
 ! ****** Flag to add ohmic heating.
 !
       logical :: add_ohmic_heating=.false.
-      real(r_typ) :: ohmic_heating_factor
+      real(r_typ) :: ohmic_heating_factor=1.0_r_typ
 !
 ! ****** Variables to read a heat mask from a file.
 !
@@ -4520,7 +4508,6 @@ module interplanetary_vars
       integer, private :: i
 !
       character(128) :: ip_path=' '
-      real(r_typ) :: ip_radius=0.
       character(64) :: boundary_frame='FAKE_COROTATING'
       logical :: fake_corotation=.false.
       logical :: interplanetary_run=.false.
@@ -5133,7 +5120,7 @@ end module
 module mod_eigen_matrix
 !
 !-----------------------------------------------------------------------
-! ****** err_ratetable is the accracy of temperature in ionization
+! ****** err_ratetable is the accuracy of temperature in ionization
 ! ****** and recombination rate tables. The unit is log10(Te).
 !-----------------------------------------------------------------------
 !
@@ -5413,6 +5400,1204 @@ program MAS
 !
 end program
 !#######################################################################
+subroutine read_and_check_input_file
+!
+!-----------------------------------------------------------------------
+!
+! ****** Read the input file and check inputs.
+!
+! ****** The input file is read on all ranks.
+!
+!-----------------------------------------------------------------------
+!
+      use number_types
+      use mesh
+      use meshdef
+      use decomposition_params
+      use diagnostics
+      use cgcom
+      use vars
+      use dissipation_profiles
+      use mpidefs
+      use shear_profile
+      use drive_profile
+      use time_profiles
+      use emerging_flux_params
+      use potential_field
+      use alfven_wave_pressure
+      use wtd
+      use flow_profile
+      use heating_parameters
+      use eta_photosphere
+      use fluxrope_parameters
+      use tdm_parameters
+      use rbsl_parameters
+      use fluxrope_file_parameters
+      use radiative_loss_parameters
+      use interplanetary_vars
+      use prescribe_b_v_at_r0_vars
+      use sts
+      use hdf_defs
+      use mod_input_parameter
+      use vmod_fcs
+      use io_units
+      use helicity_pumping_params
+      use prescribe_tdc_from_file_r0
+      use ident
+!
+!-----------------------------------------------------------------------
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!
+! ****** Values for the global mesh size.
+! ****** These are only used to input the global mesh size when
+! ****** the AUTO_DECOMPOSE=.true. option is being used.
+! ****** Since these names conflict with those in GLOBALS, it is
+! ****** important not to use module GLOBALS here.
+!
+      integer :: nr=0
+      integer :: nt=0
+      integer :: np=0
+!
+!-----------------------------------------------------------------------
+!
+! **********************************
+! ****** MAS INPUT PARAMETERS ******
+! **********************************
+!
+      namelist /topology/          &
+!
+! ****** Grid resolution.
+!
+        nr,                        & ! Number of radial grid points.
+        nt,                        & ! Number of co-latitude grid points.
+        np,                        & ! Number of longitude grid points.
+!
+! ****** MPI decomposition options.
+!
+        nprocs,                    & ! MPI process topology expressed in
+                                     ! a comma-separated triple of the number
+                                     ! of MPI processes/ranks in the r, t, and p
+                                     ! directions, (e.g. 4,5,7).  The product
+                                     ! must equal the total number of MPI ranks.
+                                     ! If not set, an automatic topology will be
+                                     ! applied.
+        auto_decompose,            & ! (Logical) Toggle of automatic grid point
+                                     ! distribution across MPI ranks.
+        mp_r,                      & ! Array of number of grid points per radial
+                                     ! MPI rank (length is nprocs(1)), must add
+                                     ! up to nr.
+        mp_t,                      & ! Array of number of grid points per colat
+                                     ! MPI rank (length is nprocs(2)), must add
+                                     ! up to nt.
+        mp_p                         ! Array of number of grid points per long
+                                     ! MPI rank (length is nprocs(3)), must add
+                                     ! up to np.
+!
+      namelist /data/ &
+!
+! ****** Spatial domain (ignored for restart runs).
+!
+        r0,                        & ! Position of the inner radial boundary
+                                     ! in units of solar radii (6.96e10cm)
+        r1,                        & ! Position of the outer radial boundary
+                                     ! in units of solar radii
+!
+! ****** Time domain.
+!
+        time_at_start,             & ! Start time of run in mas time units.
+                                     ! This will overwrite the time in restart runs.
+        tmax,                      & ! End time of run in mas time units.
+        ntmax,                     & ! Maximum number of time steps allowed in the run.
+!
+! ****** Initial condition options for the magnetic field.
+!
+        initial_field,             & ! Set the initial filed to one of these options:
+                                     !   POTENTIAL_FIELD      : Potential field based on input map.
+                                     !   DIPOLE               : Global and subsurface dipoles.
+                                     !   ALFVEN_WAVE1         : Analytic Alfven wave in theta.
+                                     !   ALFVEN_WAVE2         : Analytic Alfven wave in phi.
+                                     !   ALFVEN_WAVE2_ROTATED : Same as ALFVEN_WAVE2 but tilted.
+                                     !   A_FILE               : Read in initial vector potential from file.
+                                     ! The field is alternatively set through a restart file,
+                                     ! using load_fields, etc.
+! ****** DIPOLE(S).
+        b0_dipole,                 & ! Magnetic field strength of Sun-centered dipole.
+        dipangle,                  & ! Angle (in degrees) by which the Sun-centered dipole is tilted.
+        n_ssdip,                   & ! Number of subsurface dipoles to add.
+        r_ssdip,                   & ! Array of subsurface dipoles radial.
+        t_ssdip,                   & ! Array of subsurface dipoles theta.
+        p_ssdip,                   & ! Array of subsurface dipoles phi.
+        alpha_ssdip,               & ! Array of subsurface dipole moment rotations wrt N pole [deg]
+        b0_ssdip,                  & ! Array of subsurface dipoles strengths.
+! ****** ALFVEN_WAVES.
+        wave_mode_r,               & ! Radial wave mode number for Alfven wave tests.
+        wave_mode_t,               & ! Theta wave mode number for Alfven wave tests.
+        wave_amplitude,            & ! Wave amplitude for Alfven wave tests.
+        wave_rotation_t,           & ! Rotation/tilt in theta for ALFVEN_WAVE2_ROTATED.
+! ****** POTENTIAL_FIELD.
+        bnfile,                    & ! Lower boundary radial magnetic field file (hdf5).
+        b_in_gauss,                & ! (Logical) toggle to indicate that the input lower
+                                     ! boundary radial magnetic field file is in units of
+                                     ! Gauss (.true.) or mas code units (.false.).
+        b0,                        & ! If set, input Br field will be scaled so that the maximum
+                                     ! normal field magnitude is b0.
+        potential_field_bc,        & ! Upper boundary condition for potential field.  Options:
+                                     !   CLOSED_WALL     :
+                                     !   SOURCE_SURFACE  :
+                                     !   MHDSS           : Specific use case, do not use.
+        r_ss,                      & ! Source-surface radius for PFSS initial field.
+        allow_unbalanced_flux,     & ! (Logical) toggle to add back the unbalanced flux
+                                     ! to the input magnetogram.  Only works with source
+                                     ! surface potential field.
+! ****** A_FILE.
+        afile,                     & ! Filename for text file containing 2D r-theta vector potential.
+! ****** Monopole Options.
+        br00,                      & ! Add artificial monopole radial field (mas magnetic field units).
+        fmaxef,                    & ! Maximum expansion factor of the radial monopole specified with br00.
+        r1ef,                      & ! Radius where super-radial expansion ceases.
+        sigmaef,                   & ! Interval over which the expansion switches
+                                     ! from super-radial to radial.
+!
+! ****** Initial condition options for the plasma.
+!
+        initial_plasma,            & ! Initial plasma.  Choices are:
+                                     !   ZERO-BETA   : Zero-beta equilibrium.  Use "zb" structure
+                                     !                 to set parameters, or use zb_rho_file.
+                                     !   HYDROSTATIC : Hydrostatic equilibrium.  Use "hs" structure
+                                     !                 to set parameters.
+                                     !   STREAMER    : Same as HYDROSTATIC but with a modification to Vr
+                                     !                 to force an outflowing radial solar wind (hard-wired).
+                                     !   1DFILE      : Use "onedfile" text file to describe
+                                     !               : spherically symmetric initial plasma
+                                     !   2DFILE      : Use 2D file (in r-theta) for axisymmetric initial plasma.
+                                     !   NONE
+! ****** ZERO-BETA.
+        zb_rho_profile,            & ! Zero-beta density profile type.  Options are:
+                                     !   GENERATE_INTERNALLY : Use zb input structure to generate rho internally.
+                                     !   READ_FROM_FILE      : Read the hdf5 file "zb_rho_file" to set rho.
+        zb_rho_file,               & ! Filename (hdf5) for zero-beta initial density.
+        zb,                        & ! Zero-beta parameters structure:
+                                     !   rho0
+                                     !   rho1
+                                     !   rho00
+                                     !   rhoexp
+                                     !   b0
+                                     !   b1
+                                     !   lam_r0
+                                     !   lam_r1
+                                     !   lam_l0
+                                     !   lam_l1
+! ****** HYDROSTATIC.
+        hs,                        & ! Hydrostatic equilibrium parameters structure:
+                                     !   rho0i
+                                     !   rho0f
+                                     !   rho1i
+                                     !   rho1f
+                                     !   b0
+                                     !   b1
+                                     !   t0i
+                                     !   t0f
+                                     !   t1i
+                                     !   t1f
+                                     !   time0
+                                     !   time1
+! ****** 1DFILE.
+        onedfile,                  & ! Name of text file describing the 1D initial plasma.
+                                     !   Must be of the form:
+                                     !   r	vr	ne	p	 pw
+! ****** 2DFILE.
+        twodfile_vr,               & ! Filename (hdf5) of theta-phi Vr in code units to use as initial plasma
+                                     ! at lower radial boundary.  It is then used to fill in the full 3D domain.
+        twodfile_rho,              & ! Filename (hdf5) of theta-phi density in code units to use as initial plasma
+                                     ! at lower radial boundary.  It is then used to fill in the full 3D domain.
+        twodfile_t,                & ! Filename (hdf5) of theta-phi electron temperature in code units to use as initial plasma
+                                     ! at lower radial boundary.  It is then used to fill in the full 3D domain.
+        const_t_rho,               & ! (Logical) toggle to either keep lower boundary 2D specified
+                                     ! plasma constant when filling in the 3D domain along r (.true.) or
+                                     ! use a polytropic radial scaling (.false.).
+! ****** Field adding/replacing from file.
+        load_fields,               & ! Structure to specify a 3D initial condition field:
+                                     !   field  : Field type.
+                                     !   action : Either "add" or "initial".
+                                     !            "initial" replaces the current initial field, while
+                                     !            "add" adds the field to the current field (B only).
+                                     !   fname  : Filename (hdf5) of 3D field.
+        loaded_b_clean_method,     & ! Method to clean loaded B field before afromb solves:
+                                     !   0 : B is used as-is.
+                                     !   1 : B is divergence-cleaned with a 3D solve.
+                                     !   2 : Each r-slice of Br is flux balanced.
+                                     !   3 : Applies (1) and then (2).
+        long_sequence_numbers_input, & ! (Logical) toggle to indicate that input time-dept boundary files
+                                     ! have a 6 (.true.) or 3 (.false.) digit number sequence.
+        trace_seed_file,           & ! Filename (hdf5) that contains the initial tracer positions.
+! ****** Flux ropes.
+        fluxrope_preserve_br0,     & ! (Logical) If .true., the Br from the flux ropes at r=R0 is
+                                     ! subtracted from the Br read in before calculating the potential field.
+        tdm_fluxrope,              & ! Structure specifying a TdM flux rope.  Contains:
+                                     !   add
+                                     !   rope_type
+                                     !   origin_r
+                                     !   origin_t
+                                     !   origin_p
+                                     !   normal_t
+                                     !   normal_p
+                                     !   tilt_from_vertical
+                                     !   apex_height
+                                     !   footpoint_halfdistance
+                                     !   minor_radius
+                                     !   delta
+                                     !   b_poloidal
+                                     !   handedness
+                                     !   add_charges
+                                     !   charge_magnitude
+                                     !   charge_halflength
+                                     !   get_bp_from_charge
+                                     !   charge_to_bp_factor
+                                     !   use_major_radius
+                                     !   major_radius
+                                     !   insertion_time
+        rbsl_fluxrope,             & ! Structure specifying an RBSL flux rope.  Contains:
+                                     !   add
+                                     !   path_file
+                                     !   axial_current
+                                     !   minor_radius
+                                     !   handedness
+                                     !   mirror_poloidal
+                                     !   insertion_time
+        rope_from_file,            & ! Structure specifying adding a flux rope from file.  Contains:
+                                     !   add
+                                     !   ar_file
+                                     !   at_file
+                                     !   ap_file
+                                     !   a_factor
+                                     !   insertion_time
+!
+! ****** Restart run options.
+!
+        rsifile,                   & ! Activate a restart run by setting this to a restart file filename.
+        restart_calculation_frame, & ! Indicate whether the restart file was computed in the inertial
+                                     ! or corotating frame (allows restarting from one frame to another).
+                                     ! Options:
+                                     !   INERTIAL
+                                     !   COROTATING
+        fname_restart_fcs,         & ! Charge state restart filename for restart runs.
+        n_rs_input_file_parts,     & !   LEGACY:  Specify number of parts of an old-style multi-file restart.
+        rsifile_prefix,            & !   LEGACY:  Filename prefix (path) for multi-part restart.
+        rsifile_root,              & !   LEGACY:  Filename root for multi-part restart.
+        rsifile_parts,             & !   LEGACY:  Explicitly list filenames of multi-part restart.
+!
+! ****** Output options.
+!
+        legacy_output_filenames,   & ! (Logical) toggle to use new output file names (.false.) or
+                                     ! use the legacy file output conventions (.true.).
+        hdf32,                     & ! Output fields in single (.true.) or double (.false.) precision.
+        long_sequence_numbers,     & ! (Logical) toggle to set output hdf5 files to have
+                                     ! a 6 (.true.) or 3 (.false.) digit number sequence.
+        plotlist,                  & ! Comma-separated list of fields to plot.  Available fields are:
+                                     !   vr, vt, vp, br, bt, bp, rho, t, p, pres, jr, jt, jp, ar, at, ap,
+                                     !   sifac, heat, ep, em, vr_old, vt_old, vp_old, eta, visc,
+                                     !   zp, zm, te, tp, efr, eft, efp, v_par
+                                     ! Not all fields are valid for all runs; p and pres are the same.
+        ipltxint,                  & ! Iteration cadence to write out field data (hdf5).
+        tpltxint,                  & ! Time cadence to write out field data (mas time units).
+        slice_plotlist,            & ! Comma-separated list of fields to plot slices of.
+                                     ! Choices are the same as those of plotlist.
+        slice_ixint,               & ! Iteration cadence to write out field data slices (hdf5).
+        slice_txint,               & ! Time cadence to write out field data slices (mas time units).
+        slice_tp_radii,            & ! Comma-separated list of radial points
+                                     ! to take theta-phi slices at (in solar radii).
+        trace_ixint,               & ! Iteration cadence to write out tracer data.
+        trace_txint,               & ! Time cadence to write out tracer data (mas time units).
+        plot_dump_fcs,             & ! (Logical) to activate charge state 3D hdf5 oputput.
+                                     ! Cadence same as field 3D plots ([i|t]pltxint).
+        slice_dump_fcs,            & ! (Logical) to activate charge state 2D theta-phi slice hdf5 output.
+                                     ! Cadence same as slice plots (slice_[i|t]xint).
+        irsdump,                   & ! Iteration cadence to write out restart files (hdf5).
+        trsdump,                   & ! Time cadence to write out restart files (mas time units).
+        rs_final,                  & ! (Logical) toggle to write a restart file at the end of a run.
+        ihistint,                  & ! Iteration cadence to write out histories into text file.
+        thistint,                  & ! Time cadence to write out histories into text file (mas time units).
+        diag,                      & ! Diagnostic (in-situ) point structure.  Contains:
+                                     !   type
+                                     !   fields
+                                     !   r
+                                     !   t
+                                     !   p
+!
+! ****** Grid specification (ignored for restart runs).
+!
+        rfrac,                     & ! Normalized positions of radial grid
+                                     ! segment boundaries (as a fraction of
+                                     ! domain size)
+        drratio,                   & ! Ratio of radial grid spacing at the end
+                                     ! of each segment to its beginning
+                                     ! [ length(drratio) = length(rfrac)-1 ].
+        nfrmesh,                   & ! Number of times to filter colatitude grid
+                                     ! spacing.
+        tfrac,                     & ! Normalized positions of colatitude grid
+                                     ! segment boundaries (as a fraction of
+                                     ! domain size)
+        dtratio,                   & ! Ratio of colat grid spacing at the end
+                                     ! of each segment to its beginning
+                                     ! [ length(drratio) = length(rfrac)-1 ].
+        nftmesh,                   & ! Number of times to filter colatitude grid
+                                     ! spacing.
+        pfrac,                     & ! Normalized positions of longitude grid
+                                     ! segment boundaries (as a fraction of
+                                     ! domain size)
+        dpratio,                   & ! Ratio of long grid spacing at the end
+                                     ! of each segment to its beginning
+                                     ! [ length(drratio) = length(rfrac)-1 ].
+        nfpmesh,                   & ! Number of times to filter longitude grid
+                                     ! spacing.
+        phishift,                  & ! Apply longitude shift (radians) to the
+                                     ! longitude grid.
+!
+! ****** Time step options.
+!
+        dtmax,                     & ! Maximum allowed time step in mas time units.
+        dtmin,                     & ! Minimum allowed time step in mas time units.
+                                     ! If the time step drops below this, the run stops.
+        dt_init,                   & ! Initial time step to try. If not set, dtmax will be used.
+                                     ! By default, this is not used for restart runs.
+        use_dt_init_on_restart,    & ! (Logical) toggle to use the dt_init for a restart run (.true.)
+                                     ! of not (.false.).
+        dt_max_wave_cfl,           & ! Maximum allowed wave CFL (implicitness).  If wave CFL
+                                     ! exceeds this limit, the time step is reduced accordingly.
+        cfl,                       & ! Fraction of the CFL time step limit to use.
+        dt_max_increase_fac,       & ! Fraction the time step is allowed to increase per step.
+!
+! ****** General model options.
+!
+        calculation_frame,         & ! String indicating the frame of reference of the calculation.
+                                     ! These also effect how boundary driving is performed.
+                                     !   INERTIAL   : Inertial frame.
+                                     !   COROTATING : Corotating frame (adds Coriolis and centrifugal forces).
+        g0,                        & ! Gravity at the solar surface (code units).
+        omega_corotate,            & ! Solar rotation rate in mas units.
+        he_frac,                   & ! Helium fraction.
+        char_bc0,                  & ! Activate lower characteristic radial boundary condition.
+        char_bc1,                  & ! Activate upper characteristic radial boundary condition.
+        nfiltub,                   & ! Number of times to filter parallel velocity in
+                                     ! lower characteristic boundary condition (default 2).
+        ubzero,                    & ! Set flow at inner boundary to zero if it is negative.
+        tbc0,                      & ! Temperature in K of the lower radial boundary.
+        tchromo,                   & ! Temperature in K of the lower radial boundary used for radiative loss function.
+        rho0,                      & ! Density of the lower radial boundary.
+!
+! ****** Time profiles for various quantities.
+!
+        tprofile,                  & ! Add a time profile structure.  Contains:
+                                     !   t
+                                     !   f
+                                     !   filename
+                                     !   vars
+                                     !   on
+                                     !   nodes
+                                     !   nvars
+                                     !   value
+                                     ! Available "vars":
+                                     !   eta
+                                     !   visc
+                                     !   v0
+                                     !   eflux_psi_e0
+                                     !   eflux_phi_e0
+                                     !   flow_norm_factor
+                                     !   flow_trans_factor
+                                     !   eta_photosphere
+                                     !   pw0_factor
+                                     !   eflux_vr
+                                     !   eflux_br
+                                     !   edrive_e0
+                                     !   edrive_er
+                                     !   edrive_et
+                                     !   edrive_ep
+                                     !   edrive_vr
+                                     !   edrive_vt
+                                     !   edrive_vp
+                                     !   rho_limit
+                                     !   io_dump_3d
+                                     !   io_dump_tracers
+                                     !   io_dump_slices
+                                     !   helicity_pumping
+                                     !   ohmic_heating_factor
+                                     !   zw_heat_factor
+                                     !   zw_pressure_factor
+                                     !   tdc_phi
+!
+! ****** Induction equation and resistivity.
+!
+        advance_a,                 & ! (Logical) toggle to activate vector potential advance (induction equation).
+        experimental_a_advance,    & ! (Logical) to activate experimental algorithm for advancing A. DO NOT USE.
+        bt_photo_in,               & ! Specifies amount (code units) of transverse field (theta) to
+                                     ! advect into the corona from the lower boundary.
+        bp_photo_in,               & ! Specifies amount (code units) of transverse field (phi) to
+                                     ! advect into the corona from the lower boundary.
+        slund,                     & ! Inverse uniform resistivity (1/eta) in code units.
+        ifeta_phot,                & ! (Logical) toggle to activate photospheric resistivity.
+        eta_phot,                  & ! Photospheric diffusion coefficient.
+        eta_phot_file,             & ! Filename (hdf5) to read a photospheric diffusion profile.
+        eta_profile,               & ! Type of eta profile.  Options:
+                                     !   UNIFORM
+                                     !   RADIALLY_DEPENDENT
+                                     !   HIGH_SLUND_REGION
+                                     !   CUSTOM_TP+R_PROFILE
+                                     !   CUSTOM_PROFILE
+        eta_profile_r,             & ! Radial eta profile structure.  Contains:
+                                     !   active
+                                     !   f(3)
+                                     !   x(2)
+                                     !   w(2)
+        eta_profile_tp_file,       & ! Filename (hdf5) of theta-phi eta profile.
+        eta_profile_file,          & ! Filename (hdf5) of 3D eta profile.
+        eta_fac_0,                 & ! Radial-dept eta profile parameter.
+        eta_fac_1,                 & ! Radial-dept eta profile parameter.
+        r_eta_crit,                & ! Radial-dept eta profile parameter.
+        dr_eta_crit,               & ! Radial-dept eta profile parameter.
+        slund_low,                 & ! High_Slund_Region parameter.
+        slund_high,                & ! High_Slund_Region parameter.
+        dynamic_eta,               & ! (Logical) toggle to activate cell-based eta
+                                     ! based on upwind diffusion.
+        rmcell,                    & ! Specify the cell magnetic Reynolds number
+                                     ! for dynamic eta.
+        rmcell_etamax,             & ! Specify the maximum allowed value for eta
+                                     ! for dynamic eta.
+        eta_bg,                    & ! Background uniform resistivity to add to standard
+                                     ! eta.  Useful when using custom eta profiles with
+                                     ! time profile control.
+        phi_0,                     & ! Used for both eta and visc for high
+                                     ! slund or low visc region modes.  Sets the region
+                                     ! for the high and low.
+        phi_1,                     & ! Used for both eta and visc for high
+                                     ! slund or low visc region modes.  Sets the region
+                                     ! for the high and low.
+        theta_0,                   & ! Used for both eta and visc for high
+                                     ! slund or low visc region modes.  Sets the region
+                                     ! for the high and low.
+        theta_1,                   & ! Used for both eta and visc for high
+                                     ! slund or low visc region modes.  Sets the region
+                                     ! for the high and low.
+        eta_uw_mult,               & ! LEGACY: Scales the upwind resistivity in
+                                     ! experimental A advance.
+!
+! ****** Momentum equation and viscosity.
+!
+        advance_v,                 & ! (Logical) toggle to activate velocity advance (momentum equation).
+        zero_v_parallel,           & ! Zero-out parallel flow.  Useful for zero-beta runs.
+        visc,                      & ! Uniform viscosity coefficient (nu) in code units.
+        visc_bg,                   & ! Uniform viscosity coefficient to add as
+                                     ! background when using custom visc profile runs.
+        visc_profile,              & ! Type of viscosity profile.  Options:
+                                     !   UNIFORM
+                                     !   RADIALLY_DEPENDENT
+                                     !   LOW_VISC_REGION
+                                     !   CUSTOM_TP+R_PROFILE
+                                     !   CUSTOM_PROFILE
+        visc_profile_r,            & ! Radial viscosity profile structure.  Contains:
+                                     !   active
+                                     !   f(3)
+                                     !   x(2)
+                                     !   w(2)
+        visc_profile_tp_file,      & ! Filename (hdf5) of theta-phi viscosity profile.
+        visc_profile_file,         & ! Filename (hdf5) of 3D viscosity profile.
+        visc_fac_0,                & ! Radial-dept viscosity profile parameter.
+        visc_fac_1,                & ! Radial-dept viscosity profile parameter.
+        r_visc_crit,               & ! Radial-dept viscosity profile parameter.
+        dr_visc_crit,              & ! Radial-dept viscosity profile parameter.
+        visc_low,                  & ! LOW_VISC_REGION parameter.
+        visc_high,                 & ! LOW_VISC_REGION parameter.
+        visc_rho_outside,          & ! (Logical) toggle to compute viscosity as rho*Div(nu-Grad-V) (.true.)
+                                     ! or Div(nu-rho-Grad-V) (.false.).
+!
+! ****** Energy equation, thermal conduction, radiative loss, and heating.
+!
+        advance_t,                 & ! (Logical) toggle to activate temperature advance (energy equation).
+        gamma,                     & ! Ratio of specific heats (e.g. 5/3 for corona, 3/2 for heliosphere).
+        advance_tp,                & ! (Logical) toggle to activate the proton temperature advance,
+                                     ! along with coupling with electron density.
+        iftfloor,                  & ! (Logical) to activate temperature flooring.
+        tfloor,                    & ! Value in Kelvin for the temperature floor.
+        ifcheck0temp,              & ! (Logical) to activate check of negative temperature.
+! ****** Thermal conduction (Collisional).
+        advance_tc,                & ! (Logical) toggle to activate Spitzer thermal conduction.
+        t_cutoff1,                 & ! Cut-off temperature (in K) for modifying Spitzer thermal conduction.
+        tcond,                     & ! Multiplier for electron thermal conduction term.  Must be set >0
+                                     ! for thermal conduction to work (e.g. tcond=1.0).
+        tcondp,                    & ! Multiplier for proton thermal conduction term.  Must be set >0
+                                     ! for proton thermal conduction to work (e.g. tcond=1.0).
+        tc_r,                      & ! Thermal conduction radial taper function parameter.
+        tc_dr,                     & ! Thermal conduction radial taper function parameter.
+        tc_fac0,                   & ! Thermal conduction radial taper function parameter.
+        tc_fac1,                   & ! Thermal conduction radial taper function parameter.
+        nfilt_kappa,               & ! Number of times to apply a filter to kappa.
+        kappa_mask_file,           & ! Filename (hdf5) of [0,1] 3D mask to transition
+                                     ! from field-aligned kappa to isotropic.
+! ****** Collisionless thermal conduction (CTC).
+        use_radial_nocoll,         & ! LEGACY: (Logical) to use old radial-only CTC.
+        alpha_nocoll,              & ! CTC multiplicative factor.  If >0, activates CTC.
+        alpha_nocoll_p,            & ! CTC multiplicative factor for protons. If >0, activates CTC.
+        tc_nocoll_r,               & ! CTC radial increase function parameter.
+        tc_nocoll_dr,              & ! CTC radial increase function parameter.
+! ****** Radiative loss.
+        radloss,                   & ! Factor to multiply by radiative loss.
+                                     ! Set to 0 to deactivate radloss, 1.0 to use it fully.
+        ifimplrad,                 & ! Set to 1.0 to use implicit radiative loss algorithm.
+        rad_law,                   & ! Set radiative loss function.  Choices are:
+                                     !   ATHAY
+                                     !   ROSNER
+                                     !   RTV
+                                     !   CHIANTI_v71_CORONA
+                                     !   CHIANTI_v71_PHOTO
+                                     !   CHIANTI_v713_HYBRID
+        legacy_q_chromo_reduction, & ! LEGACY: (Logical) toggle to use the old-style
+                                     ! way to taper radiative loss towards zero.
+! ****** Coronal heating.
+        heatsource,                & ! Structure to specify a heating source.
+                                     ! Options:
+                                     !   active
+                                     !   name
+                                     !   type
+                                     !   h0
+                                     !   lambda
+                                     !   power
+                                     !   brmax
+                                     !   center_gaussian
+                                     !   r_profile
+                                     !   t_profile
+                                     !   b_profile
+                                     !   time_profile
+                                     !   b_attenuation
+                                     !   b_cutoff
+                                     !   q0
+                                     !   q1
+                                     !   lambda0
+                                     !   lambda1
+                                     !   use_mask.
+                                     !   nl_mask
+                                     ! Options for "type":
+                                     !   exponential
+                                     !   two-exponential
+                                     !   exponential-b-photo-dependent
+                                     !   b-dependent
+                                     !   br-dependent
+                                     !   gaussian
+                                     !   zw-exponential
+        heating_flat_topped,       & ! (Logical) to toggle flat-topping the heating with "heat_max".
+                                     ! (NOT including ohmic heating).
+        heat_max,                  & ! Maximum heating amount (in code units) if "heating_flat_topped" is set.
+                                     ! Note that ohmic heating is applied AFTER the flat-top.
+        heat_mask_file,            & ! Filename (hdf5) of 3D heat mask [0,1] to use.
+        add_ohmic_heating,         & ! (Logical) toggle to add Ohmic heating to heating function.
+        heat_file,                 & ! Filename (hdf5) of 3D heating (mas units) to add.
+        f_heating,                 & ! Percentage [0,1] of heating that goes to electrons vs.
+                                     ! protons in the two-temp model.
+        use_chromo_heat,           & ! (Logical) toggle to activate chromospheric heating.
+                                     ! NOTE! This modifies the radiative loss function!
+        chromo_heat_t_zqc_0,       & ! Minimum temperature (mas units) of radloss cutoff.
+                                     ! This is where the radloss -> zero exactly.
+        chromo_heat_t_zqc_1,       & ! Upper temperature (mas units) of the chromo heating
+                                     ! modification polynomial.
+!
+! ****** Density advance.
+!
+        advance_rho,               & ! (Logical) toggle to activate density advance.
+        ifcheck0rho,               & ! (Logical) toggle to check for negative density and quit if found.
+        ifcheck0pres,              & ! (Logical) toggle to check for negative presure and quit if found.
+        ifrholimit,                & ! (Logical) toggle to activate rho limiter.
+        rho_limit_file,            & ! Filename (hdf5) of 3D rho limit (floor).
+        rho_limit_factor,          & ! Scalar factor to multiply rho_limit loaded from file.
+        max_alfven_speed_rho_mod,  & ! If set >0, this activates a modification that
+                                     ! changes rho such that the Alfven speed is less than the
+                                     ! maximum specified here (code units).
+        rhobc_maxfac_r1,           & ! Setting this dimensionless constant will limit the
+                                     ! values of rho as it is extrapolated beyond the half
+                                     ! mesh boundaries. This can prevent the extrapolated
+                                     ! rho from ever going negative.
+!
+! ****** WKB pressure waves.
+!
+        advance_pw,                & ! (Logical) toggle to activate WKB pressure waves.
+        pw0,                       & ! Amplitude of pressure waves.
+        rho_aw,                    & ! Slow down the time scale of WKB evolution by this
+                                     ! factor to speed up the PW advance but
+                                     ! can be suspect if ep/m has comparable dynamic
+                                     ! timescales to the MHD evolution.
+        use_pw_theta_profile,      & ! (Logical) to turn on a theta profile for PW.
+        awthprof_th,               & ! Lower limit parameter for PW theta profile.
+        awthprof2_th,              & ! Upper limit parameter for PW theta profile.
+        awthprof_dth,              & ! Width parameter for PW theta profile.
+        ifcheck0pw,                & ! (Logical) toggle to check for negative pw and quit if found.
+        dissipate_aw,              & ! Dissipate the PW advance.
+        modulate_pw0,              & ! Modulate the PW advance.
+        dbob_aw,                   & ! PW dissipation parameter.
+        wdbob_aw,                  & ! PW dissipation parameter.
+        tau_aw,                    & ! PW dissipation parameter.
+        use_pw_rcut,               & ! (Logical) Set to manually cutoff the wave pressure
+                                     ! force below a certain height.
+                                     ! NOTE: This also applies to WTD.
+        pw_rcut_r0,                & ! Center radius for the tanh cutoff function.
+        pw_rcut_width,             & ! Width of the tanh cutoff function.
+
+!
+! ****** WTD heating and pressure waves.
+!
+        advance_zw,                & ! (Logical) toggle to activate WTD turbulence waves.
+        wtd_z0,                    & ! Amplitude of outgoing waves at the inner boundary.
+        wtd_b0,                    & ! Reference value of B in the dissipation constant.
+        wtd_lambda0,               & ! Reference length scale in dissipation constant.
+        wtd_reflect_bc,            & ! The BC for the wave leaving the domain at r0. Options:
+                                     !   NONE : Let the wave pass through (default).
+                                     !   CONS : Reflect the wave such that the net Poynting flux
+                                     !          is ALWAYS matching the outward Poynting flux.
+                                     !   AMPL : Reflect the amplitude, adding it to the outgoing wave.
+        wtd_add_zw_heating,        & ! (Logical) toggle to add WTD heating to temperature advance.
+        wtd_add_zw_pressure,       & ! (Logical) toggle to add WTD pressure term to the velocity
+!                                      advance. This refers to zp,zm ONLY, which are seperate
+!                                      pressures from the ep,em advance.
+        wtd_icond,                 & ! Sets the 3D initial condition of zp,zm. Options:
+                                     !   CONSTANT  : Set zp/zm to a constant value.
+                                     !   WKB       : Use 3D rho and WKB approx w/ v=0 set+zp and -zm.
+                                     !   WKB_BR    : Like WKB but check Br to assign zp or zm only.
+                                     !   EPEM      : Use the wave energies in ep and em to get zp and zm.
+                                     !   FROM_FILE : Set the radial zp, zm profiles from a 1D file.
+        wtd_ic1dfile,              & ! Filename (hdf5) for 1D initial WTD "FROM_FILE".
+        wtd_icfac,                 & ! This constant multiplies all the initial
+                                     ! conditions except 'constant' where instead the
+                                     ! value is set directly.
+        zw_dissp,                  & ! (Logical) toggle to turn the dissipation term.
+        zw_reflection,             & ! (Logical) toggle to turn the reflection term.
+        zw_uwc_s,                  & ! Upwind coefficient when computing the gradients
+                                     ! in the propagation and Dissipation terms.
+        zw_uwc_z,                  & ! Upwind coefficient when computing the gradients
+                                     ! in v dot grad z term
+        zw_cfl,                    & ! CFL factor for the ZW advance.
+        wtd_use_zw_limit,          & ! (Logical) toggle to impose limits to the maxium
+                                     ! absolute values of zp and zm. This can be done as a constant
+                                     ! and/or as a radial profile.
+        zw_limit_amplitude,        & ! Maximum value for zp & zm (mas units).
+        zw_limit_radial_file,      & ! Filename (hdf5) of 1D radial profile for the
+                                     ! maximum absolute value of wave amplitude.
+        zw_flux_limiter_type,      & ! Flux limiting function to use for ZW.  Options:
+                                     !   OSPRE
+                                     !   MINMOD
+        wtd_use_flux_limiter_gradzw,  & ! (Logical) toggle to use 2nd order flux-limiting
+                                          ! scheme for the v dot grad z term.
+        wtd_use_flux_limiter_gradsrc, & ! (Logical) toggle to use 2nd order flux-limiting
+                                          ! scheme for the propagation and reflection terms
+        wtd_use_zw_effective_rho_limit, & ! Create a "fake" base density for the corona as
+                                          ! seen by zw. This works by turning off reflection
+                                          ! and dissipation smoothy above a certain density
+                                          ! value to avoid over-reflection w/ smooth Br0.
+        zw_effective_rho_limit_lr, & ! Set to log(rho0) for the center of the smooth tanh profile.
+        zw_effective_rho_limit_lw, & ! Set to log(rho_width) for the width of the tanh profile in log-space.
+        zw_rho_aw,                 & ! Slow down the time scale of WTD evolution by this
+                                     ! factor to speed up the ZW advance but
+                                     ! can be suspect if zp/m has comparable dynamic
+                                     ! timescales to the MHD evolution.
+        wtd_bc_extrap_fac_r1,      & ! Dimensionless constant to limit the extrapolation
+                                     ! of va in getva_zw past the radial boundaries.
+                                     ! This works by making va_outside no less than va_inside and
+                                     ! it can be used to prevent negative extrapolated values.
+        wtd_use_zw_horho_limit,    & ! (Logical) toggle to limit the heating per mass density
+                                     ! to avoid blowing up in the solar wind when something
+                                     ! is suspect with zp,zm evolution at these heights (e.g. CME).
+        zw_horho_limit_rlim,       & ! Radius above which to apply the limiter.
+        zw_horho_limit_value,      & ! Maximum value of heat/rho (mas units).
+        wtd_use_zw_flux_mask,      & ! (Logical) toggle to read a 2D profile that specifies
+                                     ! a fractional reduction to the outward Poynting flux.
+                                     ! This will hit the outward z0 amplitude by sqrt of the
+                                     ! profile.
+        z0_flux_mask_tp_file,      & ! Filename (hdf5) for theta-phi zw flux mask.
+        wtd_use_open_field_cutoff, & ! (Logical) toggle to activate a Poynting flux limiter that
+                                     ! limits the amount of heat dumped into open field lines.
+        wtd_open_cutoff_maxflux,   & ! Flux limit set in CGS units (erg s-1 cm-2).
+        wtd_open_cutoff_dt_eq_s,   & ! "Equilibrate" the limiter slowly at a timescale specified in
+                                     ! seconds (updates a moving average).
+!
+! ****** Charge states (see also the charge states parameter namelist below).
+!
+        advance_fcs,               & ! (Logical) toggle to activate charge state model.
+        if_vmod,                   & ! Slow down the ions in the lower corona and
+                                     ! increase their ionization level.
+        r_vmod,                    & ! Specifies the radius below which the ion
+                                     ! velocity is switched off.
+        dr_vmod,                   & ! Sets the radial interval over which the mod occurs.
+        tmod1,                     & ! Modify the temperature in calculating charge states.
+        tmod0,                     & ! Modify the temperature in calculating charge states.
+!
+! ****** Boundary driving of corona.
+!
+        evolve_flux,               & ! Must set this to .true. to use time_dependent_corona
+!
+! ****** Boundary driving of coronal flux.
+!
+        rotation_flux,             & ! (Logical) Set to .false. to use VxB boundaries.
+                                     ! If .true., some form of driving must be activated.
+        emerging_flux,             & ! (Logical) to activate emerging flux.
+        eflux,                     & ! Structure specifying flux driving. Contains:
+                                     !   phi_driven
+                                     !   psi_driven
+                                     !   e_driven
+                                     !   phi_file
+                                     !   psi_file
+                                     !   normalize_phi
+                                     !   normalize_psi
+                                     !   vr_set
+                                     !   vr_file
+!
+! ****** Boundary driving of corona with B and V (PBV).
+!
+        prescribe_bv,              & ! (Logical) to activate B and V driving.
+        pbv_path,                  & ! System path to where the PBV files are located.
+        pbv_sequence,              & ! Comma-seperated list of times for
+                                     ! sequence of boundary files (mas units).
+        pbv_node,                  & ! Comma-separated list of file indices for
+                                     ! sequence of boundary files.
+        deltat_pbv,                & ! Time offset (mas units) to apply to pbv_sequence list.
+        br_pbv_file,               & ! Base filename of Br boundary files.
+                                     ! E.g. if files are "PATH/br_test001.h5", set
+                                     ! br_pbv_file='br_test'
+        bt_pbv_file,               & ! Base filename of Bt boundary files.
+        bp_pbv_file,               & ! Base filename of Bp boundary files.
+        vr_pbv_file,               & ! Base filename of Vr boundary files.
+        vt_pbv_file,               & ! Base filename of Vt boundary files.
+        vp_pbv_file,               & ! Base filename of Vp boundary files.
+        pbv_bcvfac,                & ! Factor to multiply boundary velocity values.
+        if_pchip,                  & ! (Logical) toggle to activate pchip interpolation for PBV.
+                                     ! Set to .false. if using "time_dependent_corona_from_files"
+                                     ! (pchip is still used)
+!
+! ****** Time-dependent corona driving (B, V, and Phi).
+!
+        time_dependent_corona,     & ! (Logical) toggle to activate TDC driving.
+        tdc_edb_correction_trunc,  & ! Apply correction to preserve Br evolution but
+                                     ! truncate at neutral lines.
+        tdc_edb_correction_etmod,  & ! Apply correction to E-tangential at neutral lines
+                                     ! to better enforce E.B~0.  This will not
+                                     ! strictly preserve Br evolution at neutral lines.
+        tdc_edb_correction_etmod_eta, & ! Apply photospheric resistivity of this amplitude.
+                                        ! Can help preserve Br evolution at neutral lines.
+        tdc_edb_br_eps,            & ! Limiing Br value for above two corrections.
+        tdc_edb_btp_a,             & ! Limit the size of E_r/E_t at the neutral line.
+        tdc_edb_btp_d,             & ! Limit the perpendicular velocity as a
+                                     ! fraction of the sound speed.
+        time_dependent_corona_from_files, & ! (Logical) toggle to activate TDC driving from files.
+        tdcff_path,                & ! System path to where the boundary files are located.
+        br_tdcff_file,             & ! Base filename of Br boundary files (see br_pbv_file).
+        vt_tdcff_file,             & ! Base filename of Vt boundary files.
+        vp_tdcff_file,             & ! Base filename of Vp boundary files.
+        phi_tdcff_file,            & ! Base filename of PHI boundary files.
+        tdcff_sequence,            & ! Comma-seperated list of times for
+                                     ! sequence of boundary files (mas units).
+        tdcff_node,                & ! Comma-separated list of file indices for
+                                     ! sequence of boundary files.
+        deltat_tdcff,              & ! Time offset (mas units) to apply to pbv_sequence list.
+!
+! ****** Surface flows and shear.
+!
+        flow,                      & ! Flow structure for specifying surface flows.
+                                     ! Contains same fields as "shear" structure.
+        arotate,                   & ! Differential rotation parameter.
+        brotate,                   & ! Differential rotation parameter.
+        crotate,                   & ! Differential rotation parameter.
+        v_north,                   & ! Meridional flow parameter.
+        v_south,                   & ! Meridional flow parameter.
+        v_drive,                   & ! Velocity driving speed (mas units).
+        v_flow_norm,               & ! Magnitude of normal velocity flow.
+        v_flow_trans,              & ! Magnitude of transverse velocity flow.
+        shear,                     & ! Shear structure for specifying surface flows.
+                                     ! Contains:
+                                     !   active
+                                     !   type
+                                     !   mask_t0
+                                     !   mask_p0
+                                     !   mask_width_t
+                                     !   mask_width_p
+                                     !   mask_angle
+                                     !   dthmax
+                                     !   th0
+                                     !   power
+                                     !   file_r
+                                     !   file_t
+                                     !   file_p
+                                     !   normalize_vtrans
+                                     !   normalize_vnorm
+!
+! ****** Helicity pumping.
+!
+        helicity_pumping,          & ! (Logical) toggle to activate helicity pumping.
+        hpump_cadence,             & ! Cadence (mas time units) for helicity pumps.
+        hpump_time_offset,         & ! Offset time (mas units) for cadence.
+        hpump_constant,            & ! Overall multiplier.
+        hpump_profile,             & ! Type of helicity pumping profile.  Options:
+                                     !   UNIFORM
+                                     !   RADIALLY_DEPENDENT
+                                     !   CUSTOM_TP+R_PROFILE
+                                     !   CUSTOM_PROFILE
+        r_hpump_crit,              & ! Radial-dept helicity pumping profile parameter.
+        dr_hpump_crit,             & ! Radial-dept helicity pumping profile parameter.
+        hpump_fac_0,               & ! Radial-dept helicity pumping profile parameter.
+        hpump_fac_1,               & ! Radial-dept helicity pumping profile parameter.
+        hpump_profile_r,           & ! Radial helicity pumping profile structure.  Contains:
+                                     !   active
+                                     !   f(3)
+                                     !   x(2)
+                                     !   w(2)
+        hpump_profile_tp_file,     & ! Filename (hdf5) of theta-phi helicity pumping profile.
+        hpump_profile_file,        & ! Filename (hdf5) of 3D  helicity pumping profile.
+!
+! ****** Tracer particles.
+!
+        trace_particles,           & ! (Logical) toggle to activate tracer particles.
+        trace_reseed_type,         & ! String to indicate what to do when tracers leave the outer
+                                     ! radial domain.  Choices are:
+                                     !   NONE       : Do nothing (positions are "stuck" on boundary.
+                                     !   R_PERIODIC : Re-seed the tracers at a specified radius.
+        trace_reseed_r0,           & ! Radius (in Rs) to reseed tracer particles when they leave the domain.
+        trace_track_ds,            & ! (Logical) toggle to activate tracking total distance for
+                                     ! tracer particles.
+!
+! ****** Semi-implicit operator options.
+!
+        isitype,                   & ! Toggle semi-implicit term 1: on  0: off (explicit).
+        simult,                    & ! Factor to multiply the semi-implicit term.
+        si_aggressive,             & ! (Logical) toggle to use non-uniform SI factor (.true.)
+                                     ! or a uniform max value (.false.).
+        si_local_kv,               & ! (Logical) toggle to use non-uniform SI flow term (.true.)
+                                     ! of a uniform max CFL value (.false.).
+        fac_cflv,                  & ! Semi-implicit term CFL factor.
+!
+! ****** "Freeze-B" mode.  Freeze the field and allow flow along field lines.
+!
+        freeze_b,                  & ! (Logical) toggle to activate the "freeze-B" mode.
+        bhat_mask_file,            & ! Filename (hdf5) of 3D mask [0,1] that
+                                     ! transitions b-hat from being aligned along B
+                                     ! to being aligned along the radial direction.
+!
+! ****** Field line mode.
+!
+        fl_compute,                & ! (Logical) toggle to activate field line computation.
+        fl_file,                   & ! Filename (hdf5) containing 1D field line.
+!
+! ****** Numerical algorithm options.
+!
+        use_old_jxb,               & ! Use legacy JxB calculation (.true.) or not (.false.).
+        use_old_vdgv,              & ! Use older V-dot-Grad-V calculation (.true.)
+                                     ! or use experimental one (.false.).
+                                     ! Only use the old one.
+        upwind_a,                  & ! Upwind factor for all components of vector potential
+                                     ! advection (real value [0,1]).
+                                     !   0: Central difference
+                                     !   1: Full upwind
+        upwind_ar,                 & ! Upwind factor for radial component of vector potential.
+        upwind_at,                 & ! Upwind factor for theta component of vector potential.
+        upwind_ap,                 & ! Upwind factor for phi component of vector potential.
+        upwind_v,                  & ! Upwind factor for velocity advection (see upwind_a).
+        upwind_t,                  & ! Upwind factor for temperature advection (see upwind_a).
+                                     ! This is for both TE and TP.
+        upwind_rho,                & ! Upwind factor for density advection (see upwind_a).
+        pred_v,                    & ! (Logical) toggle to use predictor in momentum equation.
+        pred_a,                    & ! (Logical) toggle to use predictor in induction equation.
+        pred_t,                    & ! (Logical) toggle to use predictor in energy equation.
+        pred_rho,                  & ! (Logical) toggle to use predictor in density advance.
+        betapc_v_flow,             & ! Factor to multiply advection term in momentum predictor.
+        betapc_v_wave,             & ! Factor to multiply wave term in momentum predictor.
+        betapc_t_flow,             & ! Factor to multiply advection term in energy predictor.
+        betapc_t_wave,             & ! Factor to multiply wave term in energy predictor.
+        betapc_rho_flow,           & ! Factor to multiply advection term in density predictor.
+        betapc_rho_wave,           & ! Factor to multiply wave term in density predictor.
+        betapc_si,                 & ! Factor for semi-implicit term in predictor (real, [0,1]).
+        betapc_a,                  & ! Factor for VxB (vector potential) advection predictor.
+! ****** Super time stepping (ESRK) and PTL options.
+        use_sts_visc,              & ! (Logical) Set to .true. to use a STS method for viscosity
+                                     ! instead of PCG. (By default also activates PTL).
+        use_sts_tc,                & ! (Logical) Set to .true. to use a STS method for thermal
+                                     ! conduction instead of PCG. (By default also activates PTL).
+        sts_type,                  & ! Select which STS method to use:
+                                     !   1: RKL1
+                                     !   2: RKL2
+                                     !   3: RKG2
+        visc_auto_subcycle,        & ! Use PTL time-step subcycling for viscosity.
+        visc_subcycles_max,        & ! Maximum allowed subcycles for PTL for viscosity.
+        visc_subcycles,            & ! Set fixed number of subcycles for viscosity.
+        tc_auto_subcycle,          & ! Use PTL time-step subcycling for thermal conduction.
+        tc_subcycles_max,          & ! Maximum allowed subcycles for PTL for thermal conduction.
+        tc_subcycles,              & ! Set fixed number of subcycles for thermal conduction.
+! ****** Preconditioned Conjugate Gradient solver options.
+        ncghist,                   & ! Write solver iteration residuals every ncghist iterations.
+                                     ! Note that initial potential field solvers use ncghist=100
+                                     ! unless ncghist is set greater than 0.
+        ncgmax,                    & ! Maximum allowed number of solver iterations (all solvers).
+                                     ! If exceeded, the run stops.
+        ifprec_t,                  & ! Set preconditioner (PC) type for thermal conduction solver:
+                                     !   0: None
+                                     !   1: Diagonal scaling
+                                     !   2: SGS
+                                     !   3: ILU0
+                                     ! Note this setting can be overridden when running on GPUs.
+        ifprec_a,                  & ! PC type for resistivity solver (see ifprec_t).
+        ifprec_v,                  & ! PC type for momentum and viscosity solvers (see ifprec_t)
+        ifprec_divb,               & ! PC type for remesh divB cleaner solver (see ifprec_t)
+        ifprec_pot2d,              & ! PC type for 2D potential field solvers (see ifprec_t)
+        ifprec_pot3d,              & ! PC type for 3D potential field solver:
+                                     !   0: None
+                                     !   1: Diagonal scaling
+        ifprec_32,                 & ! Logical toggle to use single-precision (.true.)
+                                     ! or double precision (.false.) solver preconditioners.
+        epscg_a,                   & ! Convergence tolerance for resistivity solve.
+        epscg_v,                   & ! Convergence tolerance for semi-implicit and viscosity solves.
+        epscg_t,                   & ! Convergence tolerance for thermal conduction solves.
+        epscg_potfld,              & ! Convergence tolerance for initial potential solves.
+        epscg_newflux,             & ! Convergence tolerance for boundary driving potential solves.
+        epscg_divb,                & ! Convergence tolerance for remesh divB cleaner solve.
+! ****** Stabilizing options.
+        filter_poles,              & ! (Logical) toggle to activate all polar filter options.
+        pole_filter_t,             & ! (Logical) toggle to activate polar filter for temperature.
+        pole_filter_rho,           & ! (Logical) toggle to activate polar filter for density.
+        pole_filter_pw,            & ! (Logical) toggle to activate polar filter for pressure waves.
+        pole_filter_vr,            & ! (Logical) toggle to activate polar filter for radial velocity.
+        pole_filter_z,             & ! (Logical) toggle to activate polar filter for WTD z+/z-.
+        expert_user_override,      & ! Type that only currently contains "limit_supersonic_inflow"
+                                     ! logical, which sets the velocity to the sound speed
+                                     ! if there is supersonic inflow.
+!
+! ****** Debugging.
+!
+        print_matrix_pot2d,        & ! Write out dense matrix for 2D potential field solve.
+        print_matrix_pot3d,        & ! Write out dense matrix for 3D potential field solve.
+        print_matrix_adva,         & ! Write out dense matrix for resistivity solve.
+        print_matrix_advv,         & ! Write out dense matrix for semi-implicit and viscosity solves.
+        print_matrix_t,            & ! Write out dense matrix for thermal conduction solve.
+        debug_wtd,                 & ! (Logical) toggle to activate debugging of WTD.
+        debug_wtd_open_field_cutoff, & ! Dump the boundary slices for the WTD Poynting flux and the
+                                       ! limiter fields.
+        debug_tdc,                 & ! (Logical) toggle to activate debugging of TDC.
+                                     ! It outputs electric fields (and other quantities)
+                                     ! at the R0 boundary at the slice cadence.
+        ifvdgv,                    & ! (Logical) toggle to use (.true.) advection terms in momentum equation
+                                     ! or not (.false.).  For testing purposes only.
+        use_exp_visc,              & ! Set to (.true.) to use explicit Euler for viscosity.
+        use_exp_tc                   ! Set to (.true.) to use explicit Euler for thermal conduction.
+!
+! ****** Interplanetary run (heliosphere).
+!
+      namelist /interplanetary/    &
+        interplanetary_run,        & ! (Logical) Set .true. to activate interplanetary boundary driving.
+        boundary_frame,            & ! Frame of reference of the boundary files. Options:
+                                     !   FAKE_COROTATING : Corotating but without v-phi C-forces.
+                                     !   COROTATING
+                                     !   INERTIAL
+        ip_path,                   & ! Directory where boundary files reside.
+        ip_sequence,               & ! Comma-seperated list of times for
+                                     ! sequence of boundary files (mas units).
+        ip_node,                   & ! Comma-separated list of file indices for
+                                     ! sequence of boundary files.
+        deltat_ip,                 & ! Time offset (mas units) to apply to ip_sequence list.
+        corotating_relaxation_time,& ! Time offset (mas units) for boundary phi-shift.
+                                     ! Use this when you have a simulation that was
+                                     ! initially relaxed in a corotating frame, and subsequent
+                                     ! restarts are to be computed in the inertial frame.
+                                     ! Also useful for various other use-cases.
+        brfile,                    & ! Base filename of Br boundary files (see br_pbv_file).
+        btfile,                    & ! Base filename of Bt boundary files.
+        bpfile,                    & ! Base filename of Bp boundary files.
+        vrfile,                    & ! Base filename of Vr boundary files.
+        vtfile,                    & ! Base filename of Vt boundary files.
+        vpfile,                    & ! Base filename of Vp boundary files.
+        rhofile,                   & ! Base filename of RHO boundary files.
+        tfile,                     & ! Base filename of T boundary files.
+        epfile,                    & ! Base filename of Ep boundary files.
+        emfile,                    & ! Base filename of Em boundary files.
+        fcsfile,                   & ! Base filename of FCS boundary files.
+        zpfile,                    & ! Base filename of Zp boundary files.
+        zmfile,                    & ! Base filename of Zm boundary files.
+        ip_bc_interp_order,        & ! Order for bc file rotation interpolation.
+        ip_bc_use_pot_solves,      & ! (Logical) toggle to use potential field solves for the boundaries
+                                     ! or not.  Should always be .true. unless using zero transverse
+                                     ! fields/velocities.
+        ip_bc_shift_phi_guess,     & ! Use the old phi solution rotated as initial solver guess.
+        ip_bc_shift_psi_guess        ! Use the old psi solution rotated as initial solver guess.
+!
+! ****** Charge states model options.
+!
+      namelist /fcs_nl/            &
+        nelem,                     & ! Number of elements.
+        natom_list,                & ! Array of atomic numbers of elements.
+        path_eigen                   ! Directory where the Chianti ionization
+                                     ! files are stored.
+!
+!-----------------------------------------------------------------------
+!
+! ****** Buffer to hold an input file line.
+!
+      character(1024) :: line
+!
+!-----------------------------------------------------------------------
+!
+      integer :: ierr=0
+      integer :: i
+!
+!-----------------------------------------------------------------------
+!
+! ****** Open the input file (all MPI ranks).
+!
+      call ffopen (IO_INPUT,infile,'r',ierr)
+      call check_error_on_any_proc (ierr)
+!
+! ****** Now read the namelist sections one by one on all ranks.
+!
+      read (IO_INPUT,topology,iostat=ierr)
+      if (ierr.ne.0) then
+        if (iamp0) then
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
+          write (*,*)
+          write (*,*) '### ERROR from READ_INPUT_FILE [TOPOLOGY]:'
+          write (*,*) '### The following line has a problem:'
+          write (*,*)
+          write (*,*) trim(line)
+          write (*,*)
+          write (*,*) '###'
+        end if
+      end if
+      call check_error_on_any_proc (ierr)
+!
+      read (IO_INPUT,data,iostat=ierr)
+      if (ierr.ne.0) then
+        if (iamp0) then
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
+          write (*,*)
+          write (*,*) '### ERROR from READ_INPUT_FILE [DATA]:'
+          write (*,*) '### The following line has a problem:'
+          write (*,*)
+          write (*,*) trim(line)
+          write (*,*)
+          write (*,*) '###'
+        end if
+      end if
+      call check_error_on_any_proc (ierr)
+!
+      read (IO_INPUT,interplanetary,iostat=ierr)
+      if (ierr.ne.0.and.ierr.ne.-1) then
+        if (iamp0) then
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
+          write (*,*)
+          write (*,*) '### ERROR from READ_INPUT_FILE [INTERPLANETARY]:'
+          write (*,*) '### The following line has a problem:'
+          write (*,*)
+          write (*,*) trim(line)
+          write (*,*)
+          write (*,*) '###'
+        end if
+      end if
+      if (ierr.eq.-1) ierr=0
+      call check_error_on_any_proc (ierr)
+!
+      read (IO_INPUT,fcs_nl,iostat=ierr)
+      if (ierr.ne.0.and.ierr.ne.-1) then
+        if (iamp0) then
+          backspace (IO_INPUT)
+          read (IO_INPUT,fmt='(A)') line
+          write (*,*)
+          write (*,*) '### ERROR from READ_INPUT_FILE [FCS_NL]:'
+          write (*,*) '### The following line has a problem:'
+          write (*,*)
+          write (*,*) trim(line)
+          write (*,*)
+          write (*,*) '###'
+        end if
+      end if
+      if (ierr.eq.-1) ierr=0
+      call check_error_on_any_proc (ierr)
+!
+! ****** Save the mesh size if the automatic decomposition option
+! ****** is being used.
+!
+      if (auto_decompose) then
+        nr_auto=nr
+        nt_auto=nt
+        np_auto=np
+      end if
+!
+! ****** Create the output file.  This needs to be here due to the new
+! ****** legacy mode option.
+!
+      if (legacy_output_filenames) then
+        outfile='o'//runid
+      else
+        outfile='mas.out'
+      end if
+!
+      if (iamp0) then
+        call ffopen (IO_OUT,trim(outfile),'rw',ierr)
+      end if
+      call check_error_on_p0 (ierr)
+!
+! ****** Read and write out the raw input file (only on processor IPROC0).
+!
+      if (iamp0) then
+        rewind(IO_INPUT)
+        write (*,*)
+        write (*,*) '### Input file contents:'
+        write (*,*)
+        write (IO_OUT,*)
+        write (IO_OUT,*) '### Input file contents:'
+        write (IO_OUT,*)
+        do
+          read (IO_INPUT,'(a)',err=100,end=100) line
+          write (*,'(a)') trim(line)
+          write (IO_OUT,'(a)') trim(line)
+        enddo
+  100   continue
+        write (*,*)
+        write (IO_OUT,*)
+      end if
+!
+! ****** Close the input file on all ranks.
+!
+      close(IO_INPUT,iostat=ierr)
+      if (ierr.ne.0) then
+        write (*,*)
+        write (*,*) '### WARNING from READ_INPUT_FILE:'
+        write (*,*) '### Could not close the input file.'
+      end if
+!
+! ****** Check the input parameters.
+! ****** NOTE: This routine can change input parameters so we call it
+! ******       here before writing the namelist.
+!
+      call check_inputs
+!
+! ****** Write the NAMELIST parameter values used (after checking).
+!
+      if (iamp0) then
+        if (legacy_output_filenames) then
+          write (IO_OUT,*)
+          write (IO_OUT,*) '### Parameter values:'
+          write (IO_OUT,*)
+          write (IO_OUT,topology)
+          write (IO_OUT,data)
+          write (IO_OUT,interplanetary)
+          write (IO_OUT,fcs_nl)
+          write (IO_OUT,*)
+        else
+          call ffopen (IO_TEMP,'mas_run_parameters_used.out','rw',ierr)
+          write (IO_TEMP,topology)
+          write (IO_TEMP,data)
+          write (IO_TEMP,interplanetary)
+          write (IO_TEMP,fcs_nl)
+          close (IO_TEMP)
+        end if
+      end if
+      call check_error_on_p0 (ierr)
+!
+end subroutine
+!#######################################################################
 subroutine check_if_wallclock_exceeded
 !
 !-----------------------------------------------------------------------
@@ -5439,7 +6624,7 @@ subroutine check_if_wallclock_exceeded
 !
 !-----------------------------------------------------------------------
 !
-! ****** Processor IPROC0 keeps track of the elasped wall-clock time.
+! ****** Processor IPROC0 keeps track of the elapsed wall-clock time.
 !
       if (iamp0) then
         t_wc_elapsed=MPI_Wtime()-time_at_start_of_program
@@ -5580,7 +6765,7 @@ subroutine setup
         write (*,*) '                        Predictive Science Inc.'
       end if
 !
-! ****** Get system infomration.
+! ****** Get system information.
 !
       call get_system_info
 !
@@ -6288,7 +7473,6 @@ subroutine start
         write (IO_OUT,*) 'UPWIND_AR = ',upwind_ar
         write (IO_OUT,*) 'UPWIND_AT = ',upwind_at
         write (IO_OUT,*) 'UPWIND_AP = ',upwind_ap
-        write (IO_OUT,*) 'UPWIND_A_R0 = ',upwind_a_r0
       end if
 !
 ! ****** Normalize the "floor" temperature.
@@ -8371,408 +9555,6 @@ subroutine parse_time (s,sec)
 !
 end subroutine
 !#######################################################################
-subroutine read_and_check_input_file
-!
-!-----------------------------------------------------------------------
-!
-! ****** Read the input file and check inputs.
-!
-! ****** The input file is read on all ranks.
-!
-!-----------------------------------------------------------------------
-!
-      use number_types
-      use mesh
-      use meshdef
-      use decomposition_params
-      use diagnostics
-      use cgcom
-      use vars
-      use dissipation_profiles
-      use mpidefs
-      use shear_profile
-      use drive_profile
-      use time_profiles
-      use emerging_flux_params
-      use potential_field
-      use alfven_wave_pressure
-      use wtd
-      use flow_profile
-      use heating_parameters
-      use eta_photosphere
-      use fluxrope_parameters
-      use tdm_parameters
-      use rbsl_parameters
-      use fluxrope_file_parameters
-      use radiative_loss_parameters
-      use interplanetary_vars
-      use prescribe_b_v_at_r0_vars
-      use sts
-      use hdf_defs
-      use mod_input_parameter
-      use vmod_fcs
-      use io_units
-      use helicity_pumping_params
-      use prescribe_tdc_from_file_r0
-      use ident
-!
-!-----------------------------------------------------------------------
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!
-! ****** Values for the global mesh size.
-! ****** These are only used to input the global mesh size when
-! ****** the AUTO_DECOMPOSE=.true. option is being used.
-! ****** Since these names conflict with those in GLOBALS, it is
-! ****** important not to use module GLOBALS here.
-!
-      integer :: nr=0
-      integer :: nt=0
-      integer :: np=0
-!
-!-----------------------------------------------------------------------
-!
-      namelist /topology/ nprocs,                                      &
-                          auto_decompose,                              &
-                          nr,nt,np,                                    &
-                          mp_r,mp_t,mp_p
-!
-!-----------------------------------------------------------------------
-!
-      namelist /interplanetary/ ip_path,ip_radius,boundary_frame, &
-       ip_sequence,ip_node,brfile,btfile,deltat_ip, &
-       bpfile,vrfile,vtfile,vpfile,rhofile,tfile,interplanetary_run, &
-       corotating_relaxation_time,epfile,emfile, &
-       ip_bc_interp_order,ip_bc_use_pot_solves, &
-       ip_bc_shift_phi_guess,ip_bc_shift_psi_guess, &
-       fcsfile,zpfile,zmfile
-!
-!-----------------------------------------------------------------------
-!
-      namelist /data/ r0,r1, &
-                      drratio,dtratio,dpratio, &
-                      rfrac,tfrac,pfrac,phishift, &
-                      nfrmesh,nftmesh,nfpmesh, &
-                      tmax,ntmax,dtmax,dtmin,cfl,dt_max_increase_fac, &
-                      isitype,simult,si_aggressive,si_local_kv, &
-                      ncghist,ncgmax,dt_init,dt_max_wave_cfl, &
-                      use_dt_init_on_restart, &
-                      ifprec_t,ifprec_a,ifprec_v, &
-                      ifprec_pot2d,ifprec_pot3d, &
-                      plotlist,ihistint,thistint,ipltxint,tpltxint, &
-                      br00,slund,visc,eta_bg,visc_bg, &
-                      diag,irsdump,trsdump, &
-                      n_rs_input_file_parts, &
-                      rsifile,rsifile_prefix,rsifile_root, &
-                      rsifile_parts,rs_final, &
-                      ifvdgv,fmaxef,r1ef,sigmaef, &
-                      old_jxb_diag, &
-                      hdf32,use_old_jxb,use_old_vdgv, &
-                      upwind_a,upwind_ar,upwind_at,upwind_ap, &
-                      upwind_a_r0,upwind_v,upwind_t,upwind_rho, &
-                      gamma,heatsource,fname_restart_fcs,advance_fcs, &
-                      heating_flat_topped,heat_max,advance_t, &
-                      advance_v,advance_a,advance_rho,advance_tp, &
-                      pred_v,pred_a,pred_t,pred_rho, &
-                      betapc_v_flow,betapc_v_wave, &
-                      betapc_t_flow,betapc_t_wave, &
-                      betapc_rho_flow,betapc_rho_wave, &
-                      betapc_si,fac_cflv,betapc_a, &
-                      dipangle,b0_dipole,g0, &
-                      rho0,hs,zb, &
-                      zb_rho_profile,zb_rho_file, &
-                      char_bc,char_bc0,char_bc1,ubzero,nfiltub, &
-                      initial_field,initial_plasma, &
-                      wave_mode_r,wave_mode_t,wave_amplitude, &
-                      n_ssdip,r_ssdip,t_ssdip,p_ssdip, &
-                      alpha_ssdip,b0_ssdip, &
-                      b_in_gauss,b0,bnfile,afile, &
-                      shear,v_drive,flow,v_flow_norm,v_flow_trans, &
-                      eta_profile,eta_fac_0,eta_fac_1,r_eta_crit, &
-                      dr_eta_crit,dynamic_eta,rmcell,rmcell_etamax, &
-                      tprofile,potential_field_bc, &
-                      print_matrix_pot2d,print_matrix_pot3d, &
-                      print_matrix_adva,print_matrix_advv, &
-                      emerging_flux,eflux, &
-                      tc_r,tc_dr,tc_fac0,tc_fac1,tcond,tcondp,radloss, &
-                      he_frac,ifimplrad,t_cutoff1,p_cutoff1,rad_law, &
-                      advance_tc,onedfile,print_matrix_t, &
-                      tbc0,use_radial_nocoll, &
-                      alpha_nocoll,tc_nocoll_r,tc_nocoll_dr, &
-                      nfilt_kappa,thprof_th,thprof_dth, &
-                      r_ss,legacy_q_chromo_reduction, &
-                      advance_pw,pw0,rho_aw,add_ohmic_heating, &
-                      awthprof_th,use_pw_theta_profile, &
-                      awthprof_dth,awthprof2_th,iftfloor,tfloor, &
-                      ifcheck0temp,tchromo, &
-                      ifrholimit, ifcheck0rho,rho_limit_factor, &
-                      rho_limit_file,max_alfven_speed_rho_mod, &
-                      ifeta_phot,eta_phot, &
-                      eta_phot_file,heat_file,heat_mask_file, &
-                      arotate,brotate,crotate,v_north,v_south, &
-                      rotation_flux, &
-                      bt_photo_in,bp_photo_in, &
-                      slund_low,slund_high, &
-                      phi_0,phi_1,theta_0,theta_1,visc_profile, &
-                      visc_low,visc_high,r_visc_crit,dr_visc_crit, &
-                      visc_fac_0,visc_fac_1, &
-                      eta_uw_mult,experimental_a_advance, &
-                      zero_v_parallel, &
-                      visc_profile_r,visc_profile_tp_file, &
-                      visc_profile_file, &
-                      calculation_frame,omega_corotate, &
-                      restart_calculation_frame, &
-                      twodfile_vr,twodfile_rho,twodfile_t,const_t_rho, &
-                      dissipate_aw,dbob_aw,wdbob_aw,tau_aw, &
-                      modulate_pw0, &
-                      eta_profile_r,eta_profile_tp_file, &
-                      eta_profile_file, &
-                      evolve_flux,epscg_a,epscg_v,epscg_t, &
-                      epscg_potfld,epscg_newflux, &
-                      tdm_preserve_br0,tdm_fluxrope, &
-                      fluxrope_preserve_br0, &
-                      rbsl_fluxrope, &
-                      rope_from_file, &
-                      prescribe_bv, &
-                      pbv_path,pbv_sequence,pbv_node,br_pbv_file, &
-                      bt_pbv_file,deltat_pbv,bp_pbv_file,vr_pbv_file, &
-                      vt_pbv_file,vp_pbv_file,pbv_bcvfac, &
-                      long_sequence_numbers,long_sequence_numbers_input, &
-                      expert_user_override,wave_rotation_t, &
-                      trace_particles,trace_seed_file, &
-                      trace_ixint,trace_txint,trace_track_ds, &
-                      trace_reseed_type,trace_reseed_r0, &
-                      visc_subcycles,visc_rho_outside, &
-                      freeze_b,kappa_mask_file,bhat_mask_file, &
-                      allow_unbalanced_flux, &
-                      bhat_factor_br0,bhat_factor_mult, &
-                      load_fields,epscg_divb,ifprec_divb, &
-                      loaded_b_clean_method, &
-                      use_sts_visc,use_exp_visc,use_exp_tc,sts_type, &
-                      use_sts_tc,tc_subcycles,if_vmod,r_vmod,dr_vmod, &
-                      fl_file,fl_compute,f_heating,alpha_nocoll_p, &
-                      filter_poles, &
-                      pole_filter_t,pole_filter_rho,pole_filter_pw, &
-                      pole_filter_vr,pole_filter_z, &
-                      tmod1,tmod0,ifcheck0pw,ifcheck0pres, &
-                      slice_plotlist,slice_ixint,slice_txint, &
-                      slice_tp_radii, &
-                      time_dependent_corona,tdc_edb_correction_etmod, &
-                      tdc_edb_correction_trunc,tdc_edb_br_eps, &
-                      tdc_edb_btp_a,tdc_edb_btp_d, &
-                      tdc_edb_correction_etmod_eta,plot_dump_fcs, &
-                      slice_dump_fcs, &
-                      helicity_pumping,hpump_cadence,hpump_time_offset, &
-                      hpump_constant,hpump_profile,r_hpump_crit, &
-                      dr_hpump_crit,hpump_fac_0,hpump_fac_1, &
-                      hpump_profile_r,hpump_profile_tp_file, &
-                      hpump_profile_file, &
-                      time_at_start,if_pchip, &
-                      debug_tdc,rhobc_maxfac_r1, &
-                      advance_zw,wtd_z0,wtd_b0,wtd_lambda0, &
-                      wtd_reflect_bc,zw_dissp,zw_reflection, &
-                      wtd_add_zw_heating,wtd_add_zw_pressure, &
-                      wtd_icond,wtd_icfac,zw_uwc_s,zw_uwc_z, &
-                      zw_cfl,wtd_use_zw_limit, &
-                      zw_limit_amplitude,zw_limit_radial_file, &
-                      wtd_ic1dfile,use_pw_rcut,pw_rcut_r0, &
-                      pw_rcut_width,zw_flux_limiter_type, &
-                      wtd_use_flux_limiter_gradzw, &
-                      wtd_use_flux_limiter_gradsrc, &
-                      wtd_use_zw_effective_rho_limit, &
-                      zw_effective_rho_limit_lr, &
-                      zw_effective_rho_limit_lw, &
-                      zw_rho_aw,wtd_bc_extrap_fac_r1, &
-                      wtd_use_zw_horho_limit,zw_horho_limit_rlim, &
-                      zw_horho_limit_value, &
-                      wtd_use_zw_flux_mask, z0_flux_mask_tp_file, &
-                      wtd_use_open_field_cutoff, &
-                      wtd_open_cutoff_maxflux,wtd_open_cutoff_dt_eq_s, &
-                      debug_wtd, debug_wtd_open_field_cutoff, &
-                      use_chromo_heat,chromo_heat_t_zqc_0, &
-                      chromo_heat_t_zqc_1, &
-                      visc_subcycles_max,visc_auto_subcycle, &
-                      tc_subcycles_max,tc_auto_subcycle, &
-                      tdcff_path,br_tdcff_file,vt_tdcff_file, &
-                      vp_tdcff_file,phi_tdcff_file,deltat_tdcff, &
-                      tdcff_sequence,tdcff_node, &
-                      time_dependent_corona_from_files, &
-                      legacy_output_filenames, &
-                      ifprec_32
-!
-      namelist /fcs_nl/ nelem,natom_list,path_eigen
-!
-!-----------------------------------------------------------------------
-!
-! ****** Buffer to hold an input file line.
-!
-      character(1024) :: line
-!
-!-----------------------------------------------------------------------
-!
-      integer :: ierr=0
-      integer :: i
-!
-!-----------------------------------------------------------------------
-!
-! ****** Open the input file (all MPI ranks).
-!
-      call ffopen (IO_INPUT,infile,'r',ierr)
-      call check_error_on_any_proc (ierr)
-!
-! ****** Now read the namelist sections one by one on all ranks.
-!
-      read (IO_INPUT,topology,iostat=ierr)
-      if (ierr.ne.0) then
-        if (iamp0) then
-          backspace (IO_INPUT)
-          read (IO_INPUT,fmt='(A)') line
-          write (*,*)
-          write (*,*) '### ERROR from READ_INPUT_FILE [TOPOLOGY]:'
-          write (*,*) '### The following line has a problem:'
-          write (*,*)
-          write (*,*) trim(line)
-          write (*,*)
-          write (*,*) '###'
-        end if
-      end if
-      call check_error_on_any_proc (ierr)
-!
-      read (IO_INPUT,data,iostat=ierr)
-      if (ierr.ne.0) then
-        if (iamp0) then
-          backspace (IO_INPUT)
-          read (IO_INPUT,fmt='(A)') line
-          write (*,*)
-          write (*,*) '### ERROR from READ_INPUT_FILE [DATA]:'
-          write (*,*) '### The following line has a problem:'
-          write (*,*)
-          write (*,*) trim(line)
-          write (*,*)
-          write (*,*) '###'
-        end if
-      end if
-      call check_error_on_any_proc (ierr)
-!
-      read (IO_INPUT,interplanetary,iostat=ierr)
-      if (ierr.ne.0.and.ierr.ne.-1) then
-        if (iamp0) then
-          backspace (IO_INPUT)
-          read (IO_INPUT,fmt='(A)') line
-          write (*,*)
-          write (*,*) '### ERROR from READ_INPUT_FILE [INTERPLANETARY]:'
-          write (*,*) '### The following line has a problem:'
-          write (*,*)
-          write (*,*) trim(line)
-          write (*,*)
-          write (*,*) '###'
-        end if
-      end if
-      if (ierr.eq.-1) ierr=0
-      call check_error_on_any_proc (ierr)
-!
-      read (IO_INPUT,fcs_nl,iostat=ierr)
-      if (ierr.ne.0.and.ierr.ne.-1) then
-        if (iamp0) then
-          backspace (IO_INPUT)
-          read (IO_INPUT,fmt='(A)') line
-          write (*,*)
-          write (*,*) '### ERROR from READ_INPUT_FILE [FCS_NL]:'
-          write (*,*) '### The following line has a problem:'
-          write (*,*)
-          write (*,*) trim(line)
-          write (*,*)
-          write (*,*) '###'
-        end if
-      end if
-      if (ierr.eq.-1) ierr=0
-      call check_error_on_any_proc (ierr)
-!
-! ****** Save the mesh size if the automatic decompostion option
-! ****** is being used.
-!
-      if (auto_decompose) then
-        nr_auto=nr
-        nt_auto=nt
-        np_auto=np
-      end if
-!
-! ****** Create the output file.  This needs to be here due to the new
-! ****** legacy mode option.
-!
-      if (legacy_output_filenames) then
-        outfile='o'//runid
-      else
-        outfile='mas.out'
-      end if
-!
-      if (iamp0) then
-        call ffopen (IO_OUT,trim(outfile),'rw',ierr)
-      end if
-      call check_error_on_p0 (ierr)
-!
-! ****** Read and write out the raw input file (only on processor IPROC0).
-!
-      if (iamp0) then
-        rewind(IO_INPUT)
-        write (*,*)
-        write (*,*) '### Input file contents:'
-        write (*,*)
-        write (IO_OUT,*)
-        write (IO_OUT,*) '### Input file contents:'
-        write (IO_OUT,*)
-        do
-          read (IO_INPUT,'(a)',err=100,end=100) line
-          write (*,'(a)') trim(line)
-          write (IO_OUT,'(a)') trim(line)
-        enddo
-  100   continue
-        write (*,*)
-        write (IO_OUT,*)
-      end if
-!
-! ****** Close the input file on all ranks.
-!
-      close(IO_INPUT,iostat=ierr)
-      if (ierr.ne.0) then
-        write (*,*)
-        write (*,*) '### WARNING from READ_INPUT_FILE:'
-        write (*,*) '### Could not close the input file.'
-      end if
-!
-! ****** Check the input parameters.
-! ****** NOTE: This routine can change input parameters so we call it
-! ******       here before writing the namelist.
-!
-      call check_inputs
-!
-! ****** Write the NAMELIST parameter values used (after checking).
-!
-      if (iamp0) then
-        if (legacy_output_filenames) then
-          write (IO_OUT,*)
-          write (IO_OUT,*) '### Parameter values:'
-          write (IO_OUT,*)
-          write (IO_OUT,topology)
-          write (IO_OUT,data)
-          write (IO_OUT,interplanetary)
-          write (IO_OUT,fcs_nl)
-          write (IO_OUT,*)
-        else
-          call ffopen (IO_TEMP,'mas_run_parameters_used.out','rw',ierr)
-          write (IO_TEMP,topology)
-          write (IO_TEMP,data)
-          write (IO_TEMP,interplanetary)
-          write (IO_TEMP,fcs_nl)
-          close (IO_TEMP)
-        end if
-      end if
-      call check_error_on_p0 (ierr)
-!
-end subroutine
-!#######################################################################
 pure function is_substring (main_string,sub_string)
 !
 !-----------------------------------------------------------------------
@@ -8867,35 +9649,6 @@ subroutine check_inputs
 ! ****** Check for correctable input problems.
 !-----------------------------------------------------------------------
 !
-! ****** Depricated char_bc parameter.
-!
-      if (.not.char_bc) then
-        char_bc0=.false.
-        char_bc1=.false.
-        if (iamp0) then
-          write (*,*)
-          write (*,*) '### WARNING from CHECK_INPUTS:'
-          write (*,*) '### Depricated parameter ''char_bc'''
-          write (*,*) '### was set to .false. so I am '
-          write (*,*) '### setting char_bc0=.false.'
-          write (*,*) '### and     char_bc1=.false.'
-        end if
-      end if
-!
-! ****** Depricated tdm parameter.
-!
-      if (tdm_preserve_br0.and.(.not.fluxrope_preserve_br0)) then
-        fluxrope_preserve_br0=.true.
-        if (iamp0) then
-          write (*,*)
-          write (*,*) '### NOTE from CHECK_INPUTS:'
-          write (*,*) '### Depricated parameter ''tdm_preserve_br0'''
-          write (*,*) '### was set to .true. but fluxrope_preserve_br0'
-          write (*,*) '### was set to .false.'
-          write (*,*) '### setting fluxrope_preserve_br0=.true.'
-        end if
-      end if
-!
 ! ****** Prevent crash if tcut is 0.
 !
       if (t_cutoff1.le.0) then
@@ -8913,13 +9666,6 @@ subroutine check_inputs
 !
       if (iamp0) then
 !
-        if (p_cutoff1.ne.0) then
-          write (*,*)
-          write (*,*) '### WARNING from CHECK_INPUTS:'
-          write (*,*) '### Depricated parameter ''p_cutoff1'''
-          write (*,*) '### This feature has been removed,'
-          write (*,*) '### and is not active in this run.'
-        end if
         if (advance_t.and.alpha_nocoll.eq.0.and.advance_tc) then
           write (*,*)
           write (*,*) '### WARNING from CHECK_INPUTS:'
@@ -9051,7 +9797,7 @@ subroutine check_inputs
           write (*,*) '### This combination is not allowed.'
         end if
 !
-! ****** Computationa long a field line checks.
+! ****** Computation along a field line checks.
 !
         if (fl_compute.and.fl_file.eq.' ') then
           ierr=1
@@ -17651,7 +18397,7 @@ subroutine init_alfven_wave2_rotated
 ! ****** The theta mode-number l is given by WAVE_MODE_T.
 ! ****** The radial mode-number is given by WAVE_MODE_R.
 !
-! ****** The solution is rotated in the therta direction
+! ****** The solution is rotated in the theta direction
 !        by WAVE_ROTATION_T radians.
 !
 !-----------------------------------------------------------------------
@@ -47102,6 +47848,7 @@ subroutine set_field_table
       fldtab(IFLD_T_P)%tm=.false.
       fldtab(IFLD_T_P)%pm=.false.
       fldtab(IFLD_T_P)%input_enabled=.true.
+!
       fldtab(IFLD_T)%name='T'
       fldtab(IFLD_T)%f=>temp
       fldtab(IFLD_T)%rm=.false.
@@ -47128,6 +47875,8 @@ subroutine set_field_table
       fldtab(IFLD_EM)%tm=.false.
       fldtab(IFLD_EM)%pm=.false.
       fldtab(IFLD_EM)%input_enabled=.true.
+!
+! ****** This one is broken since i not set...
 !
       fldtab(IFLD_ETA_UW)%name='eta_uw'
       fldtab(IFLD_ETA_UW)%f=>eta_uw%i
@@ -58342,62 +59091,6 @@ subroutine filter_hhh (f)
 !$acc exit data delete(ff)
 end subroutine
 !#######################################################################
-subroutine load_thprof (thprof)
-!
-!-----------------------------------------------------------------------
-!
-! ****** Load the latitudinal heating profile into array THPROF.
-!
-!-----------------------------------------------------------------------
-!
-! ****** Smooth latitude profile :
-!
-!                _________              1
-!    ___________/         \___________  0
-!    north pole   equator   south pole
-!
-! ****** The variables THPROF_TH and THPROF_DTH control the profile.
-!
-!-----------------------------------------------------------------------
-!
-      use globals
-      use mesh
-      use number_types
-      use constants
-      use vars
-!
-!-----------------------------------------------------------------------
-!
-      implicit none
-      real(r_typ) :: angle
-      real(r_typ) :: thprof(nt)
-      real(r_typ), parameter :: pihalf=.5_r_typ*pi
-      integer :: j
-!
-!-----------------------------------------------------------------------
-!
-      if (thprof_dth.eq.0.) then
-!
-        do j=1,nt
-          thprof(j)=sth(j)**2
-        enddo
-!
-      else
-!
-        do j=1,nt
-          if (th(j).lt.pihalf) then
-            angle=th(j)
-          else
-            angle=pi-th(j)
-          end if
-          thprof(j)=.5_r_typ*(1._r_typ+tanh((angle-thprof_th)/ &
-          thprof_dth))
-        enddo
-!
-      end if
-!
-end subroutine
-!#######################################################################
 subroutine advpw
 !
 !-----------------------------------------------------------------------
@@ -59317,7 +60010,7 @@ subroutine load_awthprof
 !
 !-----------------------------------------------------------------------
 !
-! ****** Load the latitudinal Alfven wave profile into array THPROF.
+! ****** Load the latitudinal Alfven wave profile into array AWTHPROF.
 !
 !-----------------------------------------------------------------------
 !
@@ -64602,7 +65295,6 @@ subroutine bc_vcrossb (v,b,vxb,vxb_b)
                          +v_trans_r0_p(j  ,k-1) &
                          +v_trans_r0_p(j+1,k-1))
           av_br=AVGRP (b%r,2,j  ,k)
-          av_bt=bt_photo_in
           av_bp=bp_photo_in
           vxb_b%r0%t(j,k)=av_vp*av_br-av_vr*av_bp
         enddo
@@ -64617,7 +65309,6 @@ subroutine bc_vcrossb (v,b,vxb,vxb_b)
           av_vp=v_trans_r0_p(j,k)
           av_br=AVGRT (b%r,2,j,k  )
           av_bt=bt_photo_in
-          av_bp=bp_photo_in
           vxb_b%r0%p(j,k)=av_vr*av_bt-av_vt*av_br
         enddo
 !
@@ -66284,7 +66975,6 @@ subroutine read_a_file (fname)
 !
 ! ****** Compute A in real space.
 ! ****** Note that this sets boundary points next to the poles.
-!
 !
       allocate (atr(nr_g,ntm1_g))
       allocate (apr(nr_g,nt_g))
@@ -72221,5 +72911,23 @@ end subroutine
 ! ### Version 0.9.6.0, 06/19/2025, modified by RC:
 !      - Started adding optimizations for GPU runs by using pointers
 !        instead of derived type redirection within DC loops.
+!
+! ### Version 0.9.7.0, 07/07/2025, modified by RC:
+!      - Added basic documentation to namelist declaration for all
+!        input parameters.  Moved namelist in code right after
+!        program MAS.  This is a work in progress and more
+!        details will be added later.
+!      - Removed the following depricated and/or unused parameters:
+!          - UPWIND_A_R0
+!          - OLD_JXB_DIAG
+!          - CHAR_BC
+!          - P_CUTOFF1
+!          - THPROF_TH
+!          - THPROF_DTH
+!          - BHAT_FACTOR_BR0
+!          - BHAT_FACTOR_MULT
+!          - TDM_PRESERVE_BR0
+!          - IP_RADIUS
+!      - Fixed some typos.
 !
 !#######################################################################
