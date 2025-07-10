@@ -15,7 +15,9 @@ For more information on MAS, including model/computational details and reference
 MAS can be used with MacOS, Linux, and Windows (through [WSL](https://github.com/microsoft/WSL)) on CPUs and NVIDIA GPUs. 
   
 ### Please Read First: ###  
-MAS is a complex code with many years of development and contains numerous input parameters, use cases, experimental features, deprecated features, etc.  We recommend that, if possible, MAS should be used through the public interfaces hosted at the CCMC - specifically the [CORHEL](https://ccmc.gsfc.nasa.gov/models/CORHEL-MAS_WSA_ENLIL~5.0) and [CORHEL-CME](https://ccmc.gsfc.nasa.gov/models/CORHEL-CME~1) interfaces.  These allow users to run MAS for steady-state coronal and heliospheric MHD relaxations, zero-beta flux rope relaxations and eruptions, and full MHD CME eruptions from the Sun to Earth.  The MAS code provided here will become part of future CORHEL-like open-source releases as a sub-module.  Until then, it is primarily intended for reference purposes and/or for advanced users/developers.  Please contact PSI at support@predsci.com if you plan to use the code for research purposes.
+MAS is a complex code with many years of development and contains numerous input parameters, use cases, experimental features, deprecated features, etc.  We recommend that, if possible, MAS should be used through the public interfaces hosted at the CCMC - specifically the [CORHEL](https://ccmc.gsfc.nasa.gov/models/CORHEL-MAS_WSA_ENLIL~5.0) and [CORHEL-CME](https://ccmc.gsfc.nasa.gov/models/CORHEL-CME~1) interfaces.  These allow users to run MAS for steady-state coronal and heliospheric MHD relaxations, zero-beta flux rope relaxations and eruptions, and full MHD CME eruptions from the Sun to Earth.  The MAS code provided here will become part of future CORHEL-like open-source releases as a sub-module.  Until then, it is primarily intended for reference purposes and/or for advanced users/developers.  
+  
+==> Please contact PSI at support@predsci.com if you plan to use this code for research purposes. <==
 
 
 --------------------------------
