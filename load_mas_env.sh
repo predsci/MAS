@@ -23,7 +23,12 @@ then
   exit 1
 fi
 
-mas_dir="$( dirname -- "$( readlink -f -- "${BASH_SOURCE[0]}"; )"; )"
+if [ `uname` == "Darwin" ]
+then
+  mas_dir="$( dirname -- "$( realpath -- "${BASH_SOURCE[0]}"; )"; )"
+else
+  mas_dir="$( dirname -- "$( readlink -f -- "${BASH_SOURCE[0]}"; )"; )"
+fi
 
 if [ ! -e ${mas_dir}/bin/mas ]
 then
