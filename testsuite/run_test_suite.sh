@@ -217,7 +217,8 @@ then
   if [ -z "${PTEST}" ]
   then
     ${echo} "${cR}==> ERROR! Python does not seem to be installed!${cX}"
-    ${echo} "${cR}    Please install it.${cX}"
+    ${echo} "${cR}    This testsuite requires Python3 with the packages:${cX}"
+    ${echo} "${cR}      numpy, matplotlib, h5py${cX}"
     exit 1
   fi
   ${echo} "${cG}==> Python is installed!${cX}"
@@ -234,7 +235,9 @@ then
     python -c "import ${pypkg}" 2>/dev/null
     pychk=$?
     if [ $pychk -eq 1 ]; then
-      ${echo} "${cR}==> ERROR! Missing required package ${pypkg}.  Please install it and try again.${cX}"
+      ${echo} "${cR}==> ERROR! Missing required package ${pypkg}.${cX}"
+      ${echo} "${cR}    This testsuite requires Python3 with the packages:${cX}"
+      ${echo} "${cR}      numpy, matplotlib, h5py${cX}"      
       exit 1
     fi
   done
