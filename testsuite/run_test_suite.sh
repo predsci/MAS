@@ -218,16 +218,15 @@ then
   then
     ${echo} "${cR}==> ERROR! Python3 does not seem to be installed!${cX}"
     ${echo} "${cR}    This testsuite requires Python3 with the packages:${cX}"
-    ${echo} "${cR}      numpy, matplotlib, h5py${cX}"
+    ${echo} "${cR}      numpy, h5py${cX}"
     exit 1
   fi
   ${echo} "${cG}==> Python is installed!${cX}"
  #
  # Check for required packages.
  #
-  PYTHON_PKG_LIST="argparse
-  sys
-  numpy
+  PYTHON_PKG_LIST="numpy
+  h5py
   "
 
   for pypkg in $PYTHON_PKG_LIST
@@ -237,7 +236,7 @@ then
     if [ $pychk -eq 1 ]; then
       ${echo} "${cR}==> ERROR! Missing required package ${pypkg}.${cX}"
       ${echo} "${cR}    This testsuite requires Python3 with the packages:${cX}"
-      ${echo} "${cR}      numpy, matplotlib, h5py${cX}"      
+      ${echo} "${cR}      numpy, h5py${cX}"      
       exit 1
     fi
   done
