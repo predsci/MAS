@@ -213,10 +213,10 @@ if [ ${nochecksetup} == 0 ]
 then
   ${echo} "Checking software requirements..."
   #Check that python is installed:
-  PTEST=$(which python)
+  PTEST=$(which python3)
   if [ -z "${PTEST}" ]
   then
-    ${echo} "${cR}==> ERROR! Python does not seem to be installed!${cX}"
+    ${echo} "${cR}==> ERROR! Python3 does not seem to be installed!${cX}"
     ${echo} "${cR}    This testsuite requires Python3 with the packages:${cX}"
     ${echo} "${cR}      numpy, matplotlib, h5py${cX}"
     exit 1
@@ -232,7 +232,7 @@ then
 
   for pypkg in $PYTHON_PKG_LIST
   do
-    python -c "import ${pypkg}" 2>/dev/null
+    python3 -c "import ${pypkg}" 2>/dev/null
     pychk=$?
     if [ $pychk -eq 1 ]; then
       ${echo} "${cR}==> ERROR! Missing required package ${pypkg}.${cX}"
