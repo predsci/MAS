@@ -221,7 +221,7 @@ then
     ${echo} "${cR}      numpy, h5py${cX}"
     exit 1
   fi
-  ${echo} "${cG}==> Python is installed!${cX}"
+  ${echo} "${cG}==> Python3 is installed!${cX}"
  #
  # Check for required packages.
  #
@@ -240,7 +240,7 @@ then
       exit 1
     fi
   done
-  ${echo} "${cG}==> All required python packages are present!${cX}"
+  ${echo} "${cG}==> All required python3 packages are present!${cX}"
 #
 # Check that the mas bin directory is in the user's path, if not, add it.
 #
