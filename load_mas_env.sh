@@ -25,7 +25,14 @@ fi
 
 if [ `uname` == "Darwin" ]
 then
-  mas_dir="$( dirname -- "$( realpath -- "${BASH_SOURCE[0]}"; )"; )"
+  has_realpath=`which realpath`
+  if [ "$?" == "1" ]; then
+    echo "### ERROR! This version of macOS is too old to have the 'realpath' utility"
+    echo "    so this load_mas_env.sh script may not work properly."
+    echo "    Instead please add The MAS and MAS/bin folders to your path manually!"
+  else
+    mas_dir="$( dirname -- "$( realpath -- "${BASH_SOURCE[0]}"; )"; )"
+  fi
 else
   mas_dir="$( dirname -- "$( readlink -f -- "${BASH_SOURCE[0]}"; )"; )"
 fi
