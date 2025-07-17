@@ -2,19 +2,26 @@
 import argparse
 import signal
 import sys
+import os
 
 import matplotlib
 matplotlib.use('Agg')
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
-
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
-import psi_io as ps
+
 import psipals
 import psimath
+try:
+  import psi_io as ps
+  PSI_IO_AVAIL = True
+except ImportError:
+  import psihdf as ps
+  PSI_IO_AVAIL = False
 
 ################################
-#  PSI_PLOT2D:  Version 1.5.0  #
+#  PSI_PLOT2D:  Version 1.6.1  #
 ################################
 ########################################################################
 #          Predictive Science Inc.
@@ -376,6 +383,12 @@ def argParsing():
             dest='slicedim',
             type=int,
             required=False)
+            
+  parser.add_argument('-sliceloc',
+            help='Location of slice in the slicedim dimension.',
+            dest='sliceloc',
+            type=float,
+            required=False)            
 
   parser.add_argument('-top_right_title',
             help='Add a top right title.',
@@ -418,37 +431,76 @@ def run(args):
   psipals.load()
 
   # Read the data:
+  if not PSI_IO_AVAIL:
   
   # Check for 3D file
-  __,__,t3,__ = ps.rdhdf(args.iFile)
-  if (len(t3)!=0):
-    is3d=True
-  else: 
-    is3d=False
+    __,__,t3,__ = ps.rdhdf(args.iFile)
+    if (len(t3)!=0):
+      is3d=True
+    else: 
+      is3d=False
 
-  if (is3d):
-    if (args.slicedim and args.sliceidx):
-      #Read the file.
-      t1,t2,t3,data = ps.rdhdf_3d(args.iFile)
+    if (is3d):
+      if (args.slicedim and args.sliceidx):
+        #Read the file.
+        t1,t2,t3,data = ps.rdhdf_3d(args.iFile)
 
-      if (args.slicedim == 3):
-        data=np.squeeze(data[args.sliceidx-1,:,:])
-        xvec=t1
-        yvec=t2
-      elif (args.slicedim == 2):
-        data=np.squeeze(data[:,args.sliceidx-1,:])
-        xvec=t1
-        yvec=t3
-      elif (args.slicedim == 1):
-        data=np.squeeze(data[:,:,args.sliceidx-1])
-        xvec=t2
-        yvec=t3
+        if (args.slicedim == 3):
+          data=np.squeeze(data[args.sliceidx-1,:,:])
+          xvec=t1
+          yvec=t2
+        elif (args.slicedim == 2):
+          data=np.squeeze(data[:,args.sliceidx-1,:])
+          xvec=t1
+          yvec=t3
+        elif (args.slicedim == 1):
+          data=np.squeeze(data[:,:,args.sliceidx-1])
+          xvec=t2
+          yvec=t3
+      else:
+        print('Error: 3D file provided and -slicedim and -sliceidx are not set')
+        print('If you are trying to use -sliceloc, you must install psi-io with pip.')
+        return
     else:
-      print('Error: 3D file provided and -slicedim and -sliceidx are not set')
-      return
+      xvec,yvec,data = ps.rdhdf_2d(args.iFile)
   else:
-    xvec,yvec,data = ps.rdhdf_2d(args.iFile)
+  
+    # Determine if 3D
+    file_meta_data,*_ = ps.read_hdf_meta(args.iFile) 
 
+    if len(file_meta_data.shape) == 3:
+      is3d = True
+    else:
+      is3d = False
+
+    if (is3d):
+      if (args.slicedim and args.sliceloc):
+        if (args.slicedim == 3):
+          data,xvec,yvec = ps.np_interpolate_slice_from_hdf(None,None,args.sliceloc,ifile=args.iFile)
+          data=np.transpose(data)
+        elif (args.slicedim == 2):
+          data,xvec,yvec = ps.np_interpolate_slice_from_hdf(None,args.sliceloc,None,ifile=args.iFile)
+          data=np.transpose(data)
+        elif (args.slicedim == 1):
+          data,xvec,yvec = ps.np_interpolate_slice_from_hdf(args.sliceloc,None,None,ifile=args.iFile)
+          data=np.transpose(data)
+      elif (args.slicedim and args.sliceidx):
+        if (args.slicedim == 3):
+          data,xvec,yvec,_ = ps.read_hdf_by_index(None,None,args.sliceidx-1,ifile=args.iFile)      
+          data=np.squeeze(data)   
+        elif (args.slicedim == 2):
+          data,xvec,_,yvec = ps.read_hdf_by_index(None,args.sliceidx-1,None,ifile=args.iFile)   
+          data=np.squeeze(data)   
+        elif (args.slicedim == 1):
+          data,_,xvec,yvec = ps.read_hdf_by_index(args.sliceidx-1,None,None,ifile=args.iFile)             
+          data=np.squeeze(data) 
+      else:
+        print('Error: 3D file provided and either -slicedim and -sliceloc are both not set')
+        print('or -slicedim and -sliceidx are both not set.')
+        return
+    else:
+      xvec,yvec,data = ps.rdhdf_2d(args.iFile)
+ 
   if (len(xvec) == 0):
     if (args.tp):
       xvec = (np.array(range(0, len(data[0, :]))) / float(len(data[0, :]) - 1)) * 2.0 * np.pi
@@ -564,7 +616,7 @@ def run(args):
     # Create 2D coordinates:
     P, R = np.meshgrid(yvec_plot, xvec_plot, indexing='ij')
     # Apply phishift:
-    P = P + float(args.phishift)
+    P = P - float(args.phishift)
     # Get cart coords:
     xvec_plot, yvec_plot = p2c(P, R)
 
