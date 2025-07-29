@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.7.0'
-      character(*), parameter :: update='07/07/2025'
+      character(*), parameter :: vers='0.9.7.1'
+      character(*), parameter :: update='07/22/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -64212,6 +64212,7 @@ subroutine get_ip_boundaries
 !
       real(r_typ) :: normrhs,normrhs2,brav,dv
       real(r_typ) :: vtaux(ntm,np),vpaux(nt,npm)
+      real(r_typ) :: frame_corr_fac
 !
 !-----------------------------------------------------------------------
 !
@@ -64596,6 +64597,16 @@ subroutine get_ip_boundaries
 !
         if (rb0) then
 !
+          if (boundary_frame.eq."FAKE_COROTATING") then
+            if (calculation_frame.eq."INERTIAL") then
+              frame_corr_fac=one
+            elseif (calculation_frame.eq."COROTATING") then
+              frame_corr_fac=two
+            end if
+          else
+            frame_corr_fac=zero
+          end if
+!
 ! ****** Store psi in psi_old for use in vxb
 ! ****** and if using rotation guess, compute psi_n.
 !
@@ -64655,9 +64666,9 @@ subroutine get_ip_boundaries
             av_vp=AVGTP2(vp_ip,j+1,k)
             av_br=AVGP2 (br_ip,j,k)
             av_bp=AVG2  (bp_ip,j,k)
-            if (boundary_frame.eq."FAKE_COROTATING") then
-              av_vp=av_vp+r0*st(j)*omega_corotate
-            end if
+!
+            av_vp=av_vp+frame_corr_fac*r0*st(j)*omega_corotate
+!
             vtaux(j,k)=av_vp*av_br-av_vr*av_bp
           enddo
 !
@@ -65029,6 +65040,7 @@ subroutine bc_vcrossb_interplanetary (v,b,vxb,vxb_b)
 !
 !-----------------------------------------------------------------------
 !
+      real(r_typ), parameter :: zero=0._r_typ
       real(r_typ), parameter :: one=1._r_typ
       real(r_typ), parameter :: half=.5_r_typ
       real(r_typ), parameter :: quarter=.25_r_typ
@@ -65043,6 +65055,7 @@ subroutine bc_vcrossb_interplanetary (v,b,vxb,vxb_b)
       real(r_typ) :: av_vr,av_vt,av_vp
       real(r_typ) :: av_br,av_bt,av_bp
       real(r_typ) :: ur,ut,up,brmono
+      real(r_typ) :: frame_corr_fac
 !
 !-----------------------------------------------------------------------
 !
@@ -65051,7 +65064,18 @@ subroutine bc_vcrossb_interplanetary (v,b,vxb,vxb_b)
 !-----------------------------------------------------------------------
 !
       if (rb0) then
+!
 ! ****** Set the r component.
+!
+        if (boundary_frame.eq."FAKE_COROTATING") then
+          if (calculation_frame.eq."INERTIAL") then
+            frame_corr_fac=one
+          elseif (calculation_frame.eq."COROTATING") then
+            frame_corr_fac=two
+          end if
+        else
+          frame_corr_fac=zero
+        end if
 !
         do concurrent (k=2:npm1, j=2:ntm1)
           av_vt=AVGT2(vt_ip,j,k)
@@ -65086,9 +65110,9 @@ subroutine bc_vcrossb_interplanetary (v,b,vxb,vxb_b)
             av_vp=AVGTP2(vp_ip,j+1,k)
             av_br=AVGP2 (br_ip,j,k)
             av_bp=AVG2  (bp_ip,j,k)
-            if (boundary_frame.eq."FAKE_COROTATING") then
-              av_vp=av_vp+r0*st(j)*omega_corotate
-            end if
+!
+            av_vp=av_vp+frame_corr_fac*r0*st(j)*omega_corotate
+!
             vxb_b%r0%t(j,k)=av_vp*av_br-av_vr*av_bp
           enddo
 !
@@ -72929,5 +72953,10 @@ end subroutine
 !          - TDM_PRESERVE_BR0
 !          - IP_RADIUS
 !      - Fixed some typos.
+!
+! ### Version 0.9.7.1, 07/22/2025, modified by RC:
+!      - BUG FIX:  Helospheric runs computed in the corotating frame
+!                  with fake_corotating boundaries were not being
+!                  corrected in vxb correctly.
 !
 !#######################################################################

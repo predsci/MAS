@@ -21,7 +21,7 @@ except ImportError:
   PSI_IO_AVAIL = False
 
 ################################
-#  PSI_PLOT2D:  Version 1.6.1  #
+#  PSI_PLOT2D:  Version 1.6.2  #
 ################################
 ########################################################################
 #          Predictive Science Inc.
@@ -740,6 +740,8 @@ def run(args):
           (0, 90, 180, 270, 360),
           ('0', '90', '180', '270', '360')
         )
+        xmin=0
+        xmax=360
       plt.xlabel(r'Longitude ($^\circ$)', {'fontsize': fsize, 'color': tc})
       xdtmi = 15
       if (args.sinlat):
