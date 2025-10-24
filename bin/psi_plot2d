@@ -13,15 +13,17 @@ from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 import psipals
 import psimath
-try:
-  import psi_io as ps
-  PSI_IO_AVAIL = True
-except ImportError:
-  import psihdf as ps
-  PSI_IO_AVAIL = False
+#try:
+#  import psi_io as ps
+#  PSI_IO_AVAIL = True
+#except ImportError:
+#  import psihdf as ps
+#  PSI_IO_AVAIL = False
+
+PSI_IO_AVAIL = False
 
 ################################
-#  PSI_PLOT2D:  Version 1.6.2  #
+#  PSI_PLOT2D:  Version 1.6.3  #
 ################################
 ########################################################################
 #          Predictive Science Inc.

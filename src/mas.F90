@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.7.1'
-      character(*), parameter :: update='07/22/2025'
+      character(*), parameter :: vers='0.9.7.2'
+      character(*), parameter :: update='09/02/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -54168,8 +54168,9 @@ subroutine rdh5 (fname,s,ierr)
             deallocate (f8dim)
           end if
 !
-! ****** Close the scale dataset.
+! ****** Close the type and scale dataset.
 !
+          call h5Tclose_f (datatype_id,ierr)
           call h5Dclose_f (dim_id,ierr)
 !
         enddo
@@ -72958,5 +72959,9 @@ end subroutine
 !      - BUG FIX:  Helospheric runs computed in the corotating frame
 !                  with fake_corotating boundaries were not being
 !                  corrected in vxb correctly.
+!
+! ### Version 0.9.7.2, 09/02/2025, modified by RC:
+!      - BUG FIX:  RDH5 was not closing scale type descriptors resulting
+!                  in small memory leak/badness.
 !
 !#######################################################################
