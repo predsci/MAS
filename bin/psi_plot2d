@@ -13,17 +13,15 @@ from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 import psipals
 import psimath
-#try:
-#  import psi_io as ps
-#  PSI_IO_AVAIL = True
-#except ImportError:
-#  import psihdf as ps
-#  PSI_IO_AVAIL = False
-
-PSI_IO_AVAIL = False
+try:
+  import psi_io as ps
+  PSI_IO_AVAIL = True
+except ImportError:
+  import psihdf as ps
+  PSI_IO_AVAIL = False
 
 ################################
-#  PSI_PLOT2D:  Version 1.6.3  #
+#  PSI_PLOT2D:  Version 1.6.4  #
 ################################
 ########################################################################
 #          Predictive Science Inc.
@@ -479,23 +477,20 @@ def run(args):
       if (args.slicedim and args.sliceloc):
         if (args.slicedim == 3):
           data,xvec,yvec = ps.np_interpolate_slice_from_hdf(None,None,args.sliceloc,ifile=args.iFile)
-          data=np.transpose(data)
         elif (args.slicedim == 2):
           data,xvec,yvec = ps.np_interpolate_slice_from_hdf(None,args.sliceloc,None,ifile=args.iFile)
-          data=np.transpose(data)
         elif (args.slicedim == 1):
           data,xvec,yvec = ps.np_interpolate_slice_from_hdf(args.sliceloc,None,None,ifile=args.iFile)
-          data=np.transpose(data)
       elif (args.slicedim and args.sliceidx):
         if (args.slicedim == 3):
           data,xvec,yvec,_ = ps.read_hdf_by_index(None,None,args.sliceidx-1,ifile=args.iFile)      
-          data=np.squeeze(data)   
+          data=np.squeeze(data)
         elif (args.slicedim == 2):
           data,xvec,_,yvec = ps.read_hdf_by_index(None,args.sliceidx-1,None,ifile=args.iFile)   
-          data=np.squeeze(data)   
+          data=np.squeeze(data)
         elif (args.slicedim == 1):
           data,_,xvec,yvec = ps.read_hdf_by_index(args.sliceidx-1,None,None,ifile=args.iFile)             
-          data=np.squeeze(data) 
+          data=np.squeeze(data)
       else:
         print('Error: 3D file provided and either -slicedim and -sliceloc are both not set')
         print('or -slicedim and -sliceidx are both not set.')
