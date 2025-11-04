@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.7.2'
-      character(*), parameter :: update='09/02/2025'
+      character(*), parameter :: vers='0.9.8.0'
+      character(*), parameter :: update='11/04/2025'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -7321,6 +7321,8 @@ subroutine start
       use alfven_wave_pressure
       use bhat_storage
       use prescribe_tdc_from_file_r0
+      use field_table
+      use write_field_tp_interface
 !
 !-----------------------------------------------------------------------
 !
@@ -7334,6 +7336,7 @@ subroutine start
 !
       real(r_typ), parameter :: one=1._r_typ
       real(r_typ), parameter :: half=0.5_r_typ
+      real(r_typ), allocatable, dimension(:,:) :: br_r0_init
 !
 !-----------------------------------------------------------------------
 !
@@ -7933,6 +7936,24 @@ subroutine start
       if (pole_filter_vr) then
         call smooth_poles_vr (v%r)
       end if
+!
+! ****** Write the boundary Br field to file.
+!
+      if (iamp0) then
+        write (IO_OUT,*)
+        write (IO_OUT,*) 'Writing Br being used at lower boundary (code units) to br_r0_init.h5'
+        FLUSH (IO_OUT)
+      end if
+!
+      allocate (br_r0_init(ntm,npm))
+!
+      if (rb0) then
+        br_r0_init(:,:) = half*(b%r(1,:,:)+b%r(2,:,:))
+      end if
+!
+      call write_field_tp ('br_r0_init.h5',IFLD_BR,br_r0_init,0)
+!
+      deallocate (br_r0_init)
 !
 ! ****** Collect and write diagnostics.
 !
@@ -72963,5 +72984,12 @@ end subroutine
 ! ### Version 0.9.7.2, 09/02/2025, modified by RC:
 !      - BUG FIX:  RDH5 was not closing scale type descriptors resulting
 !                  in small memory leak/badness.
+!
+! ### Version 0.9.8.0, 11/04/2025, modified by RC+TT:
+!      - Added feature where the code will always write out the
+!        initial lower Br boundary into a file br_r0_init.h5.
+!        This allows one to see what the "true" boundary condition
+!        being used looks like on the MAS grid.
+!        The file is in code units.
 !
 !#######################################################################

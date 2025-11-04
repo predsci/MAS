@@ -13,6 +13,7 @@ fi
 
 rm {[abvjezt]?,p,rho,heat,t,tracers_pos,eta,ef_*,rs,slice*}[0-9][0-9][0-9]*.h* 2> /dev/null
 rm br_photo.h* 2> /dev/null
+rm br_r0_init.h5 2> /dev/null
 rm heatflux*.h* 2> /dev/null
 rm potfld*.h* 2> /dev/null
 rm bhat*.h* 2> /dev/null
