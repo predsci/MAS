@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.8.0'
-      character(*), parameter :: update='11/04/2025'
+      character(*), parameter :: vers='0.9.8.1'
+      character(*), parameter :: update='07/10/2026'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -4218,7 +4218,7 @@ module radiative_loss_parameters
 !
 ! ****** Define the radiative loss law types.
 !
-      integer, parameter :: n_rad_law=6
+      integer, parameter :: n_rad_law=9
 !
 ! ****** Radiative loss law index definitions.
 ! ****** This list must start at index 1 and must end with index
@@ -4230,6 +4230,9 @@ module radiative_loss_parameters
       integer, parameter :: RAD_LAW_CHIANTI_v71_CORONA=4
       integer, parameter :: RAD_LAW_CHIANTI_v71_PHOTO =5
       integer, parameter :: RAD_LAW_CHIANTI_v713_HYBRID=6
+      integer, parameter :: RAD_LAW_CHIANTI_v1102_CORONA=7
+      integer, parameter :: RAD_LAW_CHIANTI_v1102_PHOTO =8
+      integer, parameter :: RAD_LAW_CHIANTI_v1102_HYBRID=9
 !
 ! ****** Radiative loss law name definitions.
 ! ****** The order must correspond to the above declarations.
@@ -4248,6 +4251,12 @@ module radiative_loss_parameters
                               /'CHIANTI_v71_PHOTO'/
       data rad_law_name(RAD_LAW_CHIANTI_v713_HYBRID) &
                               /'CHIANTI_v713_HYBRID'/
+      data rad_law_name(RAD_LAW_CHIANTI_v1102_CORONA) &
+                              /'CHIANTI_v1102_CORONA'/
+      data rad_law_name(RAD_LAW_CHIANTI_v1102_PHOTO ) &
+                              /'CHIANTI_v1102_PHOTO'/
+      data rad_law_name(RAD_LAW_CHIANTI_v1102_HYBRID) &
+                              /'CHIANTI_v1102_HYBRID'/
 !
 ! ****** The index of the radiative loss law selected.
 !
@@ -4491,6 +4500,247 @@ module chianti_v713_rad_loss_hybrid
        -22.375836,-22.354127,-22.332095,-22.309774,-22.287191, &
        -22.264389,-22.241384,-22.218202,-22.194863,-22.171383, &
        -22.147777/
+!$acc declare copyin(log10_Q_table)
+!
+end module
+!#######################################################################
+module chianti_v1102_rad_loss_corona
+!
+!-----------------------------------------------------------------------
+! ****** Parameters for the CHIANTI radiative loss function with
+! ****** coronal abundances (VERSION 11.0.2).
+!-----------------------------------------------------------------------
+!
+      use number_types
+!
+      implicit none
+!
+! ****** This radiative loss law was obtained from CHIANTI
+! ****** version 11.0.2 using SolarSoft routine RAD_LOSS.PRO.
+!
+! ****** Abundance model: default CHIANTI coronal abundances
+! ****** Abundance file: sun_coronal_2021_chianti.abund
+! ****** INFO: 
+! ******   The increase corresponds to a FIP bias=3.16 and is generally 
+! ******   consistent with the coronal values recommended by
+! ******   Feldman, U., Mandelbaum, P., Seely, J.L., Doschek, G.A., 
+! ******   Gursky H., 1992, ApJSS, 81, 387 which were based on a series 
+! ******   of papers where the relative abundances in active regions
+! ******   showed such FIP bias, compared to the photospheric relative 
+! ******   abundances. Created for the CHIANTI database by 
+! ******   Giulio Del Zanna, Apr 2023
+!
+! ****** Ionization equilibrium model: CHIANTI
+! ****** Ionization equilibrium file: chianti.ioneq
+!
+! ****** Evaluated at a constant pressure of 0.5 [dyn/cm^2/s].
+!
+! ****** Version of CHIANTI used.
+!
+      character(8), parameter :: chianti_version='11.0.2'
+!
+! ****** Number of values in the table.
+!
+      integer, parameter :: n_elem=101
+!
+! ****** The table assumes that the radiative loss function
+! ****** Q(T) is expressed in terms of uniform increments in
+! ****** log10(T), with T in [K], and Q in [erg-cm^3/s].
+!
+      real(r_typ), parameter :: log10_T_min=4._r_typ
+      real(r_typ), parameter :: log10_T_max=9._r_typ
+!
+! ****** Inverse of the (uniform) increment in log10(T).
+!
+      real(r_typ), parameter :: log10_dt_inv=(n_elem-1) &
+                                             /( log10_T_max &
+                                               -log10_T_min)
+!
+! ****** Table that has the values of log10(Q[erg-cm^3/s]).
+!
+      real(r_typ), dimension(n_elem) :: log10_Q_table
+!
+      data log10_Q_table/ &
+       -23.099885,-22.644047,-22.228381,-21.892887,-21.709220, &
+       -21.694213,-21.773486,-21.872282,-21.943393,-21.964696, &
+       -21.948260,-21.912904,-21.868596,-21.812058,-21.735978, &
+       -21.644610,-21.548810,-21.469212,-21.428035,-21.409738, &
+       -21.397705,-21.407638,-21.424851,-21.418633,-21.394462, &
+       -21.370810,-21.356388,-21.344732,-21.341799,-21.377349, &
+       -21.458834,-21.529595,-21.550690,-21.535959,-21.509891, &
+       -21.490060,-21.481050,-21.472891,-21.460448,-21.449520, &
+       -21.448421,-21.459922,-21.478442,-21.501414,-21.534716, &
+       -21.588776,-21.675553,-21.795156,-21.923065,-22.034434, &
+       -22.118449,-22.172457,-22.200028,-22.207864,-22.202902, &
+       -22.191331,-22.177266,-22.164508,-22.157354,-22.159860, &
+       -22.175912,-22.209883,-22.265387,-22.339225,-22.418002, &
+       -22.488222,-22.543379,-22.582699,-22.608113,-22.622410, &
+       -22.628188,-22.627574,-22.622260,-22.613475,-22.602270, &
+       -22.589365,-22.575385,-22.560803,-22.545855,-22.530664, &
+       -22.515243,-22.499471,-22.483260,-22.466494,-22.449110, &
+       -22.431066,-22.412366,-22.393059,-22.373174,-22.352780, &
+       -22.331920,-22.310644,-22.289004,-22.267039,-22.244780, &
+       -22.222274,-22.199537,-22.176601,-22.153485,-22.130210, &
+       -22.106791/
+!$acc declare copyin(log10_Q_table)
+!
+end module
+!#######################################################################
+module chianti_v1102_rad_loss_photo
+!
+!-----------------------------------------------------------------------
+! ****** Parameters for the CHIANTI radiative loss function with
+! ****** photospheric abundances.
+!-----------------------------------------------------------------------
+!
+      use number_types
+!
+      implicit none
+!
+! ****** This radiative loss law was obtained from CHIANTI
+! ****** version 11.0.2 using SolarSoft routine RAD_LOSS.PRO.
+!
+! ****** Abundance model: photospheric abundances (Asplund)
+! ****** Abundance file: sun_photospheric_2021_asplund.abund
+! ****** INFO:
+! ******   created for the CHIANTI atomic database by Enrico Landi, 
+! ******     21-Jul-2022
+! ******   abundances: Asplund, M., Amarsi, A.M., & Grevesse, N. 2021, 
+! ******     A&A, 653, A141
+! ******   comment: This compilation upgrades Asplund et al. (2009) 
+! ******     with the advances in photospheric modeling and atomic data 
+! ******     in the last decade. Notably, it preserves a low O 
+! ******     abundance but increases Ne/O to 0.24, in line with 
+! ******     Young 2018 and Landi & Testa 2017 determinations in the 
+! ******     solar atmosphere.
+!
+! ****** Ionization equilibrium model: CHIANTI
+! ****** Ionization equilibrium file: chianti.ioneq
+!
+! ****** Evaluated at a constant pressure of 0.5 [dyn/cm^2/s].
+!
+! ****** Version of CHIANTI used.
+!
+      character(8), parameter :: chianti_version='11.0.2'
+!
+! ****** Number of values in the table.
+!
+      integer, parameter :: n_elem=101
+!
+! ****** The table assumes that the radiative loss function
+! ****** Q(T) is expressed in terms of uniform increments in
+! ****** log10(T), with T in [K], and Q in [erg-cm^3/s].
+!
+      real(r_typ), parameter :: log10_T_min=4._r_typ
+      real(r_typ), parameter :: log10_T_max=9._r_typ
+!
+! ****** Inverse of the (uniform) increment in log10(T).
+!
+      real(r_typ), parameter :: log10_dt_inv=(n_elem-1) &
+                                             /( log10_T_max &
+                                               -log10_T_min)
+!
+! ****** Table that has the values of log10(Q[erg-cm^3/s]).
+!
+      real(r_typ), dimension(n_elem) :: log10_Q_table
+!
+      data log10_Q_table/ &
+       -23.270457,-22.757248,-22.301797,-21.944549,-21.754917, &
+       -21.743944,-21.830468,-21.939057,-22.026154,-22.070471, &
+       -22.080574,-22.067579,-22.032240,-21.972889,-21.888827, &
+       -21.785700,-21.672732,-21.566893,-21.489556,-21.439956, &
+       -21.412129,-21.416931,-21.433869,-21.429169,-21.407140, &
+       -21.386365,-21.376187,-21.370507,-21.376441,-21.428565, &
+       -21.543439,-21.665418,-21.740114,-21.769879,-21.781440, &
+       -21.802120,-21.841552,-21.877732,-21.893842,-21.897360, &
+       -21.901910,-21.914041,-21.930576,-21.949780,-21.976841, &
+       -22.020562,-22.090299,-22.184750,-22.285064,-22.375469, &
+       -22.448152,-22.499412,-22.531061,-22.547383,-22.552727, &
+       -22.551217,-22.545775,-22.539329,-22.535408,-22.537425, &
+       -22.548468,-22.571489,-22.608023,-22.653830,-22.698215, &
+       -22.732752,-22.755236,-22.766888,-22.770097,-22.767026, &
+       -22.759339,-22.748255,-22.734671,-22.719217,-22.702412, &
+       -22.684608,-22.666109,-22.647135,-22.627809,-22.608203, &
+       -22.588341,-22.568195,-22.547749,-22.526975,-22.505866, &
+       -22.484421,-22.462651,-22.440587,-22.418247,-22.395665, &
+       -22.372859,-22.349857,-22.326680,-22.303347,-22.279870, &
+       -22.256271,-22.232558,-22.208744,-22.184839,-22.160851, &
+       -22.136789/
+!$acc declare copyin(log10_Q_table)
+!
+end module
+!#######################################################################
+module chianti_v1102_rad_loss_hybrid
+!
+!-----------------------------------------------------------------------
+! ****** Parameters for the CHIANTI radiative loss function with
+! ****** hybrid abundances.
+!-----------------------------------------------------------------------
+!
+      use number_types
+!
+      implicit none
+!
+! ****** This radiative loss law was obtained from CHIANTI
+! ****** version 11.0.2 using SolarSoft routine RAD_LOSS.PRO.
+!
+! ****** Abundance model: hybrid abundances
+! ******   (Schmelz, J.T., Reames, D.V., von Steiger, R.,
+!           & Basu, S. 2012, ApJ, 755, 33
+! ****** Abundance file: archive/sun_coronal_2012_schmelz.abund
+!
+! ****** Ionization equilibrium model: CHIANTI
+! ****** Ionization equilibrium file: chianti.ioneq
+!
+! ****** Evaluated at a constant pressure of 0.5 [dyn/cm^2/s].
+!
+! ****** Version of CHIANTI used.
+!
+      character(8), parameter :: chianti_version='11.0.2'
+!
+! ****** Number of values in the table.
+!
+      integer, parameter :: n_elem=101
+!
+! ****** The table assumes that the radiative loss function
+! ****** Q(T) is expressed in terms of uniform increments in
+! ****** log10(T), with T in [K], and Q in [erg-cm^3/s].
+!
+      real(r_typ), parameter :: log10_T_min=4._r_typ
+      real(r_typ), parameter :: log10_T_max=9._r_typ
+!
+! ****** Inverse of the (uniform) increment in log10(T).
+!
+      real(r_typ), parameter :: log10_dt_inv=(n_elem-1) &
+                                             /( log10_T_max &
+                                               -log10_T_min)
+!
+! ****** Table that has the values of log10(Q[erg-cm^3/s]).
+!
+      real(r_typ), dimension(n_elem) :: log10_Q_table
+!
+      data log10_Q_table/ &
+       -23.167010,-22.690469,-22.259389,-21.915040,-21.728811, &
+       -21.715227,-21.797500,-21.902106,-21.984859,-22.023191, &
+       -22.023541,-22.001241,-21.966075,-21.915771,-21.843852, &
+       -21.755012,-21.660330,-21.579745,-21.534319,-21.510034, &
+       -21.492576,-21.497080,-21.508834,-21.498995,-21.473463, &
+       -21.450457,-21.438970,-21.431582,-21.432804,-21.473596, &
+       -21.563870,-21.646008,-21.676522,-21.667293,-21.643596, &
+       -21.623958,-21.613698,-21.603862,-21.589905,-21.577355, &
+       -21.573862,-21.582034,-21.597147,-21.617308,-21.648133, &
+       -21.699406,-21.782812,-21.898812,-22.024148,-22.135354, &
+       -22.221129,-22.277445,-22.307062,-22.316325,-22.312010, &
+       -22.300399,-22.285892,-22.272542,-22.264748,-22.266544, &
+       -22.281656,-22.314159,-22.367329,-22.437708,-22.511890, &
+       -22.576729,-22.626350,-22.660525,-22.681515,-22.692157, &
+       -22.694957,-22.691914,-22.684590,-22.674113,-22.661444, &
+       -22.647235,-22.632053,-22.616322,-22.600249,-22.583945, &
+       -22.567422,-22.550571,-22.533317,-22.515561,-22.497251, &
+       -22.478354,-22.458877,-22.438863,-22.418342,-22.397374, &
+       -22.375998,-22.354258,-22.332201,-22.309860,-22.287262, &
+       -22.264448,-22.241434,-22.218245,-22.194899,-22.171414, &
+       -22.147804/
 !$acc declare copyin(log10_Q_table)
 !
 end module
@@ -5952,6 +6202,9 @@ subroutine read_and_check_input_file
                                      !   CHIANTI_v71_CORONA
                                      !   CHIANTI_v71_PHOTO
                                      !   CHIANTI_v713_HYBRID
+                                     !   CHIANTI_v1102_CORONA
+                                     !   CHIANTI_v1102_PHOTO
+                                     !   CHIANTI_v1102_HYBRID
         legacy_q_chromo_reduction, & ! LEGACY: (Logical) toggle to use the old-style
                                      ! way to taper radiative loss towards zero.
 ! ****** Coronal heating.
@@ -57945,6 +58198,12 @@ subroutine get_qrad (qrad,tempk,n)
         call get_qrad_chianti_v71_photo(qrad,tempk,n)
       case (RAD_LAW_CHIANTI_v713_HYBRID)
         call get_qrad_chianti_v713_hybrid(qrad,tempk,n)
+      case (RAD_LAW_CHIANTI_v1102_CORONA)
+        call get_qrad_chianti_v1102_corona(qrad,tempk,n)
+      case (RAD_LAW_CHIANTI_v1102_PHOTO)
+        call get_qrad_chianti_v1102_photo(qrad,tempk,n)
+      case (RAD_LAW_CHIANTI_v1102_HYBRID)
+        call get_qrad_chianti_v1102_hybrid(qrad,tempk,n)
       case default
         if(iamp0) then
           write (*,*)
@@ -58422,6 +58681,189 @@ subroutine get_qrad_chianti_v713_hybrid (qrad,tempk,n)
 !
       use number_types
       use chianti_v713_rad_loss_hybrid
+!
+!-----------------------------------------------------------------------
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!
+      integer :: n
+      real(r_typ), dimension(n) :: qrad,tempk
+!
+!-----------------------------------------------------------------------
+!
+      real(r_typ), parameter :: one=1._r_typ
+      real(r_typ), parameter :: ten=10._r_typ
+!
+!-----------------------------------------------------------------------
+!
+      integer :: ii,i
+      real(r_typ) :: log10_t,log10_q,i_cont,alpha
+!
+!-----------------------------------------------------------------------
+!
+      do concurrent (i=1:n)
+!
+! ****** Interpolate log10(T) linearly from the uniform-increment
+! ****** table LOG10_Q_TABLE.
+!
+        log10_t=log10(tempk(i))
+!
+        i_cont=one+(log10_t-log10_t_min)*log10_dt_inv
+        ii=floor(i_cont)
+!
+        if (ii.lt.1) then
+          log10_q=log10_q_table(1)
+        else if (ii.ge.n_elem) then
+          log10_q=log10_q_table(n_elem)
+        else
+          alpha=i_cont-ii
+          log10_q=(one-alpha)*log10_q_table(ii) &
+                       +alpha*log10_q_table(ii+1)
+        end if
+!
+        qrad(i)=ten**log10_q
+!
+      enddo
+!
+end subroutine
+!#######################################################################
+subroutine get_qrad_chianti_v1102_corona (qrad,tempk,n)
+!
+!-----------------------------------------------------------------------
+!
+! ****** Radiative loss function from CHIANTI with coronal
+! ****** abundances (version 11.0.2).
+!
+! ****** TEMPK is the temperature in [K].
+! ****** QRAD is returned in [erg-cm**3/s].
+!
+!-----------------------------------------------------------------------
+!
+      use number_types
+      use chianti_v1102_rad_loss_corona
+!
+!-----------------------------------------------------------------------
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!
+      integer :: n
+      real(r_typ), dimension(n) :: qrad,tempk
+!
+!-----------------------------------------------------------------------
+!
+      real(r_typ), parameter :: one=1._r_typ
+      real(r_typ), parameter :: ten=10._r_typ
+!
+!-----------------------------------------------------------------------
+!
+      integer :: ii,i
+      real(r_typ) :: log10_t,log10_q,i_cont,alpha
+!
+!-----------------------------------------------------------------------
+!
+! ****** Interpolate log10(T) linearly from the uniform-increment
+! ****** table LOG10_Q_TABLE.
+!
+      do concurrent (i=1:n)
+!
+        log10_t=log10(tempk(i))
+!
+        i_cont=one+(log10_t-log10_t_min)*log10_dt_inv
+        ii=floor(i_cont)
+!
+        if (ii.lt.1) then
+          log10_q=log10_q_table(1)
+        else if (ii.ge.n_elem) then
+          log10_q=log10_q_table(n_elem)
+        else
+          alpha=i_cont-ii
+          log10_q=(one-alpha)*log10_q_table(ii) &
+                       +alpha*log10_q_table(ii+1)
+        end if
+!
+        qrad(i)=ten**log10_q
+      enddo
+!
+end subroutine
+!#######################################################################
+subroutine get_qrad_chianti_v1102_photo (qrad,tempk,n)
+!
+!-----------------------------------------------------------------------
+!
+! ****** Radiative loss function from CHIANTI with photospheric
+! ****** abundances (version 11.0.2).
+!
+! ****** TEMPK is the temperature in [K].
+! ****** QRAD is returned in [erg-cm**3/s].
+!
+!-----------------------------------------------------------------------
+!
+      use number_types
+      use chianti_v1102_rad_loss_photo
+!
+!-----------------------------------------------------------------------
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!
+      integer :: n
+      real(r_typ), dimension(n) :: qrad,tempk
+!
+!-----------------------------------------------------------------------
+!
+      real(r_typ), parameter :: one=1._r_typ
+      real(r_typ), parameter :: ten=10._r_typ
+!
+!-----------------------------------------------------------------------
+!
+      integer :: ii,i
+      real(r_typ) :: log10_t,log10_q,i_cont,alpha
+!
+!-----------------------------------------------------------------------
+!
+! ****** Interpolate log10(T) linearly from the uniform-increment
+! ****** table LOG10_Q_TABLE.
+!
+      do concurrent (i=1:n)
+        log10_t=log10(tempk(i))
+!
+        i_cont=one+(log10_t-log10_t_min)*log10_dt_inv
+        ii=floor(i_cont)
+!
+        if (ii.lt.1) then
+          log10_q=log10_q_table(1)
+        else if (ii.ge.n_elem) then
+          log10_q=log10_q_table(n_elem)
+        else
+          alpha=i_cont-ii
+          log10_q=(one-alpha)*log10_q_table(ii) &
+                       +alpha*log10_q_table(ii+1)
+        end if
+!
+        qrad(i)=ten**log10_q
+      enddo
+!
+end subroutine
+!#######################################################################
+subroutine get_qrad_chianti_v1102_hybrid (qrad,tempk,n)
+!
+!-----------------------------------------------------------------------
+!
+! ****** Radiative loss function from CHIANTI with hybrid
+! ****** abundances (version 11.0.2).
+!
+! ****** TEMPK is the temperature in [K].
+! ****** QRAD is returned in [erg-cm**3/s].
+!
+!-----------------------------------------------------------------------
+!
+      use number_types
+      use chianti_v1102_rad_loss_hybrid
 !
 !-----------------------------------------------------------------------
 !
@@ -72991,5 +73433,12 @@ end subroutine
 !        This allows one to see what the "true" boundary condition
 !        being used looks like on the MAS grid.
 !        The file is in code units.
+!
+! ### Version 0.9.8.1, 07/10/2026, modified by CD:
+!      - Added new CHIANTI radiative loss tables (version 11.0.2).
+!      - The new options for rad_law are:
+!        - CHIANTI_v1102_CORONA
+!        - CHIANTI_v1102_HYBRID
+!        - CHIANTI_v1102_PHOTO
 !
 !#######################################################################
