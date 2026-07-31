@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.8.1'
-      character(*), parameter :: update='07/10/2026'
+      character(*), parameter :: vers='0.9.9.0'
+      character(*), parameter :: update='07/17/2026'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -4520,14 +4520,14 @@ module chianti_v1102_rad_loss_corona
 !
 ! ****** Abundance model: default CHIANTI coronal abundances
 ! ****** Abundance file: sun_coronal_2021_chianti.abund
-! ****** INFO: 
-! ******   The increase corresponds to a FIP bias=3.16 and is generally 
+! ****** INFO:
+! ******   The increase corresponds to a FIP bias=3.16 and is generally
 ! ******   consistent with the coronal values recommended by
-! ******   Feldman, U., Mandelbaum, P., Seely, J.L., Doschek, G.A., 
-! ******   Gursky H., 1992, ApJSS, 81, 387 which were based on a series 
+! ******   Feldman, U., Mandelbaum, P., Seely, J.L., Doschek, G.A.,
+! ******   Gursky H., 1992, ApJSS, 81, 387 which were based on a series
 ! ******   of papers where the relative abundances in active regions
-! ******   showed such FIP bias, compared to the photospheric relative 
-! ******   abundances. Created for the CHIANTI database by 
+! ******   showed such FIP bias, compared to the photospheric relative
+! ******   abundances. Created for the CHIANTI database by
 ! ******   Giulio Del Zanna, Apr 2023
 !
 ! ****** Ionization equilibrium model: CHIANTI
@@ -4603,15 +4603,15 @@ module chianti_v1102_rad_loss_photo
 ! ****** Abundance model: photospheric abundances (Asplund)
 ! ****** Abundance file: sun_photospheric_2021_asplund.abund
 ! ****** INFO:
-! ******   created for the CHIANTI atomic database by Enrico Landi, 
+! ******   created for the CHIANTI atomic database by Enrico Landi,
 ! ******     21-Jul-2022
-! ******   abundances: Asplund, M., Amarsi, A.M., & Grevesse, N. 2021, 
+! ******   abundances: Asplund, M., Amarsi, A.M., & Grevesse, N. 2021,
 ! ******     A&A, 653, A141
-! ******   comment: This compilation upgrades Asplund et al. (2009) 
-! ******     with the advances in photospheric modeling and atomic data 
-! ******     in the last decade. Notably, it preserves a low O 
-! ******     abundance but increases Ne/O to 0.24, in line with 
-! ******     Young 2018 and Landi & Testa 2017 determinations in the 
+! ******   comment: This compilation upgrades Asplund et al. (2009)
+! ******     with the advances in photospheric modeling and atomic data
+! ******     in the last decade. Notably, it preserves a low O
+! ******     abundance but increases Ne/O to 0.24, in line with
+! ******     Young 2018 and Landi & Testa 2017 determinations in the
 ! ******     solar atmosphere.
 !
 ! ****** Ionization equilibrium model: CHIANTI
@@ -4757,7 +4757,7 @@ module interplanetary_vars
       implicit none
       integer, private :: i
 !
-      character(128) :: ip_path=' '
+      character(256) :: ip_path=' '
       character(64) :: boundary_frame='FAKE_COROTATING'
       logical :: fake_corotation=.false.
       logical :: interplanetary_run=.false.
@@ -4765,22 +4765,23 @@ module interplanetary_vars
       integer :: ip_bc_interp_order=1
       logical :: ip_bc_shift_phi_guess=.true.
       logical :: ip_bc_shift_psi_guess=.false.
+      logical :: check_ip_files=.true.
 !
-      integer, parameter :: mx_ip_seq=5000
+      integer, parameter :: mx_ip_seq=20000
       integer :: n_ip_seq, ip_sequence(mx_ip_seq)
-      character(64) :: brfile=' '
-      character(64) :: btfile=' '
-      character(64) :: bpfile=' '
-      character(64) :: vrfile=' '
-      character(64) :: vtfile=' '
-      character(64) :: vpfile=' '
-      character(64) :: rhofile=' '
-      character(64) :: tfile=' '
-      character(64) :: fcsfile=' '
-      character(64) :: epfile=' '
-      character(64) :: emfile=' '
-      character(64) :: zpfile=' '
-      character(64) :: zmfile=' '
+      character(256) :: brfile=' '
+      character(256) :: btfile=' '
+      character(256) :: bpfile=' '
+      character(256) :: vrfile=' '
+      character(256) :: vtfile=' '
+      character(256) :: vpfile=' '
+      character(256) :: rhofile=' '
+      character(256) :: tfile=' '
+      character(256) :: fcsfile=' '
+      character(256) :: epfile=' '
+      character(256) :: emfile=' '
+      character(256) :: zpfile=' '
+      character(256) :: zmfile=' '
 !
       real(r_typ) :: ip_node(mx_ip_seq)
 !
@@ -4875,13 +4876,15 @@ module prescribe_tdc_from_file_r0
       implicit none
       integer, private :: i
 !
-      character(128) :: tdcff_path=' '
+      character(256) :: tdcff_path=' '
       integer, parameter :: mx_tdcff_seq=5000
       integer :: n_tdcff_seq, tdcff_sequence(mx_tdcff_seq)
-      character(64) :: br_tdcff_file=' '
-      character(64) :: vt_tdcff_file=' '
-      character(64) :: vp_tdcff_file=' '
-      character(64) :: phi_tdcff_file=' '
+      character(256) :: br_tdcff_file=' '
+      character(256) :: vt_tdcff_file=' '
+      character(256) :: vp_tdcff_file=' '
+      character(256) :: phi_tdcff_file=' '
+!      
+      logical :: check_tdc_files=.true.
 !
       real(r_typ) :: tdcff_node(mx_tdcff_seq)
 !
@@ -6443,6 +6446,7 @@ subroutine read_and_check_input_file
         vt_tdcff_file,             & ! Base filename of Vt boundary files.
         vp_tdcff_file,             & ! Base filename of Vp boundary files.
         phi_tdcff_file,            & ! Base filename of PHI boundary files.
+        check_tdc_files,           & ! Check for the existence of ALL tdc Br files at startup.
         tdcff_sequence,            & ! Comma-seperated list of times for
                                      ! sequence of boundary files (mas units).
         tdcff_node,                & ! Comma-separated list of file indices for
@@ -6654,6 +6658,7 @@ subroutine read_and_check_input_file
                                      ! initially relaxed in a corotating frame, and subsequent
                                      ! restarts are to be computed in the inertial frame.
                                      ! Also useful for various other use-cases.
+        check_ip_files,            & ! Check for existence of ALL ip Br files at startup.
         brfile,                    & ! Base filename of Br boundary files (see br_pbv_file).
         btfile,                    & ! Base filename of Bt boundary files.
         bpfile,                    & ! Base filename of Bp boundary files.
@@ -17888,8 +17893,8 @@ function outside_interval (x0,x1,x,eps)
 !
       if (present(eps)) then
         if (eps.lt.0.) then
-          x0e=x0*(one-abs(eps))
-          x1e=x1*(one+abs(eps))
+          x0e=x0-abs(x0)*abs(eps)
+          x1e=x1+abs(x1)*abs(eps)
         else
           x0e=x0-eps
           x1e=x1+eps
@@ -67014,7 +67019,7 @@ subroutine setup_ip_boundaries
          if (ip_sequence(i).eq.NULL_VALUE_IP_SEQUENCE) exit
       enddo
       n_ip_seq=i-1
-      if (iamp0) then
+      if (iamp0.and.check_ip_files) then
         do i=1,n_ip_seq
           if (long_sequence_numbers_input) then
             write (seq,'(i6.6)') ip_sequence(i)
@@ -69645,7 +69650,9 @@ subroutine check_tdc_from_files (nodes)
           write (*,*) '### You have specified more nodes than times.'
           ierr=1
         end if
+      endif
 !
+      if (iamp0.and.check_tdc_files) then
         do i=1,n_tdcff_seq
           if (long_sequence_numbers_input) then
             write (seq,'(i6.6)') tdcff_sequence(i)
@@ -73440,5 +73447,16 @@ end subroutine
 !        - CHIANTI_v1102_CORONA
 !        - CHIANTI_v1102_HYBRID
 !        - CHIANTI_v1102_PHOTO
+!
+! ### Version 0.9.9.0, 07/17/2026, modified by CD:
+!      - Expand max amount of ip file nodes (MX_IP_SEQ=20000).
+!      - Expand max IP and TDC filename length.
+!      - Add option to check IP and/or TDC files for existence.
+!        - CHECK_IP_FILES (default: .true.)
+!        - CHECK_TDC_FILES (default: .true.)
+!
+! ### Version 0.9.9.1, 07/30/2026, modified by RC:
+!      - Fixed bug in checking interp bounds inside outside_interval().
+!        This was causing some remesh runs to crash.
 !
 !#######################################################################

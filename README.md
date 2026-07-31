@@ -29,7 +29,7 @@ MAS has been tested to work with the following compilers:
   
  - GCC's `gfortran` v14.2.0  
  - NVIDIA's `nvfortran` v26.1 (both CPU and GPU)  
- - INTEL's `ifx` v2024  
+ - INTEL's `ifx` v2026.1.0  
   
 NOTE: MAS does not work on NVIDIA GPUs with nvfortran 25.5 or 25.9, please use 25.7 or >=26.1.  
   
