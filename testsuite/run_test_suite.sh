@@ -62,7 +62,6 @@ np=1
 norun=0
 nocompare=0
 compareprec=6
-novis=0
 nocleanup=0
 clean=0
 nochecksetup=0

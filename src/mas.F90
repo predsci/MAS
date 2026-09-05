@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.9.1'
-      character(*), parameter :: update='07/30/2026'
+      character(*), parameter :: vers='0.9.9.2'
+      character(*), parameter :: update='09/04/2026'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -142,7 +142,7 @@ module number_types
 ! ****** This module is used to set the default precision for REALs.
 !-----------------------------------------------------------------------
 !
-      use iso_fortran_env
+      use, intrinsic :: iso_fortran_env
 !
 !-----------------------------------------------------------------------
 !
@@ -151,18 +151,18 @@ module number_types
 ! ****** Set up the KIND values for the various REALs.
 ! ****** These can be compiler dependent.
 !
-      integer, parameter :: KIND_REAL_4=REAL32
-      integer, parameter :: KIND_REAL_8=REAL64
+      integer, parameter :: KIND_REAL_4=real32
+      integer, parameter :: KIND_REAL_8=real64
 !
-! ****** KIND values for specifying the precision of REALs.
+! ****** Select the number type for REALs.
 !
-      integer, private, parameter :: r4=KIND_REAL_4
-      integer, private, parameter :: r8=KIND_REAL_8
+      integer, parameter :: r_typ_sp=KIND_REAL_4
+      integer, parameter :: r_typ=KIND_REAL_8
 !
-! ****** Select the number type for REALs (one of: R4|R8).
+! ****** Number types for Integers.
 !
-      integer, parameter :: r_typ=r8
-      integer, parameter :: r_typ_sp=r4
+      integer, parameter :: i4=int32
+      integer, parameter :: i8=int64
 !
 end module
 !#######################################################################
@@ -437,7 +437,7 @@ module decomposition_params
 !
 ! ****** Number of processors per dimension.
 !
-      integer, dimension(3) :: nprocs=(/-1,-1,-1/)
+      integer, dimension(3) :: nprocs=[-1,-1,-1]
 !
 ! ****** Number of mesh points per processor.
 !
@@ -506,17 +506,17 @@ module decomposition
 !
 ! ****** Mapping structures for the different mesh types.
 !
-      type(map_struct), dimension(:), pointer :: map_rh
-      type(map_struct), dimension(:), pointer :: map_rm
-      type(map_struct), dimension(:), pointer :: map_th
-      type(map_struct), dimension(:), pointer :: map_tm
-      type(map_struct), dimension(:), pointer :: map_ph
-      type(map_struct), dimension(:), pointer :: map_pm
+      type(map_struct), dimension(:), pointer :: map_rh => null()
+      type(map_struct), dimension(:), pointer :: map_rm => null()
+      type(map_struct), dimension(:), pointer :: map_th => null()
+      type(map_struct), dimension(:), pointer :: map_tm => null()
+      type(map_struct), dimension(:), pointer :: map_ph => null()
+      type(map_struct), dimension(:), pointer :: map_pm => null()
 !
-      type(map_struct), dimension(:), pointer :: maptp_th
-      type(map_struct), dimension(:), pointer :: maptp_tm
-      type(map_struct), dimension(:), pointer :: maptp_ph
-      type(map_struct), dimension(:), pointer :: maptp_pm
+      type(map_struct), dimension(:), pointer :: maptp_th => null()
+      type(map_struct), dimension(:), pointer :: maptp_tm => null()
+      type(map_struct), dimension(:), pointer :: maptp_ph => null()
+      type(map_struct), dimension(:), pointer :: maptp_pm => null()
 !
 end module
 !#######################################################################
@@ -578,9 +578,9 @@ module types
 ! ****** Vector on the v mesh.
 !
       type :: vvec
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: r !(nrm,nt,np)
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: t !(nr,ntm,np)
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: p !(nr,nt,npm)
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: r => null()!(nrm,nt,np)
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: t => null() !(nr,ntm,np)
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: p => null() !(nr,nt,npm)
       end type
 !
 ! ****** Vector on the half mesh.
@@ -613,10 +613,10 @@ module types
 ! ****** Components of v at the r boundaries.
 !
       type :: vvec_bcr
-        real(r_typ), dimension(:,:), pointer, contiguous :: r !(nt,np)
-        real(r_typ), dimension(:,:), pointer, contiguous :: t !(ntm,np)
-        real(r_typ), dimension(:,:), pointer, contiguous :: p !(nt,npm)
-        real(r_typ), dimension(:,:), pointer, contiguous :: par !(nt,np)
+        real(r_typ),dimension(:,:),pointer,contiguous :: r => null() !(nt,np)
+        real(r_typ),dimension(:,:),pointer,contiguous :: t => null() !(ntm,np)
+        real(r_typ),dimension(:,:),pointer,contiguous :: p => null() !(nt,npm)
+        real(r_typ),dimension(:,:),pointer,contiguous :: par => null() !(nt,np)
       end type
 !
 ! ****** Tangential components of A at the boundaries.
@@ -921,7 +921,7 @@ module profile_def
       type :: profile
         logical :: active=.false.
         real(r_typ) :: f(3)=1._r_typ
-        real(r_typ) :: x(2)=(/-1.e20_r_typ,1.e20_r_typ/)
+        real(r_typ) :: x(2)=[-1.e20_r_typ,1.e20_r_typ]
         real(r_typ) :: w(2)=1._r_typ
       end type
 !
@@ -1370,7 +1370,7 @@ module cgcom
 !-----------------------------------------------------------------------
 !
       type :: cg_3d
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: f
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: f => null()
       end type
 !
 end module
@@ -1647,7 +1647,7 @@ module sts
 !
       integer :: sts_type=3
 !
-      integer(8) :: sts_s
+      integer(i8) :: sts_s
 !
       real(r_typ), dimension(:), allocatable :: sts_uj
       real(r_typ), dimension(:), allocatable :: sts_vj
@@ -1838,7 +1838,7 @@ module rp1d_def
       implicit none
 !
       type :: rp1d
-        real(r_typ), dimension(:), pointer, contiguous :: f
+        real(r_typ), dimension(:), pointer, contiguous :: f => null()
       end type
 !
 end module
@@ -1862,7 +1862,7 @@ module sds_def
         logical :: scale
         logical :: hdf32
         type(rp1d), dimension(mxdim) :: scales
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: f
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: f => null()
       end type
 !
 end module
@@ -3298,26 +3298,26 @@ module field_table
       type :: field_def
         character(8) :: name=''
         logical :: input_enabled=.false.
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: f
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: f => null()
         logical :: rm  ! .true. ==> field on main r mesh
         logical :: tm  ! .true. ==> field on main t mesh
         logical :: pm  ! .true. ==> field on main p mesh
         integer :: n1_g
         integer :: n2_g
         integer :: n3_g
-        real(r_typ), dimension(:), pointer, contiguous :: r_g
-        real(r_typ), dimension(:), pointer, contiguous :: t_g
-        real(r_typ), dimension(:), pointer, contiguous :: p_g
-        type(map_struct), dimension(:), pointer :: map_r
-        type(map_struct), dimension(:), pointer :: map_t
-        type(map_struct), dimension(:), pointer :: map_p
-        type(map_struct), dimension(:), pointer :: maptp_t
-        type(map_struct), dimension(:), pointer :: maptp_p
-        integer, dimension(:), pointer, contiguous :: n1
+        real(r_typ),dimension(:),pointer,contiguous :: r_g => null()
+        real(r_typ),dimension(:),pointer,contiguous :: t_g => null()
+        real(r_typ),dimension(:),pointer,contiguous :: p_g => null()
+        type(map_struct), dimension(:), pointer :: map_r => null()
+        type(map_struct), dimension(:), pointer :: map_t => null()
+        type(map_struct), dimension(:), pointer :: map_p => null()
+        type(map_struct), dimension(:), pointer :: maptp_t => null()
+        type(map_struct), dimension(:), pointer :: maptp_p => null()
+        integer, dimension(:), pointer, contiguous :: n1 => null()
         !r-dim(0:nproc-1)
-        integer, dimension(:), pointer, contiguous :: n2
+        integer, dimension(:), pointer, contiguous :: n2 => null()
         !t-dim(0:nproc-1)
-        integer, dimension(:), pointer, contiguous :: n3
+        integer, dimension(:), pointer, contiguous :: n3 => null()
         !p-dim(0:nproc-1)
       end type
 !
@@ -3524,7 +3524,7 @@ module diagnostics
 !
       type :: diagq
         character(8) :: name
-        real(r_typ), dimension(:,:,:), pointer, contiguous :: fld
+        real(r_typ),dimension(:,:,:),pointer,contiguous :: fld => null()
         logical :: rm
         logical :: tm
         logical :: pm
@@ -3537,7 +3537,7 @@ module diagnostics
         integer :: k
         integer :: kp1
         real(r_typ) :: ap
-        real(r_typ), dimension(:), pointer, contiguous :: v
+        real(r_typ), dimension(:), pointer, contiguous :: v => null()
       end type
 !
 ! ****** Definition of a diagnostic point structure.
@@ -3549,7 +3549,7 @@ module diagnostics
         real(r_typ) :: p
         integer :: iproc
         integer :: nq
-        type(diagq), dimension(:), pointer :: q
+        type(diagq), dimension(:), pointer :: q => null()
       end type
 !
 ! ****** Maximum number of diagnostic points.
@@ -4113,8 +4113,7 @@ module heating_parameters
         real(r_typ) :: lambda=.2_r_typ
         real(r_typ) :: power=1.2_r_typ
         real(r_typ) :: brmax=.25_r_typ
-        real(r_typ) :: center_gaussian(3)=(/1.25_r_typ,0._r_typ, &
-        0._r_typ/)
+        real(r_typ) :: center_gaussian(3)=[1.25_r_typ,0._r_typ,0._r_typ]
         type(profile) :: r_profile
         type(profile) :: t_profile
         type(profile) :: b_profile
@@ -4883,7 +4882,7 @@ module prescribe_tdc_from_file_r0
       character(256) :: vt_tdcff_file=' '
       character(256) :: vp_tdcff_file=' '
       character(256) :: phi_tdcff_file=' '
-!      
+!
       logical :: check_tdc_files=.true.
 !
       real(r_typ) :: tdcff_node(mx_tdcff_seq)
@@ -4905,6 +4904,7 @@ module prescribe_tdc_from_file_r0
 end module
 !#######################################################################
 module seam_3d_interface
+      implicit none
       interface
         subroutine seam_3d (seam1,seam2,seam3,a)
         use number_types
@@ -4916,6 +4916,7 @@ module seam_3d_interface
 end module
 !#######################################################################
 module seam_2d_interface
+      implicit none
       interface
         subroutine seam_2d (seam1,seam2,a)
         use number_types
@@ -4927,6 +4928,7 @@ module seam_2d_interface
 end module
 !#######################################################################
 module seam_interface
+      implicit none
       interface
         subroutine seam (a)
         use number_types
@@ -4937,6 +4939,7 @@ module seam_interface
 end module
 !#######################################################################
 module seam_rp_interface
+      implicit none
       interface
         subroutine seam_rp (a)
         use number_types
@@ -4947,6 +4950,7 @@ module seam_rp_interface
 end module
 !#######################################################################
 module seam_tp_interface
+      implicit none
       interface
         subroutine seam_tp (a)
         use number_types
@@ -4957,6 +4961,7 @@ module seam_tp_interface
 end module
 !#######################################################################
 module seam_rt_interface
+      implicit none
       interface
         subroutine seam_rt (a)
         use number_types
@@ -4967,6 +4972,7 @@ module seam_rt_interface
 end module
 !#######################################################################
 module seam_r_interface
+      implicit none
       interface
         subroutine seam_r (a)
         use number_types
@@ -4977,6 +4983,7 @@ module seam_r_interface
 end module
 !#######################################################################
 module seam_t_interface
+      implicit none
       interface
         subroutine seam_t (a)
         use number_types
@@ -4987,6 +4994,7 @@ module seam_t_interface
 end module
 !#######################################################################
 module seam_p_interface
+      implicit none
       interface
         subroutine seam_p (a)
         use number_types
@@ -4997,6 +5005,7 @@ module seam_p_interface
 end module
 !#######################################################################
 module seam_t_2d_interface
+      implicit none
       interface
         subroutine seam_t_2d (a)
         use number_types
@@ -5007,6 +5016,7 @@ module seam_t_2d_interface
 end module
 !#######################################################################
 module seam_tp_2d_interface
+      implicit none
       interface
         subroutine seam_tp_2d (a)
         use number_types
@@ -5017,6 +5027,7 @@ module seam_tp_2d_interface
 end module
 !#######################################################################
 module seam_p_2d_interface
+      implicit none
       interface
         subroutine seam_p_2d (a)
         use number_types
@@ -5027,6 +5038,7 @@ module seam_p_2d_interface
 end module
 !#######################################################################
 module global_to_local_interface
+      implicit none
       interface
         subroutine global_to_local (f_g,f)
         use number_types
@@ -5037,6 +5049,7 @@ module global_to_local_interface
 end module
 !#######################################################################
 module global_to_local_tp_interface
+      implicit none
       interface
         subroutine global_to_local_tp (f_g,f)
         use number_types
@@ -5047,11 +5060,12 @@ module global_to_local_tp_interface
 end module
 !#######################################################################
 module write_field_interface
+      implicit none
       interface
         subroutine write_field (fname,ix,a)
         use number_types
         implicit none
-        character(*) :: fname
+        character(*), intent(in) :: fname
         integer :: ix
         real(r_typ), dimension(:,:,:) :: a
         end subroutine
@@ -5059,11 +5073,12 @@ module write_field_interface
 end module
 !#######################################################################
 module write_field_tp_interface
+      implicit none
       interface
         subroutine write_field_tp (fname,ix,a,iproc_r2use)
         use number_types
         implicit none
-        character(*) :: fname
+        character(*), intent(in) :: fname
         integer :: ix,iproc_r2use
         real(r_typ), dimension(:,:) :: a
         end subroutine
@@ -5071,6 +5086,7 @@ module write_field_tp_interface
 end module
 !#######################################################################
 module assemble_array_interface
+      implicit none
       interface
         subroutine assemble_array (map_r,map_t,map_p,a,a_g)
         use number_types
@@ -5084,6 +5100,7 @@ module assemble_array_interface
 end module
 !#######################################################################
 module assemble_array_tp_interface
+      implicit none
       interface
         subroutine assemble_array_tp (map_t,map_p,a,a_g)
         use number_types
@@ -5097,6 +5114,7 @@ module assemble_array_tp_interface
 end module
 !#######################################################################
 module distribute_array_interface
+      implicit none
       interface
         subroutine distribute_array (n1,n2,n3,a_g,a)
         use number_types
@@ -5109,6 +5127,7 @@ module distribute_array_interface
 end module
 !#######################################################################
 module vnorm_interface
+      implicit none
       interface
         function vnorm (rm,tm,pm,f)
         use number_types
@@ -5121,30 +5140,33 @@ module vnorm_interface
 end module
 !#######################################################################
 module get_cl_args_interface
+      implicit none
       interface
         subroutine get_cl_args (narg,arg)
         implicit none
         integer :: narg
-        character(*), dimension(:), pointer ::arg
+        character(*), dimension(:), pointer :: arg
         end subroutine
       end interface
 end module
 !#######################################################################
 module parse_cl_interface
+      implicit none
       interface
         subroutine parse_cl (narg,arg,ierr)
         implicit none
         integer :: narg,ierr
-        character(*), dimension(:), pointer ::arg
+        character(*), dimension(:), pointer :: arg
         end subroutine
       end interface
 end module
 !#######################################################################
 module hdfname_interface
+      implicit none
       interface
         function hdfname (root,seq)
         implicit none
-        character(*) :: root
+        character(*), intent(in) :: root
         integer :: seq
         character(256) :: hdfname
         end function
@@ -5152,10 +5174,11 @@ module hdfname_interface
 end module
 !#######################################################################
 module hdf_tpslice_name_interface
+      implicit none
       interface
         function hdf_tpslice_name (root,seq1,seq2)
         implicit none
-        character(*) :: root
+        character(*), intent(in) :: root
         integer :: seq1,seq2
         character(512) :: hdf_tpslice_name
         end function
@@ -5163,6 +5186,7 @@ module hdf_tpslice_name_interface
 end module
 !#######################################################################
 module rdhdf_2d_interface
+      implicit none
       interface
         subroutine rdhdf_2d (fname,scale,nx,ny,f,x,y,ierr)
         use number_types
@@ -5170,14 +5194,16 @@ module rdhdf_2d_interface
         character(*), intent(in) :: fname
         logical, intent(out) :: scale
         integer, intent(out) :: nx,ny
-        real(r_typ), dimension(:,:), pointer, contiguous ::f
-        real(r_typ), dimension(:), pointer, contiguous ::x,y
+        real(r_typ), dimension(:,:), pointer, contiguous :: f
+        real(r_typ), dimension(:), pointer, contiguous :: x
+        real(r_typ), dimension(:), pointer, contiguous :: y
         integer, intent(out) :: ierr
         end subroutine
       end interface
 end module
 !#######################################################################
 module rdhdf_3d_interface
+      implicit none
       interface
         subroutine rdhdf_3d (fname,scale,nx,ny,nz,f,x,y,z,ierr)
         use number_types
@@ -5185,14 +5211,17 @@ module rdhdf_3d_interface
         character(*), intent(in) :: fname
         logical, intent(out) :: scale
         integer, intent(out) :: nx,ny,nz
-        real(r_typ), dimension(:,:,:), pointer, contiguous ::f
-        real(r_typ), dimension(:), pointer, contiguous ::x,y,z
+        real(r_typ), dimension(:,:,:), pointer, contiguous :: f
+        real(r_typ), dimension(:), pointer, contiguous :: x
+        real(r_typ), dimension(:), pointer, contiguous :: y
+        real(r_typ), dimension(:), pointer, contiguous :: z
         integer, intent(out) :: ierr
         end subroutine
       end interface
 end module
 !#######################################################################
 module assign_ptr_1d_interface
+      implicit none
       interface
         subroutine assign_ptr_1d (from,to)
         use number_types
@@ -5204,6 +5233,7 @@ module assign_ptr_1d_interface
 end module
 !#######################################################################
 module assign_ptr_3d_interface
+      implicit none
       interface
         subroutine assign_ptr_3d (from,to)
         use number_types
@@ -5215,8 +5245,10 @@ module assign_ptr_3d_interface
 end module
 !#######################################################################
 module ucase_interface
+      implicit none
       interface
         function ucase (s)
+        implicit none
         character(*), intent(in) :: s
         character(len(s)) :: ucase
         end function
@@ -5224,8 +5256,10 @@ module ucase_interface
 end module
 !#######################################################################
 module lcase_interface
+      implicit none
       interface
         function lcase (s)
+        implicit none
         character(*), intent(in) :: s
         character(len(s)) :: lcase
         end function
@@ -5233,9 +5267,11 @@ module lcase_interface
 end module
 !#######################################################################
 module flint_interface
+      implicit none
       interface
         function flint (check,x,n,xn,fn,ierr,silent)
         use number_types
+        implicit none
         logical :: check
         real(r_typ) :: x
         integer :: n
@@ -5248,6 +5284,7 @@ module flint_interface
 end module
 !#######################################################################
 module sum_p_interface
+      implicit none
       interface
       function sum_p (npts_r,npts_p,f,w)
         use number_types
@@ -5263,6 +5300,7 @@ module sum_p_interface
 end module
 !#######################################################################
 module outside_interval_interface
+      implicit none
       interface
       function outside_interval (x0,x1,x,eps)
         use number_types
@@ -5276,6 +5314,7 @@ module outside_interval_interface
 end module
 !#######################################################################
 module boost_interface
+      implicit none
 !$acc routine(boost) seq
       interface
         pure function boost (tempk)
@@ -5288,6 +5327,7 @@ module boost_interface
 end module
 !#######################################################################
 module interp_interface
+      implicit none
 !$acc routine(interp) seq
       interface
         pure subroutine interp (n,x,xv,i,ip1,a,ierr)
@@ -5304,6 +5344,7 @@ module interp_interface
 end module
 !#######################################################################
 module sv2cv_interface
+      implicit none
 !$acc routine(sv2cv) seq
       interface
         pure subroutine sv2cv (ar,at,ap,t,p,ax,ay,az)
@@ -5316,6 +5357,7 @@ module sv2cv_interface
 end module
 !#######################################################################
 module c2s_interface
+      implicit none
 !$acc routine(c2s) seq
       interface
         pure subroutine c2s (x,y,z,r,t,p)
@@ -5328,6 +5370,7 @@ module c2s_interface
 end module
 !#######################################################################
 module s2c_interface
+      implicit none
 !$acc routine(s2c) seq
       interface
         pure subroutine s2c (r,t,p,x,y,z)
@@ -5340,6 +5383,7 @@ module s2c_interface
 end module
 !#######################################################################
 module profile_value_interface
+      implicit none
 !$acc routine(profile_value) seq
       interface
         pure function profile_value (prof,x)
@@ -5354,6 +5398,7 @@ module profile_value_interface
 end module
 !#######################################################################
 module mod_input_parameter
+      implicit none
 !
 !-----------------------------------------------------------------------
 ! ****** Atom list for calculation
@@ -5435,6 +5480,7 @@ module mod_eigen_matrix
 end module
 !#######################################################################
 module func_solveionization_eigen_interface
+      implicit none
 !$acc routine(func_solveionization_eigen) seq
       interface
         pure subroutine func_solveionization_eigen (ichemi,natom,te, &
@@ -5453,6 +5499,7 @@ module func_solveionization_eigen_interface
 end module
 !#######################################################################
 module sub_solve_ionic_onestep_interface
+      implicit none
 !$acc routine(sub_solve_ionic_onestep) seq
       interface
         pure subroutine sub_solve_ionic_onestep (nelem,natom_array, &
@@ -5460,6 +5507,7 @@ module sub_solve_ionic_onestep_interface
           use number_types
           use mod_eigen_matrix
           use func_solveionization_eigen_interface
+          implicit none
           integer, parameter:: ntime=2
           integer, intent(in) :: nelem
           integer, intent(in) :: natom_array(nelem),i_chemi_eigen(nelem)
@@ -5489,7 +5537,7 @@ program MAS
       use emerging_flux_params
       use io_units
       use fluxrope_parameters
-      use iso_fortran_env,  ONLY : OUTPUT_UNIT
+      use, intrinsic :: iso_fortran_env,  ONLY : OUTPUT_UNIT
 !
 !-----------------------------------------------------------------------
 !
@@ -5710,9 +5758,9 @@ subroutine read_and_check_input_file
 ! ****** Since these names conflict with those in GLOBALS, it is
 ! ****** important not to use module GLOBALS here.
 !
-      integer :: nr=0
-      integer :: nt=0
-      integer :: np=0
+      integer :: nr
+      integer :: nt
+      integer :: np
 !
 !-----------------------------------------------------------------------
 !
@@ -5773,12 +5821,12 @@ subroutine read_and_check_input_file
                                      !   ALFVEN_WAVE1         : Analytic Alfven wave in theta.
                                      !   ALFVEN_WAVE2         : Analytic Alfven wave in phi.
                                      !   ALFVEN_WAVE2_ROTATED : Same as ALFVEN_WAVE2 but tilted.
-                                     !   A_FILE               : Read in initial vector potential from file.
+                                     !   A_FILE               : Read in initial A from file.
                                      ! The field is alternatively set through a restart file,
                                      ! using load_fields, etc.
 ! ****** DIPOLE(S).
         b0_dipole,                 & ! Magnetic field strength of Sun-centered dipole.
-        dipangle,                  & ! Angle (in degrees) by which the Sun-centered dipole is tilted.
+        dipangle,                  & ! Angle (in deg) by which the Sun-centered dipole is tilted.
         n_ssdip,                   & ! Number of subsurface dipoles to add.
         r_ssdip,                   & ! Array of subsurface dipoles radial.
         t_ssdip,                   & ! Array of subsurface dipoles theta.
@@ -5806,10 +5854,11 @@ subroutine read_and_check_input_file
                                      ! to the input magnetogram.  Only works with source
                                      ! surface potential field.
 ! ****** A_FILE.
-        afile,                     & ! Filename for text file containing 2D r-theta vector potential.
+        afile,                     & ! Filename for text file containing 2D r-theta A.
 ! ****** Monopole Options.
-        br00,                      & ! Add artificial monopole radial field (mas magnetic field units).
-        fmaxef,                    & ! Maximum expansion factor of the radial monopole specified with br00.
+        br00,                      & ! Add artificial monopole radial field (mas mag field units).
+        fmaxef,                    & ! Maximum expansion factor of the radial monopole
+                                     ! specified with br00.
         r1ef,                      & ! Radius where super-radial expansion ceases.
         sigmaef,                   & ! Interval over which the expansion switches
                                      ! from super-radial to radial.
@@ -5821,16 +5870,19 @@ subroutine read_and_check_input_file
                                      !                 to set parameters, or use zb_rho_file.
                                      !   HYDROSTATIC : Hydrostatic equilibrium.  Use "hs" structure
                                      !                 to set parameters.
-                                     !   STREAMER    : Same as HYDROSTATIC but with a modification to Vr
-                                     !                 to force an outflowing radial solar wind (hard-wired).
+                                     !   STREAMER    : Same as HYDROSTATIC but with a mod to Vr
+                                     !                 to force an outflowing radial solar wind
+                                     !                 (hard-wired).
                                      !   1DFILE      : Use "onedfile" text file to describe
                                      !               : spherically symmetric initial plasma
-                                     !   2DFILE      : Use 2D file (in r-theta) for axisymmetric initial plasma.
+                                     !   2DFILE      : Use 2D file (in r-theta) for axisymmetric
+                                     !                 initial plasma.
                                      !   NONE
 ! ****** ZERO-BETA.
         zb_rho_profile,            & ! Zero-beta density profile type.  Options are:
-                                     !   GENERATE_INTERNALLY : Use zb input structure to generate rho internally.
-                                     !   READ_FROM_FILE      : Read the hdf5 file "zb_rho_file" to set rho.
+                                     !   GENERATE_INTERNALLY : Use zb input structure to generate
+                                     !                         rho internally.
+                                     !   READ_FROM_FILE      : Read file "zb_rho_file" to set rho.
         zb_rho_file,               & ! Filename (hdf5) for zero-beta initial density.
         zb,                        & ! Zero-beta parameters structure:
                                      !   rho0
@@ -5862,33 +5914,36 @@ subroutine read_and_check_input_file
                                      !   Must be of the form:
                                      !   r	vr	ne	p	 pw
 ! ****** 2DFILE.
-        twodfile_vr,               & ! Filename (hdf5) of theta-phi Vr in code units to use as initial plasma
-                                     ! at lower radial boundary.  It is then used to fill in the full 3D domain.
-        twodfile_rho,              & ! Filename (hdf5) of theta-phi density in code units to use as initial plasma
-                                     ! at lower radial boundary.  It is then used to fill in the full 3D domain.
-        twodfile_t,                & ! Filename (hdf5) of theta-phi electron temperature in code units to use as initial plasma
-                                     ! at lower radial boundary.  It is then used to fill in the full 3D domain.
+        twodfile_vr,               & ! Filename of theta-phi Vr in code units for initial plasma
+                                     ! at lower radial boundary. Used to fill in the full 3D domain.
+        twodfile_rho,              & ! Filename of theta-phi density in code units for initial
+                                     ! plasma at lower radial boundary.
+                                     ! Used to fill in the full 3D domain.
+        twodfile_t,                & ! Filename of theta-phi electron temperature in code units
+                                     ! to use as initial plasma at lower radial boundary.
+                                     ! It is then used to fill in the full 3D domain.
         const_t_rho,               & ! (Logical) toggle to either keep lower boundary 2D specified
-                                     ! plasma constant when filling in the 3D domain along r (.true.) or
+                                     ! plasma constant when filling in 3D domain along r (.true.) or
                                      ! use a polytropic radial scaling (.false.).
 ! ****** Field adding/replacing from file.
         load_fields,               & ! Structure to specify a 3D initial condition field:
                                      !   field  : Field type.
                                      !   action : Either "add" or "initial".
-                                     !            "initial" replaces the current initial field, while
-                                     !            "add" adds the field to the current field (B only).
+                                     !            "initial" replaces the current initial field,
+                                     !            "add" adds the field (B only).
                                      !   fname  : Filename (hdf5) of 3D field.
         loaded_b_clean_method,     & ! Method to clean loaded B field before afromb solves:
                                      !   0 : B is used as-is.
                                      !   1 : B is divergence-cleaned with a 3D solve.
                                      !   2 : Each r-slice of Br is flux balanced.
                                      !   3 : Applies (1) and then (2).
-        long_sequence_numbers_input, & ! (Logical) toggle to indicate that input time-dept boundary files
-                                     ! have a 6 (.true.) or 3 (.false.) digit number sequence.
+        long_sequence_numbers_input, & ! (Logical) indicate that input time-dept boundary files have
+                                     !   a 6 (.true.) or 3 (.false.) digit number sequence.
         trace_seed_file,           & ! Filename (hdf5) that contains the initial tracer positions.
 ! ****** Flux ropes.
         fluxrope_preserve_br0,     & ! (Logical) If .true., the Br from the flux ropes at r=R0 is
-                                     ! subtracted from the Br read in before calculating the potential field.
+                                     ! subtracted from the Br read in before calculating
+                                     ! the potential field.
         tdm_fluxrope,              & ! Structure specifying a TdM flux rope.  Contains:
                                      !   add
                                      !   rope_type
@@ -5930,14 +5985,15 @@ subroutine read_and_check_input_file
 !
 ! ****** Restart run options.
 !
-        rsifile,                   & ! Activate a restart run by setting this to a restart file filename.
-        restart_calculation_frame, & ! Indicate whether the restart file was computed in the inertial
-                                     ! or corotating frame (allows restarting from one frame to another).
+        rsifile,                   & ! Activate restart run by setting this to restart file filename
+        restart_calculation_frame, & ! Indicate whether the restart file was computed in the
+                                     ! inertial or corotating frame (allows restarting from one
+                                     ! frame to another).
                                      ! Options:
                                      !   INERTIAL
                                      !   COROTATING
         fname_restart_fcs,         & ! Charge state restart filename for restart runs.
-        n_rs_input_file_parts,     & !   LEGACY:  Specify number of parts of an old-style multi-file restart.
+        n_rs_input_file_parts,     & !   LEGACY:  Specify number of parts of an old-style restart.
         rsifile_prefix,            & !   LEGACY:  Filename prefix (path) for multi-part restart.
         rsifile_root,              & !   LEGACY:  Filename root for multi-part restart.
         rsifile_parts,             & !   LEGACY:  Explicitly list filenames of multi-part restart.
@@ -5946,14 +6002,14 @@ subroutine read_and_check_input_file
 !
         legacy_output_filenames,   & ! (Logical) toggle to use new output file names (.false.) or
                                      ! use the legacy file output conventions (.true.).
-        hdf32,                     & ! Output fields in single (.true.) or double (.false.) precision.
+        hdf32,                     & ! Output fields in single (.true.) or double (.false.) prec.
         long_sequence_numbers,     & ! (Logical) toggle to set output hdf5 files to have
                                      ! a 6 (.true.) or 3 (.false.) digit number sequence.
-        plotlist,                  & ! Comma-separated list of fields to plot.  Available fields are:
-                                     !   vr, vt, vp, br, bt, bp, rho, t, p, pres, jr, jt, jp, ar, at, ap,
-                                     !   sifac, heat, ep, em, vr_old, vt_old, vp_old, eta, visc,
+        plotlist,                  & ! Comma-separated list of fields to plot. Available fields are:
+                                     !   vr, vt, vp, br, bt, bp, rho, t, p, pres, jr, jt, jp, ar, at
+                                     !   ap, sifac, heat, ep, em, vr_old, vt_old, vp_old, eta, visc,
                                      !   zp, zm, te, tp, efr, eft, efp, v_par
-                                     ! Not all fields are valid for all runs; p and pres are the same.
+                                     ! Not all fields are valid for a run; p and pres are the same.
         ipltxint,                  & ! Iteration cadence to write out field data (hdf5).
         tpltxint,                  & ! Time cadence to write out field data (mas time units).
         slice_plotlist,            & ! Comma-separated list of fields to plot slices of.
@@ -5966,13 +6022,13 @@ subroutine read_and_check_input_file
         trace_txint,               & ! Time cadence to write out tracer data (mas time units).
         plot_dump_fcs,             & ! (Logical) to activate charge state 3D hdf5 oputput.
                                      ! Cadence same as field 3D plots ([i|t]pltxint).
-        slice_dump_fcs,            & ! (Logical) to activate charge state 2D theta-phi slice hdf5 output.
+        slice_dump_fcs,            & ! (Logical) activate charge state 2D theta-phi slice output.
                                      ! Cadence same as slice plots (slice_[i|t]xint).
         irsdump,                   & ! Iteration cadence to write out restart files (hdf5).
         trsdump,                   & ! Time cadence to write out restart files (mas time units).
         rs_final,                  & ! (Logical) toggle to write a restart file at the end of a run.
         ihistint,                  & ! Iteration cadence to write out histories into text file.
-        thistint,                  & ! Time cadence to write out histories into text file (mas time units).
+        thistint,                  & ! Time cadence to write histories to file (mas time units).
         diag,                      & ! Diagnostic (in-situ) point structure.  Contains:
                                      !   type
                                      !   fields
@@ -6016,8 +6072,7 @@ subroutine read_and_check_input_file
                                      ! If the time step drops below this, the run stops.
         dt_init,                   & ! Initial time step to try. If not set, dtmax will be used.
                                      ! By default, this is not used for restart runs.
-        use_dt_init_on_restart,    & ! (Logical) toggle to use the dt_init for a restart run (.true.)
-                                     ! of not (.false.).
+        use_dt_init_on_restart,    & ! (Logical) use the dt_init for a restart run.
         dt_max_wave_cfl,           & ! Maximum allowed wave CFL (implicitness).  If wave CFL
                                      ! exceeds this limit, the time step is reduced accordingly.
         cfl,                       & ! Fraction of the CFL time step limit to use.
@@ -6028,7 +6083,8 @@ subroutine read_and_check_input_file
         calculation_frame,         & ! String indicating the frame of reference of the calculation.
                                      ! These also effect how boundary driving is performed.
                                      !   INERTIAL   : Inertial frame.
-                                     !   COROTATING : Corotating frame (adds Coriolis and centrifugal forces).
+                                     !   COROTATING : Corotating frame
+                                     !                (adds Coriolis and centrifugal forces).
         g0,                        & ! Gravity at the solar surface (code units).
         omega_corotate,            & ! Solar rotation rate in mas units.
         he_frac,                   & ! Helium fraction.
@@ -6038,7 +6094,8 @@ subroutine read_and_check_input_file
                                      ! lower characteristic boundary condition (default 2).
         ubzero,                    & ! Set flow at inner boundary to zero if it is negative.
         tbc0,                      & ! Temperature in K of the lower radial boundary.
-        tchromo,                   & ! Temperature in K of the lower radial boundary used for radiative loss function.
+        tchromo,                   & ! Temperature in K of the lower radial boundary
+                                     ! used for radiative loss function.
         rho0,                      & ! Density of the lower radial boundary.
 !
 ! ****** Time profiles for various quantities.
@@ -6083,8 +6140,8 @@ subroutine read_and_check_input_file
 !
 ! ****** Induction equation and resistivity.
 !
-        advance_a,                 & ! (Logical) toggle to activate vector potential advance (induction equation).
-        experimental_a_advance,    & ! (Logical) to activate experimental algorithm for advancing A. DO NOT USE.
+        advance_a,                 & ! (Logical) activate A advance (induction equation).
+        experimental_a_advance,    & ! (Logical) activate experimental algorithm for advancing A.
         bt_photo_in,               & ! Specifies amount (code units) of transverse field (theta) to
                                      ! advect into the corona from the lower boundary.
         bp_photo_in,               & ! Specifies amount (code units) of transverse field (phi) to
@@ -6138,7 +6195,7 @@ subroutine read_and_check_input_file
 !
 ! ****** Momentum equation and viscosity.
 !
-        advance_v,                 & ! (Logical) toggle to activate velocity advance (momentum equation).
+        advance_v,                 & ! (Logical) activate velocity advance (momentum equation).
         zero_v_parallel,           & ! Zero-out parallel flow.  Useful for zero-beta runs.
         visc,                      & ! Uniform viscosity coefficient (nu) in code units.
         visc_bg,                   & ! Uniform viscosity coefficient to add as
@@ -6162,13 +6219,14 @@ subroutine read_and_check_input_file
         dr_visc_crit,              & ! Radial-dept viscosity profile parameter.
         visc_low,                  & ! LOW_VISC_REGION parameter.
         visc_high,                 & ! LOW_VISC_REGION parameter.
-        visc_rho_outside,          & ! (Logical) toggle to compute viscosity as rho*Div(nu-Grad-V) (.true.)
+        visc_rho_outside,          & ! (Logical) compute viscosity as rho*Div(nu-Grad-V) (.true.)
                                      ! or Div(nu-rho-Grad-V) (.false.).
 !
 ! ****** Energy equation, thermal conduction, radiative loss, and heating.
 !
-        advance_t,                 & ! (Logical) toggle to activate temperature advance (energy equation).
-        gamma,                     & ! Ratio of specific heats (e.g. 5/3 for corona, 3/2 for heliosphere).
+        advance_t,                 & ! (Logical) activate temperature advance (energy equation).
+        gamma,                     & ! Ratio of specific heats
+                                     ! (e.g. 5/3 for corona, 3/2 for heliosphere).
         advance_tp,                & ! (Logical) toggle to activate the proton temperature advance,
                                      ! along with coupling with electron density.
         iftfloor,                  & ! (Logical) to activate temperature flooring.
@@ -6176,10 +6234,10 @@ subroutine read_and_check_input_file
         ifcheck0temp,              & ! (Logical) to activate check of negative temperature.
 ! ****** Thermal conduction (Collisional).
         advance_tc,                & ! (Logical) toggle to activate Spitzer thermal conduction.
-        t_cutoff1,                 & ! Cut-off temperature (in K) for modifying Spitzer thermal conduction.
-        tcond,                     & ! Multiplier for electron thermal conduction term.  Must be set >0
-                                     ! for thermal conduction to work (e.g. tcond=1.0).
-        tcondp,                    & ! Multiplier for proton thermal conduction term.  Must be set >0
+        t_cutoff1,                 & ! Cut-off temp (in K) for mod Spitzer thermal conduction.
+        tcond,                     & ! Multiplier for electron thermal conduction term. Must be
+                                     ! set >0 for thermal conduction to work (e.g. tcond=1.0).
+        tcondp,                    & ! Multiplier for proton thermal conduction term. Must be set >0
                                      ! for proton thermal conduction to work (e.g. tcond=1.0).
         tc_r,                      & ! Thermal conduction radial taper function parameter.
         tc_dr,                     & ! Thermal conduction radial taper function parameter.
@@ -6243,8 +6301,9 @@ subroutine read_and_check_input_file
                                      !   zw-exponential
         heating_flat_topped,       & ! (Logical) to toggle flat-topping the heating with "heat_max".
                                      ! (NOT including ohmic heating).
-        heat_max,                  & ! Maximum heating amount (in code units) if "heating_flat_topped" is set.
-                                     ! Note that ohmic heating is applied AFTER the flat-top.
+        heat_max,                  & ! Maximum heating amount (in code units) if
+                                     ! "heating_flat_topped" is set. Note that ohmic heating is
+                                     ! applied AFTER the flat-top.
         heat_mask_file,            & ! Filename (hdf5) of 3D heat mask [0,1] to use.
         add_ohmic_heating,         & ! (Logical) toggle to add Ohmic heating to heating function.
         heat_file,                 & ! Filename (hdf5) of 3D heating (mas units) to add.
@@ -6259,10 +6318,10 @@ subroutine read_and_check_input_file
 !
 ! ****** Density advance.
 !
-        advance_rho,               & ! (Logical) toggle to activate density advance.
-        ifcheck0rho,               & ! (Logical) toggle to check for negative density and quit if found.
-        ifcheck0pres,              & ! (Logical) toggle to check for negative presure and quit if found.
-        ifrholimit,                & ! (Logical) toggle to activate rho limiter.
+        advance_rho,               & ! (Logical) activate density advance.
+        ifcheck0rho,               & ! (Logical) check for negative density; quit if found.
+        ifcheck0pres,              & ! (Logical) check for negative presure; quit if found.
+        ifrholimit,                & ! (Logical) activate rho limiter.
         rho_limit_file,            & ! Filename (hdf5) of 3D rho limit (floor).
         rho_limit_factor,          & ! Scalar factor to multiply rho_limit loaded from file.
         max_alfven_speed_rho_mod,  & ! If set >0, this activates a modification that
@@ -6308,16 +6367,16 @@ subroutine read_and_check_input_file
                                      !   NONE : Let the wave pass through (default).
                                      !   CONS : Reflect the wave such that the net Poynting flux
                                      !          is ALWAYS matching the outward Poynting flux.
-                                     !   AMPL : Reflect the amplitude, adding it to the outgoing wave.
+                                     !   AMPL : Reflect the amplitude, adding it to outgoing wave.
         wtd_add_zw_heating,        & ! (Logical) toggle to add WTD heating to temperature advance.
         wtd_add_zw_pressure,       & ! (Logical) toggle to add WTD pressure term to the velocity
 !                                      advance. This refers to zp,zm ONLY, which are seperate
 !                                      pressures from the ep,em advance.
         wtd_icond,                 & ! Sets the 3D initial condition of zp,zm. Options:
                                      !   CONSTANT  : Set zp/zm to a constant value.
-                                     !   WKB       : Use 3D rho and WKB approx w/ v=0 set+zp and -zm.
+                                     !   WKB       : Use 3D rho & WKB approx w/ v=0 set+zp and -zm.
                                      !   WKB_BR    : Like WKB but check Br to assign zp or zm only.
-                                     !   EPEM      : Use the wave energies in ep and em to get zp and zm.
+                                     !   EPEM      : Use the wave energies in ep/em to get zp/zm.
                                      !   FROM_FILE : Set the radial zp, zm profiles from a 1D file.
         wtd_ic1dfile,              & ! Filename (hdf5) for 1D initial WTD "FROM_FILE".
         wtd_icfac,                 & ! This constant multiplies all the initial
@@ -6348,7 +6407,7 @@ subroutine read_and_check_input_file
                                           ! and dissipation smoothy above a certain density
                                           ! value to avoid over-reflection w/ smooth Br0.
         zw_effective_rho_limit_lr, & ! Set to log(rho0) for the center of the smooth tanh profile.
-        zw_effective_rho_limit_lw, & ! Set to log(rho_width) for the width of the tanh profile in log-space.
+        zw_effective_rho_limit_lw, & ! Set to log(rho_width) width of tanh profile in log-space.
         zw_rho_aw,                 & ! Slow down the time scale of WTD evolution by this
                                      ! factor to speed up the ZW advance but
                                      ! can be suspect if zp/m has comparable dynamic
@@ -6513,7 +6572,7 @@ subroutine read_and_check_input_file
                                      ! radial domain.  Choices are:
                                      !   NONE       : Do nothing (positions are "stuck" on boundary.
                                      !   R_PERIODIC : Re-seed the tracers at a specified radius.
-        trace_reseed_r0,           & ! Radius (in Rs) to reseed tracer particles when they leave the domain.
+        trace_reseed_r0,           & ! Radius (in Rs) to reseed tracers when they leave the domain.
         trace_track_ds,            & ! (Logical) toggle to activate tracking total distance for
                                      ! tracer particles.
 !
@@ -6615,7 +6674,7 @@ subroutine read_and_check_input_file
         pole_filter_t,             & ! (Logical) toggle to activate polar filter for temperature.
         pole_filter_rho,           & ! (Logical) toggle to activate polar filter for density.
         pole_filter_pw,            & ! (Logical) toggle to activate polar filter for pressure waves.
-        pole_filter_vr,            & ! (Logical) toggle to activate polar filter for radial velocity.
+        pole_filter_vr,            & ! (Logical) toggle to activate polar filter for radial vel.
         pole_filter_z,             & ! (Logical) toggle to activate polar filter for WTD z+/z-.
         expert_user_override,      & ! Type that only currently contains "limit_supersonic_inflow"
                                      ! logical, which sets the velocity to the sound speed
@@ -6626,7 +6685,7 @@ subroutine read_and_check_input_file
         print_matrix_pot2d,        & ! Write out dense matrix for 2D potential field solve.
         print_matrix_pot3d,        & ! Write out dense matrix for 3D potential field solve.
         print_matrix_adva,         & ! Write out dense matrix for resistivity solve.
-        print_matrix_advv,         & ! Write out dense matrix for semi-implicit and viscosity solves.
+        print_matrix_advv,         & ! Write out dense matrix for semi-implicit and visc solves.
         print_matrix_t,            & ! Write out dense matrix for thermal conduction solve.
         debug_wtd,                 & ! (Logical) toggle to activate debugging of WTD.
         debug_wtd_open_field_cutoff, & ! Dump the boundary slices for the WTD Poynting flux and the
@@ -6634,15 +6693,15 @@ subroutine read_and_check_input_file
         debug_tdc,                 & ! (Logical) toggle to activate debugging of TDC.
                                      ! It outputs electric fields (and other quantities)
                                      ! at the R0 boundary at the slice cadence.
-        ifvdgv,                    & ! (Logical) toggle to use (.true.) advection terms in momentum equation
-                                     ! or not (.false.).  For testing purposes only.
+        ifvdgv,                    & ! (Logical) toggle to use (.true.) advection terms in momentum
+                                     ! equation or not (.false.).  For testing purposes only.
         use_exp_visc,              & ! Set to (.true.) to use explicit Euler for viscosity.
         use_exp_tc                   ! Set to (.true.) to use explicit Euler for thermal conduction.
 !
 ! ****** Interplanetary run (heliosphere).
 !
       namelist /interplanetary/    &
-        interplanetary_run,        & ! (Logical) Set .true. to activate interplanetary boundary driving.
+        interplanetary_run,        & ! (Logical) Set .true. to use interplanetary boundary driving.
         boundary_frame,            & ! Frame of reference of the boundary files. Options:
                                      !   FAKE_COROTATING : Corotating but without v-phi C-forces.
                                      !   COROTATING
@@ -6673,7 +6732,7 @@ subroutine read_and_check_input_file
         zpfile,                    & ! Base filename of Zp boundary files.
         zmfile,                    & ! Base filename of Zm boundary files.
         ip_bc_interp_order,        & ! Order for bc file rotation interpolation.
-        ip_bc_use_pot_solves,      & ! (Logical) toggle to use potential field solves for the boundaries
+        ip_bc_use_pot_solves,      & ! (Logical) toggle to use potential field solves for boundaries
                                      ! or not.  Should always be .true. unless using zero transverse
                                      ! fields/velocities.
         ip_bc_shift_phi_guess,     & ! Use the old phi solution rotated as initial solver guess.
@@ -6695,10 +6754,15 @@ subroutine read_and_check_input_file
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       integer :: i
 !
 !-----------------------------------------------------------------------
+!
+      nr=0
+      nt=0
+      np=0
+      ierr=0
 !
 ! ****** Open the input file (all MPI ranks).
 !
@@ -7146,7 +7210,7 @@ subroutine get_system_info
       use number_types
       use ident
       use mpidefs
-      use iso_fortran_env
+      use, intrinsic :: iso_fortran_env
 !
 !-----------------------------------------------------------------------
 !
@@ -7436,7 +7500,7 @@ subroutine finish
           write (9,*) 'Total number of solves = ',nsolves_te
           write (9,*) 'Total number of STS steps  = ',ntotal_te
           write (9,*) 'Average number of STS steps per solve  = ',n_te
-        elseif (use_exp_tc) then
+        else if (use_exp_tc) then
           write (9,*) 'Total number of advances = ',nsolves_te
           write (9,*) 'Total number of EXP steps  = ',ntotal_te
           write (9,*) 'Average number of EXP steps per advance= ',n_te
@@ -7452,7 +7516,7 @@ subroutine finish
           write (9,*) 'Total number of solves = ',nsolves_tp
           write (9,*) 'Total number of STS steps  = ',ntotal_tp
           write (9,*) 'Average number of STS steps per solve  = ',n_tp
-        elseif (use_exp_tc) then
+        else if (use_exp_tc) then
           write (9,*) 'Total number of advances = ',nsolves_tp
           write (9,*) 'Total number of EXP steps  = ',ntotal_tp
           write (9,*) 'Average number of EXP steps per advance= ',n_tp
@@ -7480,7 +7544,7 @@ subroutine finish
           write (9,*) 'Total number of solves = ',nsolves_visc
           write (9,*) 'Total number of STS steps  = ',ntotal_visc
           write (9,*) 'Average number of STS steps per solve  = ',n_visc
-        elseif (use_exp_visc) then
+        else if (use_exp_visc) then
           write (9,*) 'Total number of advances = ',nsolves_visc
           write (9,*) 'Total number of EXP steps  = ',ntotal_visc
           write (9,*) 'Average number of EXP steps per advance= ',n_visc
@@ -7809,7 +7873,7 @@ subroutine start
           end if
           call endrun (.true.)
         end if
-      endif
+      end if
 !
 ! ****** Add flux ropes (if any).
 !
@@ -8020,7 +8084,7 @@ subroutine start
         else
           allocate (eta_phot_prof(ntm,npm))
           eta_phot_prof(:,:)=0.
-        endif
+        end if
         allocate (eflux_eta(ntm,npm))
         eflux_eta(:,:)=0.
 !$acc enter data copyin(eta_phot_prof,eflux_eta)
@@ -8097,7 +8161,7 @@ subroutine start
         if(restart_calculation_frame.eq.'COROTATING'.and. &
            calculation_frame.eq.'INERTIAL') then
           call transform_vp (omega_corotate)
-        elseif(restart_calculation_frame.eq.'INERTIAL'.and. &
+        else if(restart_calculation_frame.eq.'INERTIAL'.and. &
            calculation_frame.eq.'COROTATING') then
           call transform_vp (-omega_corotate)
         end if
@@ -8266,10 +8330,12 @@ subroutine afromb (b,a)
       real(r_typ), dimension(ntm,npm), target :: br_slice,rhs2
 !
       integer :: i,j,k
-      integer :: ierr=0
+      integer :: ierr
       real(r_typ) :: r2
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 !$acc enter data create(psi_br,ar_slice,rhs1,br_slice,rhs2)
 !
@@ -8558,7 +8624,7 @@ subroutine write_mmm_diag (f,capt,capt2)
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(nrm,ntm,npm) :: f
-      character(*) :: capt,capt2
+      character(*), intent(in) :: capt,capt2
 !
 !-----------------------------------------------------------------------
 !
@@ -9097,9 +9163,11 @@ subroutine fix_loaded_fields
 !
       integer :: i,j,k
       logical :: logbak
-      character(512) :: curr_field=''
+      character(512) :: curr_field
 !
 !-----------------------------------------------------------------------
+!
+      curr_field=''
 !
       do i=1,nfields
 !
@@ -9107,7 +9175,7 @@ subroutine fix_loaded_fields
 !
         if (curr_field.eq.'') then
           continue
-        elseif (curr_field.eq.'rho') then
+        else if (curr_field.eq.'rho') then
 !$acc update device(rho)
           do concurrent(k=1:np,j=1:nt)
             rho0i(j,k)=rho0
@@ -9120,7 +9188,7 @@ subroutine fix_loaded_fields
           char_bc1=logbak
           call seam_scalar (rho,nr,nt,np)
 !$acc update self(rho,rho0i,rho0f,rho0v)
-        elseif (curr_field.eq.'tp') then
+        else if (curr_field.eq.'tp') then
 !$acc update device(temp_p)
           logbak=char_bc1
           char_bc1=.false.
@@ -9133,7 +9201,7 @@ subroutine fix_loaded_fields
           end if
           call seam_scalar (temp_p,nr,nt,np)
 !$acc update self(temp_p)
-        elseif ((curr_field.eq.'t').or.(curr_field.eq.'te')) then
+        else if ((curr_field.eq.'t').or.(curr_field.eq.'te')) then
           if (curr_field.eq.'t') then
             temp_e(:,:,:)=temp(:,:,:)
           end if
@@ -9149,17 +9217,17 @@ subroutine fix_loaded_fields
           end if
           call seam_scalar (temp_e,nr,nt,np)
 !$acc update self(temp_e)
-        elseif (curr_field.eq.'vr'.or. &
+        else if (curr_field.eq.'vr'.or. &
                curr_field.eq.'vt'.or. &
                curr_field.eq.'vp') then
           call set_pole_bc_vvec_cpu (v)
-        elseif (curr_field.eq.'ep') then
+        else if (curr_field.eq.'ep') then
           call set_pole_bc_scalar_hhh_cpu (ep)
-        elseif (curr_field.eq.'em') then
+        else if (curr_field.eq.'em') then
           call set_pole_bc_scalar_hhh_cpu (em)
-        elseif (curr_field.eq.'zp') then
+        else if (curr_field.eq.'zp') then
           call set_pole_bc_scalar_hhh_cpu (zp)
-        elseif (curr_field.eq.'zm') then
+        else if (curr_field.eq.'zm') then
           call set_pole_bc_scalar_hhh_cpu (zm)
         end if
 !
@@ -9188,7 +9256,8 @@ subroutine datetime (date,time)
 !
 !-----------------------------------------------------------------------
 !
-      character(*), intent(out) :: date,time
+      character(10), intent(out) :: date
+      character(8), intent(out) :: time
 !
 !-----------------------------------------------------------------------
 !
@@ -9558,13 +9627,15 @@ subroutine parse_cl (narg,arg,ierr)
 !-----------------------------------------------------------------------
 !
       integer :: iarg
-      logical :: runid_set=.false.
-      logical :: infile_set=.false.
+      logical :: runid_set
+      logical :: infile_set
       integer :: nsec
 !
 !-----------------------------------------------------------------------
 !
       ierr=0
+      runid_set=.false.
+      infile_set=.false.
 !
       if (narg.eq.0) go to 900
 !
@@ -9596,11 +9667,11 @@ subroutine parse_cl (narg,arg,ierr)
             case ('MPI')
               use_mpi_timer=.true.
             case default
-              go to 900
+              goto 900
             end select
             iarg=iarg+1
           else
-            go to 900
+            goto 900
           end if
         case ('-timerlog')
           timer_log=.true.
@@ -9627,7 +9698,7 @@ subroutine parse_cl (narg,arg,ierr)
             end if
             iarg=iarg+1
           else
-            go to 900
+            goto 900
           end if
         case ('-wc_res')
           if (iarg+1.le.narg) then
@@ -9650,7 +9721,7 @@ subroutine parse_cl (narg,arg,ierr)
             end if
             iarg=iarg+1
           else
-            go to 900
+            goto 900
           end if
         case default
           if (.not.runid_set) then
@@ -9662,7 +9733,7 @@ subroutine parse_cl (narg,arg,ierr)
             infile_set=.true.
             iarg=iarg+1
           else
-            go to 900
+            goto 900
           end if
         end select
       enddo
@@ -9673,7 +9744,7 @@ subroutine parse_cl (narg,arg,ierr)
 !
 ! ****** Check that the run ID has been specified.
 !
-      if (.not.runid_set) go to 900
+      if (.not.runid_set) goto 900
 !
       return
 !
@@ -9756,7 +9827,7 @@ subroutine parse_time (s,sec)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: s
+      character(*), intent(in) :: s
       integer :: sec
 !
 !-----------------------------------------------------------------------
@@ -9790,7 +9861,7 @@ subroutine parse_time (s,sec)
 !
       read (s(i0:i1),*,err=900,end=900) ss
       if (.not.done.and.ss.gt.59) return
-      if (done) go to 100
+      if (done) goto 100
 !
 ! ****** Parse the minutes.
 !
@@ -9807,7 +9878,7 @@ subroutine parse_time (s,sec)
 !
       read (s(i0:i1),*,err=900,end=900) mm
       if (.not.done.and.mm.gt.59) return
-      if (done) go to 100
+      if (done) goto 100
 !
 ! ****** Parse the hours.
 !
@@ -10795,7 +10866,8 @@ subroutine setup_helicity_pumping
 !
 ! ****** Set the helicity pumping profile.
 !
-      allocate (hpump_prof(nrm,ntm,npm)); hpump_prof(:,:,:)=0.
+      allocate (hpump_prof(nrm,ntm,npm))
+      hpump_prof(:,:,:)=0.
 !
       call load_helicity_pumping_profile
 !
@@ -10833,7 +10905,7 @@ subroutine setup_helicity_pumping
           fluxrope_preserve_br0=.true.
         else
           call potfld_from_mas_br0
-        endif
+        end if
 !
 ! ****** Save the background field and put back the current field.
 !
@@ -10846,7 +10918,7 @@ subroutine setup_helicity_pumping
         a%p(:,:,:)=a_save%p(:,:,:)
 !
         call dealloc_avec (a_save)
-      endif
+      end if
 !
 end subroutine
 !#######################################################################
@@ -11583,6 +11655,8 @@ subroutine tdm_init_params (tdm_fr,ierr)
       case ('parabolic')
         II=-four*pi*R*Bp/(log(eight*R/a)-25._r_typ/24._r_typ)
         FF=hand*three*II*a/(five*sqrt(two))
+      case default
+        write (*,*) '### ERROR in TDM_INIT_PARAMS:  WRONG rope_type!'
       end select
 !
 ! ****** Set the thickness of the surface transition layer.
@@ -12122,7 +12196,7 @@ subroutine fluxrope_add_a_from_file (rope_file,a_fr)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       logical :: scale
       integer :: nr_f,nt_f,np_f
       real(r_typ), dimension(:), pointer, contiguous ::r_f,t_f,p_f
@@ -12131,6 +12205,8 @@ subroutine fluxrope_add_a_from_file (rope_file,a_fr)
       type(avec) :: a_fr_read
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Allocate the storage for a_fr_READ.
 !
@@ -12902,7 +12978,7 @@ subroutine tdm_get_vector_potential_hollow_nonff (xp,avecp)
         rhot=RHO
       else
         rhot=half*(RHO+a)+quarter*delta_length* &
-             dlog(four*dcosh(scaled_rho)**2)
+             log(four*cosh(scaled_rho)**2)
       end if
 !
       kt=two*sqrt(rp*R/(four*rp*R+rhot**2))
@@ -13295,7 +13371,7 @@ function tdm_hproc(xi)
       real(r_typ) :: h, ex2
       real(r_typ), parameter :: xilim=5.0_r_typ
       real(r_typ), parameter :: two=2.0_r_typ
-      integer :: n=10
+      integer :: n
       integer, parameter :: nlim=10
 !
 !-----------------------------------------------------------------------
@@ -14093,7 +14169,7 @@ subroutine load_fields_from_file
             write (9,*) '### Divergence-cleaning input B field.'
           end if
           call div_clean_b (b)
-        elseif (loaded_b_clean_method.eq.2) then
+        else if (loaded_b_clean_method.eq.2) then
           if (iamp0) then
             write (9,*)
             write (9,*) '### COMMENT from ',cname,':'
@@ -14108,7 +14184,7 @@ subroutine load_fields_from_file
           enddo
 !$acc update device(b%r,b%t,b%p)
           deallocate (brslice)
-        elseif (loaded_b_clean_method.eq.3) then
+        else if (loaded_b_clean_method.eq.3) then
           if (iamp0) then
             write (9,*)
             write (9,*) '### COMMENT from ',cname,':'
@@ -14125,7 +14201,7 @@ subroutine load_fields_from_file
           enddo
 !$acc update device(b%r,b%t,b%p)
           deallocate (brslice)
-        elseif (loaded_b_clean_method.eq.0) then
+        else if (loaded_b_clean_method.eq.0) then
           if (iamp0) then
             write (9,*)
             write (9,*) '### COMMENT from ',cname,':'
@@ -14230,7 +14306,7 @@ subroutine read_3d_field (fname,ifld)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ifld
 !
 !-----------------------------------------------------------------------
@@ -14249,7 +14325,7 @@ subroutine read_3d_field (fname,ifld)
 !
       logical :: scale,need_to_interp=.false.
       integer :: nx,ny,nz,i
-      real(r_typ) :: scl_eps=1e-5_r_typ
+      real(r_typ), parameter :: scl_eps=1e-5_r_typ
       real(r_typ), dimension(:), pointer, contiguous :: x,y,z
       real(r_typ), dimension(:,:,:), pointer, contiguous :: f
 !
@@ -14390,7 +14466,7 @@ subroutine load_rho_from_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -16149,7 +16225,7 @@ subroutine read_file_and_interp_r0 (fname,fld_r0)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       type(array_tp) :: fld_r0
 !
 !-----------------------------------------------------------------------
@@ -16383,12 +16459,15 @@ subroutine potfld_compute (br0)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       integer :: i,j,k
       real(r_typ) :: dv
-      logical :: reset_ncghist=.false.
+      logical :: reset_ncghist
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
+      reset_ncghist=.false.
 !
 ! ****** If the unbalanced flux option was requested, make sure that
 ! ****** a source-surface solution is being done.
@@ -16661,15 +16740,17 @@ subroutine read_flux (fname,br0)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(ntm,npm) :: br0
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(ntm1_g,npm1_g) :: br0_g
-      integer :: ierr=0
+      integer :: ierr
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Read the boundary flux file.
 !
@@ -16923,7 +17004,7 @@ subroutine read_tp_interp_hh (fname,f_g,pole_bc,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(nt_g,np_g) :: f_g
       integer :: pole_bc
       integer :: ierr
@@ -17089,7 +17170,7 @@ subroutine read_tp_interp_mh (fname,f_g,pole_bc,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(ntm1_g,np_g) :: f_g
       integer :: pole_bc
       integer :: ierr
@@ -17253,7 +17334,7 @@ subroutine read_tp_interp_hm (fname,f_g,pole_bc,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(nt_g,npm1_g) :: f_g
       integer :: pole_bc
       integer :: ierr
@@ -17420,7 +17501,7 @@ subroutine read_tp_interp_mm (fname,f_g,pole_bc,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(ntm1_g,npm1_g) :: f_g
       integer :: pole_bc
       integer :: ierr
@@ -17617,10 +17698,10 @@ subroutine interp_2d (nxi,nyi,xi,yi,fi,nx,ny,x,y,f, &
 ! ****** Check that the scales XI and YI are monotonic.
 !
       dummy=flint(.true.,zero,nxi,xi,xi,ierr)
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
       dummy=flint(.true.,zero,nyi,yi,yi,ierr)
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
 ! ****** Interpolate the data.
 !
@@ -17631,22 +17712,22 @@ subroutine interp_2d (nxi,nyi,xi,yi,fi,nx,ny,x,y,f, &
           if (zero_outside) then
             cycle
           else
-            go to 910
+            goto 910
           end if
         end if
         call interp (nyi,yi,yv,jj,jjp1,ay,ierr)
-        if (ierr.ne.0) go to 910
+        if (ierr.ne.0) goto 910
         do i=1,nx
           xv=x(i)
           if (outside_interval(xi(1),xi(nxi),xv,eps)) then
             if (zero_outside) then
               cycle
             else
-              go to 910
+              goto 910
             end if
           end if
           call interp (nxi,xi,xv,ii,iip1,ax,ierr)
-          if (ierr.ne.0) go to 910
+          if (ierr.ne.0) goto 910
           f(i,j)= (one-ax)*((one-ay)*fi(ii  ,jj  )+ay*fi(ii  ,jjp1)) &
                  +     ax *((one-ay)*fi(iip1,jj  )+ay*fi(iip1,jjp1))
         enddo
@@ -17750,13 +17831,13 @@ subroutine interp_3d (nxi,nyi,nzi,xi,yi,zi,fi, &
 ! ****** Check that the scales XI, YI, ZI are monotonic.
 !
       dummy=flint(.true.,zero,nxi,xi,xi,ierr)
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
       dummy=flint(.true.,zero,nyi,yi,yi,ierr)
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
       dummy=flint(.true.,zero,nzi,zi,zi,ierr)
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
 ! ****** Interpolate the data.
 !
@@ -17767,33 +17848,33 @@ subroutine interp_3d (nxi,nyi,nzi,xi,yi,zi,fi, &
           if (zero_outside) then
             cycle
           else
-            go to 910
+            goto 910
           end if
         end if
         call interp (nzi,zi,zv,kk,kp1,az,ierr)
-        if (ierr.ne.0) go to 910
+        if (ierr.ne.0) goto 910
         do j=1,ny
           yv=y(j)
           if (outside_interval(yi(1),yi(nyi),yv,eps)) then
             if (zero_outside) then
               cycle
             else
-              go to 910
+              goto 910
             end if
           end if
           call interp (nyi,yi,yv,jj,jp1,ay,ierr)
-          if (ierr.ne.0) go to 910
+          if (ierr.ne.0) goto 910
           do i=1,nx
             xv=x(i)
             if (outside_interval(xi(1),xi(nxi),xv,eps)) then
               if (zero_outside) then
                 cycle
               else
-                go to 910
+                goto 910
               end if
             end if
             call interp (nxi,xi,xv,ii,ip1,ax,ierr)
-            if (ierr.ne.0) go to 910
+            if (ierr.ne.0) goto 910
             f(i,j,k)= (one-ax)*( (one-ay)*( (one-az)*fi(ii ,jj ,kk ) &
                                            +     az *fi(ii ,jj ,kp1) &
                                           ) &
@@ -18070,7 +18151,7 @@ subroutine write_matrix_pot2d (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -22351,7 +22432,7 @@ subroutine genmesh (io,label,nc,c0,c1,nseg,frac,dratio, &
         cs(1)=c0
         cs(2)=c1
         r(1)=one
-        go to 100
+        goto 100
       end if
 !
 ! ****** Check that the specified values of FRAC are monotonically
@@ -23645,8 +23726,8 @@ subroutine set_pole_bc_avec_tp (at,ap)
 !$omp end parallel do
       end if
 !
-      buf0=(/sums0,sumc0/)
-      buf1=(/sums1,sumc1/)
+      buf0=[sums0,sumc0]
+      buf1=[sums1,sumc1]
 !
 ! ****** Sum over all processors.
 !
@@ -23742,8 +23823,8 @@ subroutine set_pole_bc_avec_tp_cpu (at,ap)
         enddo
       end if
 !
-      buf0=(/sums0,sumc0/)
-      buf1=(/sums1,sumc1/)
+      buf0=[sums0,sumc0]
+      buf1=[sums1,sumc1]
 !
 ! ****** Sum over all processors.
 !
@@ -24147,8 +24228,8 @@ subroutine set_pole_bc_vvec_tp (vt,vp)
 !$omp end parallel do
       end if
 !
-      buf0=(/sums0,sumc0/)
-      buf1=(/sums1,sumc1/)
+      buf0=[sums0,sumc0]
+      buf1=[sums1,sumc1]
 !
 ! ****** Sum over all processors.
 !
@@ -24244,8 +24325,8 @@ subroutine set_pole_bc_vvec_tp_cpu (vt,vp)
         enddo
       end if
 !
-      buf0=(/sums0,sumc0/)
-      buf1=(/sums1,sumc1/)
+      buf0=[sums0,sumc0]
+      buf1=[sums1,sumc1]
 !
 ! ****** Sum over all processors.
 !
@@ -26684,6 +26765,8 @@ subroutine solve (x,rhs,ierr)
       case (EQ_DIVB)
         nsolves_divb=nsolves_divb+1
         ntotal_divb=ntotal_divb+ncg
+      case default
+        write (*,*) 'SOLVE: This should never happen.'
       end select
 !
 end subroutine
@@ -27560,7 +27643,7 @@ subroutine prec_inv_v (p,p_32)
             p(i)=a_dia_i(i)*p(i)
           enddo
         end if
-      elseif (ifprec_v.ge.2) then
+      else if (ifprec_v.ge.2) then
 !
 ! ****** SGS or ILU Partial-Block-Jacobi:
 !
@@ -27611,7 +27694,7 @@ subroutine prec_inv_v_par (p,p_32)
           enddo
         end if
 !
-      elseif (ifprec_v.ge.2) then
+      else if (ifprec_v.ge.2) then
 !
 ! ****** SGS or ILU:
 !
@@ -27662,7 +27745,7 @@ subroutine prec_inv_t (p,p_32)
           enddo
         end if
 !
-      elseif (ifprec_t.ge.2) then
+      else if (ifprec_t.ge.2) then
 !
 ! ****** SGS or ILU:
 !
@@ -27714,7 +27797,7 @@ subroutine prec_inv_pot2d (p,p_32)
           enddo
         end if
 !
-      elseif (ifprec_pot2d.ge.2) then
+      else if (ifprec_pot2d.ge.2) then
 !
 ! ****** SGS or ILU:
 !
@@ -27766,7 +27849,7 @@ subroutine prec_inv_pot2dh (p,p_32)
           enddo
         end if
 !
-      elseif (ifprec_pot2d.ge.2) then
+      else if (ifprec_pot2d.ge.2) then
 !
 ! ****** SGS or ILU:
 !
@@ -27854,7 +27937,7 @@ subroutine prec_inv_divb (p,p_32)
           enddo
         end if
 !
-      elseif (ifprec_divb.ge.2) then
+      else if (ifprec_divb.ge.2) then
 !
 ! ****** SGS or ILU:
 !
@@ -28978,7 +29061,7 @@ subroutine one_plus_curl_curl_a (ps,q)
                                 -ps%r(i-1,j,k  )) &
                              )*rh(i)*dth(j)*dp_mult &
                            )
-        elseif (tb1.and.j.eq.ntm1) then
+        else if (tb1.and.j.eq.ntm1) then
           q(ii)= dv*sig*ps%p(i,j,k) &
                     +dtime*(-( dr_i(i  )*( rh(i+1)*ps%p(i+1,j,k) &
                                           -rh(i  )*ps%p(i  ,j,k)) &
@@ -29126,7 +29209,7 @@ subroutine load_preconditioner_a
                                )*drh(i)*sth(j)*dp(k) &
                              ) &
                      )
-        elseif (tb1.and.j.eq.ntm1) then
+        else if (tb1.and.j.eq.ntm1) then
           a_dia_i(ii)=one/( dv*sig &
                       +dtime*( ( dr_i(i  ) &
                                 +dr_i(i-1) &
@@ -29389,7 +29472,7 @@ subroutine load_matrix_v_solve_implicit
       do concurrent (j=1:ntm)
          if (tb0.and.j.eq.1) then
            stp_i(   1)=five*dt_i(   1)
-         elseif (tb1.and.j.eq.ntm) then
+         else if (tb1.and.j.eq.ntm) then
            stp_i(ntm)=five*dt_i(ntm)
          else
            stp_i(j)=st_i(j)
@@ -29738,7 +29821,7 @@ subroutine load_matrix_v_solve_explicit
       do concurrent (j=1:ntm)
         if (tb0.and.j.eq.1) then
           stp_i(   1)=five*dt_i(   1)
-        elseif (tb1.and.j.eq.ntm) then
+        else if (tb1.and.j.eq.ntm) then
           stp_i(ntm)=five*dt_i(ntm)
         else
           stp_i(j)=st_i(j)
@@ -30093,7 +30176,7 @@ subroutine load_preconditioner_v_solve
           enddo
         end if
 !
-      elseif (ifprec_v.ge.2) then
+      else if (ifprec_v.ge.2) then
 !
 ! ****** Convert A matrix into CSR format:
 !
@@ -30113,7 +30196,7 @@ subroutine load_preconditioner_v_solve
             enddo
           enddo
 !
-        elseif (ifprec_v.eq.3) then
+        else if (ifprec_v.eq.3) then
 !
 ! ****** Incomplete LU (ILU)
 !
@@ -30307,7 +30390,7 @@ subroutine load_preconditioner_v_par_solve
           enddo
         end if
 !
-      elseif (ifprec_v.ge.2) then
+      else if (ifprec_v.ge.2) then
 !
 ! ****** Convert A matrix into CSR format:
 !
@@ -30327,7 +30410,7 @@ subroutine load_preconditioner_v_par_solve
             enddo
           enddo
 !
-        elseif (ifprec_v.eq.3) then
+        else if (ifprec_v.eq.3) then
 !
 ! ****** Incomplete LU (ILU)
 !
@@ -30476,7 +30559,7 @@ subroutine load_preconditioner_divb_solve
           enddo
         end if
 !
-      elseif (ifprec_divb.ge.2) then
+      else if (ifprec_divb.ge.2) then
 !
 ! ****** Convert A matrix into CSR format:
 !
@@ -30496,7 +30579,7 @@ subroutine load_preconditioner_divb_solve
             enddo
           enddo
 !
-        elseif (ifprec_divb.eq.3) then
+        else if (ifprec_divb.eq.3) then
 !
 ! ****** Incomplete LU (ILU)
 !
@@ -30565,7 +30648,7 @@ subroutine take_sts_step_rk2 (y,dtime_current)
 !
 !-----------------------------------------------------------------------
 !
-      integer(8) :: s_i
+      integer(i8) :: s_i
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -30623,7 +30706,7 @@ subroutine take_sts_step_rkl1 (y,dtime_current)
 !
 !-----------------------------------------------------------------------
 !
-      integer(8) :: s_i
+      integer(i8) :: s_i
       integer :: i
 !
 !-----------------------------------------------------------------------
@@ -30675,13 +30758,13 @@ subroutine take_exp_step (y,steps,dt)
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(N_CG) :: y
-      integer(8) :: steps
+      integer(i8) :: steps
       real(r_typ) :: dt
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(N_CG) :: Ay
-      integer(8) :: i,j
+      integer(i8) :: i,j
       character(30) :: solve_name
 !
 !-----------------------------------------------------------------------
@@ -30699,12 +30782,12 @@ subroutine take_exp_step (y,steps,dt)
           nsolves_te=nsolves_te+1
           ntotal_te=ntotal_te+steps
           solve_name='thermal conduction (e)'
-        elseif (equation_solved.eq.EQ_TP) then
+        else if (equation_solved.eq.EQ_TP) then
           nsolves_tp=nsolves_tp+1
           ntotal_tp=ntotal_tp+steps
           solve_name='thermal conduction (p)'
         end if
-      elseif (solve_type.eq.ST_V) then
+      else if (solve_type.eq.ST_V) then
         nsolves_visc=nsolves_visc+1
         ntotal_visc=ntotal_visc+steps
         solve_name='viscosity'
@@ -30771,7 +30854,7 @@ subroutine load_matrix_t_solve_implicit (tc)
 !
       if (equation_solved.eq.EQ_TE) then
         fkpar0=tcond*fkspitz
-      elseif (equation_solved.eq.EQ_TP) then
+      else if (equation_solved.eq.EQ_TP) then
         fkpar0=tcondp*fkspitz_p
       end if
 !
@@ -30976,7 +31059,7 @@ subroutine load_matrix_t_solve_implicit (tc)
         if (tb0.and.j.eq.2) then
           tb0_del=0.;  tb0_add=one
           tb1_del=one; tb1_add=0.
-        elseif (tb1.and.j.eq.ntm1) then
+        else if (tb1.and.j.eq.ntm1) then
           tb0_del=one; tb0_add=0.
           tb1_del=0.;  tb1_add=one
         else
@@ -31150,7 +31233,7 @@ subroutine load_matrix_t_solve_explicit (tc)
 !
       if (equation_solved.eq.EQ_TE) then
         fkpar0=tcond*fkspitz
-      elseif (equation_solved.eq.EQ_TP) then
+      else if (equation_solved.eq.EQ_TP) then
         fkpar0=tcondp*fkspitz_p
       end if
 !
@@ -31351,7 +31434,7 @@ subroutine load_matrix_t_solve_explicit (tc)
         if (tb0.and.j.eq.2) then
           tb0_del=0.;  tb0_add=one
           tb1_del=one; tb1_add=0.
-        elseif (tb1.and.j.eq.ntm1) then
+        else if (tb1.and.j.eq.ntm1) then
           tb0_del=one; tb0_add=0.
           tb1_del=0.;  tb1_add=one
         else
@@ -31526,7 +31609,7 @@ subroutine load_preconditioner_t_solve
           enddo
         end if
 !
-      elseif (ifprec_t.ge.2) then
+      else if (ifprec_t.ge.2) then
 !
 ! ****** Convert A matrix into CSR format:
 !
@@ -31546,7 +31629,7 @@ subroutine load_preconditioner_t_solve
             enddo
           enddo
 !
-        elseif (ifprec_t.eq.3) then
+        else if (ifprec_t.eq.3) then
 !
 ! ****** Incomplete LU (ILU)
 !
@@ -33111,12 +33194,12 @@ subroutine load_sts_coeffs_rkl2 (dtime_current,dtime_exp)
 !
 !-----------------------------------------------------------------------
 !
-      integer(8),   parameter :: two_int=2
+      integer(i8),   parameter :: two_int=2
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sts_s_real,bj_bjm2,bj_bjm1,dtime_exp,dtime_current
-      integer(8) :: j
+      integer(i8) :: j
 !
 !-----------------------------------------------------------------------
 !
@@ -33199,14 +33282,14 @@ subroutine load_sts_coeffs_rkl1 (dtime_current,dtime_exp)
       real(r_typ), parameter :: two=2._r_typ
       real(r_typ), parameter :: eight=8._r_typ
       real(r_typ), parameter :: half=0.5_r_typ
-      integer(8),  parameter :: two_int=2
+      integer(i8),  parameter :: two_int=2
 !
 !-----------------------------------------------------------------------
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sts_s_real,dtime_exp,dtime_current
-      integer(8) :: j
+      integer(i8) :: j
 !
 !-----------------------------------------------------------------------
 !
@@ -33268,14 +33351,14 @@ subroutine load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
 !
 !-----------------------------------------------------------------------
 !
-      integer(8),  parameter :: one_int=1
+      integer(i8),  parameter :: one_int=1
       real(r_typ), parameter :: zero=0.0_r_typ
       real(r_typ), parameter :: one=1._r_typ
       real(r_typ), parameter :: two=2._r_typ
-      integer(8),  parameter :: two_int=2
+      integer(i8),  parameter :: two_int=2
       real(r_typ), parameter :: three=3._r_typ
       real(r_typ), parameter :: four=4._r_typ
-      integer(8),  parameter :: four_int=4
+      integer(i8),  parameter :: four_int=4
       real(r_typ), parameter :: six=6._r_typ
       real(r_typ), parameter :: ten=10._r_typ
       real(r_typ), parameter :: fifteen=15._r_typ
@@ -33290,7 +33373,7 @@ subroutine load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: sts_s_real,bj_bjm2,bj_bjm1,w
-      integer(8) :: j
+      integer(i8) :: j
 !
 !-----------------------------------------------------------------------
 !
@@ -33306,13 +33389,13 @@ subroutine load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
 !
       if (sts_s.lt.5) then
         sts_s=5
-      endif
+      end if
 !
 ! ****** Make sure s is odd.
 !
       if (MOD(sts_s,two_int).eq.0) then
         sts_s=sts_s+1
-      endif
+      end if
 !
 ! ****** Allocate super-time-step coefficent arrays.
 !
@@ -33399,7 +33482,7 @@ subroutine alloc_t_matrix_coefs
         do concurrent (i=1:N_cgvec)
           a_dia_i(i)=0.
         enddo
-      endif
+      end if
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
@@ -33448,7 +33531,7 @@ subroutine dealloc_t_matrix_coefs
       else
 !$acc exit data delete(a_dia_i)
         deallocate (a_dia_i)
-      endif
+      end if
 !
       if (ifprec_t.ge.2.and..not.use_sts_tc) then
         if (ifprec_32) then
@@ -33540,9 +33623,11 @@ subroutine load_sts (dtime_current)
 !-----------------------------------------------------------------------
 !
       real(r_typ) :: dtime_exp,dtime_current
-      character(32) :: solve_name=' '
+      character(32) :: solve_name
 !
 !-----------------------------------------------------------------------
+!
+      solve_name=' '
 !
 ! ****** Allocate scratch arrays.
 !
@@ -33559,7 +33644,7 @@ subroutine load_sts (dtime_current)
 !
       if (solve_type.eq.ST_T) then
         call get_dtexp_tc (dtime_exp)
-      elseif (solve_type.eq.ST_V) then
+      else if (solve_type.eq.ST_V) then
         call get_dtexp_visc (dtime_exp)
       end if
 !
@@ -33567,9 +33652,9 @@ subroutine load_sts (dtime_current)
 !
       if (sts_type.eq.1) then
         call load_sts_coeffs_rkl1 (dtime_current,dtime_exp)
-      elseif (sts_type.eq.2) then
+      else if (sts_type.eq.2) then
         call load_sts_coeffs_rkl2 (dtime_current,dtime_exp)
-      elseif (sts_type.eq.3) then
+      else if (sts_type.eq.3) then
         call load_sts_coeffs_rkg2 (dtime_current,dtime_exp)
       end if
 !
@@ -33580,12 +33665,12 @@ subroutine load_sts (dtime_current)
           nsolves_te=nsolves_te+1
           ntotal_te=ntotal_te+sts_s
           solve_name='thermal conduction (e)'
-        elseif (equation_solved.eq.EQ_TP) then
+        else if (equation_solved.eq.EQ_TP) then
           nsolves_tp=nsolves_tp+1
           ntotal_tp=ntotal_tp+sts_s
           solve_name='thermal conduction (p)'
         end if
-      elseif (solve_type.eq.ST_V) then
+      else if (solve_type.eq.ST_V) then
         nsolves_visc=nsolves_visc+1
         ntotal_visc=ntotal_visc+sts_s
         solve_name='viscosity'
@@ -33700,7 +33785,7 @@ subroutine alloc_v_matrix_coefs
         do concurrent (i=1:N_cgvec)
           a_dia_i(i)=0.
         enddo
-      endif
+      end if
 !
 ! ****** Allocate CSR storage of matrix:
 !
@@ -33749,7 +33834,7 @@ subroutine dealloc_v_matrix_coefs
       else
 !$acc exit data delete(a_dia_i)
         deallocate (a_dia_i)
-      endif
+      end if
 !
       if (ifprec_v.ge.2) then
         if (ifprec_32) then
@@ -33795,7 +33880,7 @@ subroutine alloc_v_par_matrix_coefs
       else
         allocate (a_dia_i(N_cgvec))
 !$acc enter data create(a_dia_i)
-      endif
+      end if
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
@@ -33842,7 +33927,7 @@ subroutine dealloc_v_par_matrix_coefs
       else
 !$acc exit data delete(a_dia_i)
         deallocate (a_dia_i)
-      endif
+      end if
 !
       if (ifprec_v.ge.2) then
         if (ifprec_32) then
@@ -33888,7 +33973,7 @@ subroutine alloc_divb_matrix_coefs
       else
         allocate (a_dia_i(N_cgvec))
 !$acc enter data create(a_dia_i)
-      endif
+      end if
 !
 ! ****** Allocate CSR storage of matrix and LU preconditioner:
 !
@@ -33935,7 +34020,7 @@ subroutine dealloc_divb_matrix_coefs
       else
 !$acc exit data delete(a_dia_i)
         deallocate (a_dia_i)
-      endif
+      end if
 !
       if (ifprec_divb.ge.2) then
         if (ifprec_32) then
@@ -34612,7 +34697,7 @@ subroutine load_preconditioner_pot2dh_solve
 !$acc update device(a_dia_i)
         end if
 !
-      elseif (ifprec_pot2d.ge.2) then
+      else if (ifprec_pot2d.ge.2) then
 !
 ! ****** Convert A matrix into CSR format:
 !
@@ -34631,7 +34716,7 @@ subroutine load_preconditioner_pot2dh_solve
             enddo
           enddo
 !
-        elseif (ifprec_pot2d.eq.3) then
+        else if (ifprec_pot2d.eq.3) then
 !
 ! ****** Incomplete LU (ILU)
 !
@@ -34769,7 +34854,7 @@ subroutine load_preconditioner_pot2d_solve
 !$acc update device(a_dia_i)
         end if
 !
-      elseif (ifprec_pot2d.ge.2) then
+      else if (ifprec_pot2d.ge.2) then
 !
 ! ****** Convert A matrix into CSR format:
 !
@@ -34788,7 +34873,7 @@ subroutine load_preconditioner_pot2d_solve
             enddo
           enddo
 !
-        elseif (ifprec_pot2d.eq.3) then
+        else if (ifprec_pot2d.eq.3) then
 !
 ! ****** Incomplete LU (ILU)
 !
@@ -34901,33 +34986,33 @@ subroutine diacsr_pot2d (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
           ioffok(:)=1
 !
           if (mj.eq.1.and.tb0) then
-            ioffok(1)=0;
-            ioffok(2)=0;
-            ioffok(4)=0;
-            ioffok(5)=0;
+            ioffok(1)=0
+            ioffok(2)=0
+            ioffok(4)=0
+            ioffok(5)=0
           end if
 !
           if (mj.eq.ntm1.and.tb1) then
-            ioffok(1)=0;
-            ioffok(2)=0;
-            ioffok(4)=0;
-            ioffok(5)=0;
+            ioffok(1)=0
+            ioffok(2)=0
+            ioffok(4)=0
+            ioffok(5)=0
           end if
 !
           if (mj.eq.2) then
-            ioffok(2)=0;
+            ioffok(2)=0
           end if
 !
           if (mj.eq.ntm-1) then
-            ioffok(4)=0;
+            ioffok(4)=0
           end if
 !
           if (mk.eq.2) then
-            ioffok(1)=0;
+            ioffok(1)=0
           end if
 !
           if (mk.eq.npm-1) then
-            ioffok(5)=0;
+            ioffok(5)=0
           end if
 !
           do jj=1,IDIAG
@@ -34999,33 +35084,33 @@ subroutine getM_nnz_pot2d (N,ioff,M,IA)
           ioffok(:)=1
 !
           if (mj.eq.1.and.tb0) then
-            ioffok(1)=0;
-            ioffok(2)=0;
-            ioffok(4)=0;
-            ioffok(5)=0;
+            ioffok(1)=0
+            ioffok(2)=0
+            ioffok(4)=0
+            ioffok(5)=0
           end if
 !
           if (mj.eq.ntm1.and.tb1) then
-            ioffok(1)=0;
-            ioffok(2)=0;
-            ioffok(4)=0;
-            ioffok(5)=0;
+            ioffok(1)=0
+            ioffok(2)=0
+            ioffok(4)=0
+            ioffok(5)=0
           end if
 !
           if (mj.eq.2) then
-            ioffok(2)=0;
+            ioffok(2)=0
           end if
 !
           if (mj.eq.ntm-1) then
-            ioffok(4)=0;
+            ioffok(4)=0
           end if
 !
           if (mk.eq.2) then
-            ioffok(1)=0;
+            ioffok(1)=0
           end if
 !
           if (mk.eq.npm-1) then
-            ioffok(5)=0;
+            ioffok(5)=0
           end if
 !
           ko=0
@@ -35114,19 +35199,19 @@ subroutine diacsr_pot2dh (N,M,Adia,ioff,Acsr,JA,IA,Adptr)
           ioffok(:)=1
 !
           if (mj.eq.2) then
-            ioffok(2)=0;
+            ioffok(2)=0
           end if
 !
           if (mj.eq.ntm1) then
-            ioffok(4)=0;
+            ioffok(4)=0
           end if
 !
           if (mk.eq.2) then
-            ioffok(1)=0;
+            ioffok(1)=0
           end if
 !
           if (mk.eq.npm1) then
-            ioffok(5)=0;
+            ioffok(5)=0
           end if
           do jj=1,IDIAG
             if (ioffok(jj).eq.1) then
@@ -35192,19 +35277,19 @@ subroutine getM_nnz_pot2dh (N,ioff,M,IA)
           ioffok(:)=1
 !
           if (mj.eq.2) then
-            ioffok(2)=0;
+            ioffok(2)=0
           end if
 !
           if (mj.eq.ntm1) then
-            ioffok(4)=0;
+            ioffok(4)=0
           end if
 !
           if (mk.eq.2) then
-            ioffok(1)=0;
+            ioffok(1)=0
           end if
 !
           if (mk.eq.npm1) then
-            ioffok(5)=0;
+            ioffok(5)=0
           end if
 !
           ko=0
@@ -35408,6 +35493,8 @@ subroutine pot2d_solver (x,rhs,ierr)
       case (EQ_POT2D_NEWFLUX)
         capt='Evolving boundary potential'
         epscg_desired=epscg_newflux
+      case default
+        write (*,*) '### ERROR in POT2D_SOLVER:  WRONG EQ TYPE!'
       end select
 !
       N_CG=N_cgvec
@@ -35472,6 +35559,8 @@ subroutine pot2d_solver (x,rhs,ierr)
           fname='amat_pot2d_ic.h5'
         case (EQ_POT2D_NEWFLUX)
           fname='amat_pot2d_evolve.h5'
+        case default
+          write (*,*) '### ERROR in POT2D_SOLVER:  WRONG EQ TYPE!'
         end select
         call write_matrix_pot2d (fname)
       end if
@@ -36814,7 +36903,7 @@ subroutine advv
           call set_bc_v (v,one)
           call seam_vvec (v)
 !
-        elseif (use_sts_visc) then
+        else if (use_sts_visc) then
 !
 ! ****** Explicit Super Time Stepping
 !
@@ -36822,9 +36911,9 @@ subroutine advv
           call pack_vvec (v,x_cg)
           if (sts_type.eq.3) then
             call take_sts_step_rk2 (x_cg,dtime_local2)
-          elseif (sts_type.eq.2) then
+          else if (sts_type.eq.2) then
             call take_sts_step_rk2 (x_cg,dtime_local2)
-          elseif(sts_type.eq.1) then
+          else if(sts_type.eq.1) then
             call take_sts_step_rkl1 (x_cg,dtime_local2)
           end if
           call unpack_vvec (v,x_cg)
@@ -38235,6 +38324,8 @@ subroutine v_solver (rhs,vg)
         capt='SI corrector'
       case (EQ_VISC)
         capt='implicit viscosity equations'
+      case default
+        write (*,*) '### ERROR in V_SOLVER:  WRONG EQ TYPE!'
       end select
 !
 ! ****** Solve the implicit momentum equation.
@@ -38247,7 +38338,7 @@ subroutine v_solver (rhs,vg)
 !
       call solve (x_cg,rhs_cg,ierr)
 !
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
       if (idebug.gt.0.or.ncghist.gt.0) then
         if (iamp0) then
@@ -38268,7 +38359,7 @@ subroutine v_solver (rhs,vg)
 !
       call seam_vvec (vg)
 !
-      go to 950
+      goto 950
 !
 ! ****** Error exit.
 !
@@ -38397,6 +38488,8 @@ subroutine v_par_solver (rhs,vg)
         capt='SI corrector'
       case (EQ_VISC)
         capt='viscosity'
+      case default
+        write (*,*) '### ERROR in V_PAR_SOLVER:  WRONG EQ TYPE!'
       end select
 !
 ! ****** Solve the implicit parallel momentum equation.
@@ -38409,7 +38502,7 @@ subroutine v_par_solver (rhs,vg)
 !
       call solve (x_cg,rhs_cg,ierr)
 !
-      if (ierr.ne.0) go to 900
+      if (ierr.ne.0) goto 900
 !
       if (idebug.gt.0.or.ncghist.gt.0) then
         if (iamp0) then
@@ -38428,7 +38521,7 @@ subroutine v_par_solver (rhs,vg)
 !
       call seam_scalar (vg,nr,nt,np)
 !
-      go to 950
+      goto 950
 !
 ! ****** Error exit.
 !
@@ -38618,7 +38711,7 @@ subroutine write_matrix_advv (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -40652,7 +40745,7 @@ subroutine char_bc_0
         do j=1,nt
           if (mask(j,k)) then
             dirvee_cs_max=MAX(dirvee_cs_max,dirvee_cs(j,k))
-          endif
+          end if
         enddo
       enddo
 !$omp end parallel do
@@ -41010,7 +41103,7 @@ subroutine advrho
 ! ****** Temporary fields.
 !
       real(r_typ), dimension(nr,nt,np) :: rhop,vdg,divv
-      character(32) :: FNAME='DENSITY', RNAME='ADVRHO'
+      character(32) :: FNAME, RNAME
 !
 !-----------------------------------------------------------------------
 !
@@ -41019,6 +41112,10 @@ subroutine advrho
 !-----------------------------------------------------------------------
 !
       if (use_timer) call timer (TIME_ADVRHO)
+!
+      FNAME='DENSITY'
+      RNAME='ADVRHO'
+!
 !$acc enter data create(rhop,vdg,divv)
 !
       if (advance_fcs) then
@@ -41954,15 +42051,15 @@ subroutine floor_field (field,n1,n2,n3,fname,call_loc,floor_val)
 !
       integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: field
-      character(*) :: fname,call_loc
-      integer :: min_indices(3)=0.
+      character(*), intent(in) :: fname,call_loc
+      integer :: min_indices(3)
       real(r_typ) :: floor_val
 !
 !-----------------------------------------------------------------------
 !
       integer :: i,j,k,min_i,min_j,min_k,ierr,rank_min
-      integer :: number_of_floors=0
-      integer :: did_floor_happen=0
+      integer :: number_of_floors
+      integer :: did_floor_happen
       real(r_typ) :: min_field_val_local
 !     integer :: req(6)
 !      logical, dimension(n1,n2,n3) :: mask
@@ -41970,6 +42067,8 @@ subroutine floor_field (field,n1,n2,n3,fname,call_loc,floor_val)
 !-----------------------------------------------------------------------
 !
       number_of_floors=0
+      did_floor_happen=0
+      min_indices(:)=0.
 !
 !      do concurrent (k=1:n3, j=1:n2, i=1:n1)
 !        mask(i,j,k)=.false.
@@ -42124,15 +42223,15 @@ subroutine floor_field_v (field,field_limit, &
 !
       integer :: n1,n2,n3
       real(r_typ), dimension(n1,n2,n3) :: field,field_limit
-      character(*) :: fname,call_loc
-      integer :: min_indices(3)=0.
+      character(*), intent(in) :: fname,call_loc
+      integer :: min_indices(3)
       real(r_typ) :: field_fac
 !
 !-----------------------------------------------------------------------
 !
       real(r_typ), dimension(n1,n2,n3) :: field_ratio
       integer :: i,j,k,min_i,min_j,min_k,number_of_floors,ierr,rank_min
-      integer :: did_floor_happen=0
+      integer :: did_floor_happen
       real(r_typ) :: min_field_diff_local
       real(r_typ) :: field_diff
 !      integer :: req(6)
@@ -42147,6 +42246,8 @@ subroutine floor_field_v (field,field_limit, &
 ! ****** Initialize values:
 !
       number_of_floors=0
+      did_floor_happen=0
+      min_indices(:)=0
 !
 !$acc enter data create(field_ratio)
 !
@@ -43781,15 +43882,15 @@ subroutine setdt
 !
         if (dtime.eq.dt_cfl_used) then
           dtime_set_reason=' (flow)'
-        elseif (dtime.eq.dt_rad_used) then
+        else if (dtime.eq.dt_rad_used) then
           dtime_set_reason=' (qrad)'
-        elseif (dtime.eq.dtmax) then
+        else if (dtime.eq.dtmax) then
           dtime_set_reason=' (dtmx)'
-        elseif (dtime.eq.dt_init) then
+        else if (dtime.eq.dt_init) then
           dtime_set_reason=' (init)'
-        elseif (dtime.eq.dt_wave) then
+        else if (dtime.eq.dt_wave) then
           dtime_set_reason=' (mxwv)'
-        elseif (dtime.eq.dt_mxup) then
+        else if (dtime.eq.dt_mxup) then
           dtime_set_reason=' (mxup)'
         end if
 !
@@ -46117,20 +46218,20 @@ subroutine global_min_loc (x,idx)
 !-----------------------------------------------------------------------
 !
       integer :: ierr
-      real(4), dimension(2) :: x_idx_local
-      real(4), dimension(2) :: x_idx_global
+      real(r_typ_sp), dimension(2) :: x_idx_local
+      real(r_typ_sp), dimension(2) :: x_idx_global
 !
 !-----------------------------------------------------------------------
 !
-      x_idx_local(2)=real(iproc,4)
-      x_idx_local(1)=real(x,4)
+      x_idx_local(2)=real(iproc,r_typ_sp)
+      x_idx_local(1)=real(x,r_typ_sp)
 !
 ! ****** Take the minimum over all processors.
 !
       if (use_timer) call timer (TIME_MINMAX)
 !
       call MPI_Allreduce (x_idx_local,x_idx_global,1,MPI_2REAL, &
-                          MPI_MINLOC,comm_all,ierr);
+                          MPI_MINLOC,comm_all,ierr)
 !
       if (use_timer) call timer (TIME_MINMAX)
 !
@@ -46570,7 +46671,7 @@ subroutine global_to_local (f_g,f)
         n_r_g=size(f_g,1)
         n_t_g=size(f_g,2)
         n_p_g=size(f_g,3)
-        ibuf=(/n_r_g,n_t_g,n_p_g/)
+        ibuf=[n_r_g,n_t_g,n_p_g]
       end if
 !
       call MPI_Bcast (ibuf,3,MPI_INTEGER,iproc0,comm_all,ierr)
@@ -46664,7 +46765,7 @@ subroutine global_to_local_tp (f_g,f)
       if (iamp0) then
         n_t_g=size(f_g,1)
         n_p_g=size(f_g,2)
-        ibuf=(/n_t_g,n_p_g/)
+        ibuf=[n_t_g,n_p_g]
       end if
 !
       call MPI_Bcast (ibuf,2,MPI_INTEGER,iproc0,comm_all,ierr)
@@ -46737,7 +46838,7 @@ subroutine write_field (fname,ix,a)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ix
       real(r_typ), dimension(:,:,:) :: a
 !
@@ -46852,7 +46953,7 @@ subroutine write_field_tp (fname,ix,a,iproc_r2use)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ix,iproc_r2use
       real(r_typ), dimension(:,:) :: a
 !
@@ -47000,7 +47101,7 @@ subroutine assemble_array (map_r,map_t,map_p,a,a_g)
       k0=map_p(iproc)%i0
       k1=map_p(iproc)%i1
 !
-      sbuf=reshape(a(i0:i1,j0:j1,k0:k1),(/lsbuf/))
+      sbuf=reshape(a(i0:i1,j0:j1,k0:k1),[lsbuf])
 !
 ! ****** Gather the local arrays on each processor into the buffer
 ! ****** on processor IPROC0.
@@ -47034,7 +47135,7 @@ subroutine assemble_array (map_r,map_t,map_p,a,a_g)
 !
           m0=displ(irank)
           m1=displ(irank)+lbuf(irank)-1
-          a_l=reshape(rbuf(m0:m1),(/l1,l2,l3/))
+          a_l=reshape(rbuf(m0:m1),[l1,l2,l3])
 !
 ! ****** Fill the global array from the local array section.
 !
@@ -47141,7 +47242,7 @@ subroutine assemble_array_tp (map_t,map_p,a,a_g)
       k0=map_p(iproc2d_tp)%i0
       k1=map_p(iproc2d_tp)%i1
 !
-      sbuf=reshape(a(j0:j1,k0:k1),(/lsbuf/))
+      sbuf=reshape(a(j0:j1,k0:k1),[lsbuf])
 !
 ! ****** Gather the local arrays on each processor into the buffer
 ! ****** on processor 0 in COMM_TP.
@@ -47174,7 +47275,7 @@ subroutine assemble_array_tp (map_t,map_p,a,a_g)
 !
           m0=displ(irank)
           m1=displ(irank)+lbuf(irank)-1
-          a_l=reshape(rbuf(m0:m1),(/l2,l3/))
+          a_l=reshape(rbuf(m0:m1),[l2,l3])
 !
 ! ****** Fill the global array from the local array section.
 !
@@ -48951,6 +49052,8 @@ subroutine tdiagcol
                                             diagpt(i)%q(j)%pm, &
                                             diagpt(i)%q(j)%fld)
             enddo
+          case default
+            write (*,*) "WRITE DIAG:  WRONG TYPE!"
           end select
 !
         end if
@@ -49751,6 +49854,8 @@ subroutine dumphist
             case ('NORM')
               call global_sum_v (lbuf,buf)
               buf=sqrt(buf/volume)
+            case default
+              write (*,*) "DUMPHIST DIAG:  BAD TYPE!"
             end select
             do j=1,diagpt(i)%nq
               diagpt(i)%q(j)%v(1:ihist)=buf(:,j)
@@ -50220,7 +50325,7 @@ subroutine slice_dump
         call write_field_tp (fname,IFLD_VR,div_et,iproc_rb0)
         fname=hdfname('phi_tdc',iseq)
         call write_field_tp (fname,IFLD_VR,phi_tdc,iproc_rb0)
-      endif
+      end if
 !
 ! ****** Write the WTD debugging slices if requested.
 !
@@ -50235,8 +50340,8 @@ subroutine slice_dump
           call write_field_tp(fname,IFLD_VR,wtd_net_pflux,iproc_rb0)
           fname=hdfname('wtd_mask_open',iseq)
           call write_field_tp(fname,IFLD_VR,wtd_mask_open,iproc_rb0)
-        endif
-      endif
+        end if
+      end if
 !
 ! ****** Write the charge states fields to HDF files.
 !
@@ -50411,7 +50516,7 @@ subroutine define_input_rs_params
 ! ****** Define the properties of the fields that are to be read
 ! ****** from the restart file.
 !
-      rs_i(:)%index=(/IFLD_ETA, &
+      rs_i(:)%index=[IFLD_ETA, &
                       IFLD_VIS, &
                       IFLD_AR, &
                       IFLD_AT, &
@@ -50428,9 +50533,9 @@ subroutine define_input_rs_params
                       IFLD_EM, &
                       IFLD_T_E, &
                       IFLD_ZP, &
-                      IFLD_ZM/)
+                      IFLD_ZM]
 !
-      rs_i(:)%required=(/.true., &
+      rs_i(:)%required=[ .true., &
                          .true., &
                          .true., &
                          .true., &
@@ -50447,7 +50552,7 @@ subroutine define_input_rs_params
                          .false., &
                          .false., &
                          .false., &
-                         .false./)
+                         .false.]
 !
       if (n_rs_i_files.eq.1) then
         rs_i(:)%fname=rsifile
@@ -50520,7 +50625,7 @@ subroutine define_output_rs_params
 ! ****** Currently, all fields, including optional fields, are
 ! ****** written to the output file.
 !
-      rs_o(1)%index=(/IFLD_ETA, &
+      rs_o(1)%index=[ IFLD_ETA, &
                       IFLD_VIS, &
                       IFLD_AR, &
                       IFLD_AT, &
@@ -50537,7 +50642,7 @@ subroutine define_output_rs_params
                       IFLD_EM, &
                       IFLD_T_E, &
                       IFLD_ZP, &
-                      IFLD_ZM/)
+                      IFLD_ZM]
       rs_o(1)%write=.true.
       rs_o(1)%fname_root='rs'
 !
@@ -50645,18 +50750,18 @@ subroutine read_restart_header
         do i=3,ncvars
           if (rs_var_present(cvars(i)%name)) then
             call rdrsh5_c (cvars(i)%name,cvars(i)%value,ierr)
-            if (ierr.ne.0) go to 300
+            if (ierr.ne.0) goto 300
             write (9,*) '    ',trim(cvars(i)%name)//': ', &
                                trim(cvars(i)%value)
           end if
         enddo
         do i=1,nivars
           call rdrsh5_i (ivars(i)%name,ivars(i)%value,ierr)
-          if (ierr.ne.0) go to 300
+          if (ierr.ne.0) goto 300
         enddo
         do i=1,nrvars-1
           call rdrsh5_r (rvars(i)%name,rvars(i)%value,ierr)
-          if (ierr.ne.0) go to 300
+          if (ierr.ne.0) goto 300
         enddo
 !
 ! ****** Read the old time step, if it is present. If it is missing
@@ -50796,11 +50901,11 @@ subroutine read_restart_mesh
 !
       if (iamp0) then
         call rdrsh5_1d ('r',nrm1_g,r_g,ierr)
-        if (ierr.ne.0) go to 100
+        if (ierr.ne.0) goto 100
         call rdrsh5_1d ('t',ntm1_g,t_g,ierr)
-        if (ierr.ne.0) go to 100
+        if (ierr.ne.0) goto 100
         call rdrsh5_1d ('p',np_g,p_g,ierr)
-        if (ierr.ne.0) go to 100
+        if (ierr.ne.0) goto 100
       end if
   100 continue
       call check_error_on_p0 (ierr)
@@ -50883,6 +50988,8 @@ subroutine read_restart_fields
               fldtab(IFLD_ZP)%f=0.
             case (IFLD_ZM)
               fldtab(IFLD_ZM)%f=0.
+            case default
+              write (*,*) 'READ_RESTART:  BAD FIELD TYPE!'
             end select
           end if
         end if
@@ -50940,7 +51047,7 @@ subroutine read_field_from_restart (fname,ifld, &
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ifld
       logical :: required
       logical :: field_read
@@ -51142,11 +51249,11 @@ subroutine write_restart (iseq)
 !
       if (iamp0) then
         call wrrsh5_1d ('r',nrm1_g,r_g,ierr)
-        if (ierr.ne.0) go to 100
+        if (ierr.ne.0) goto 100
         call wrrsh5_1d ('t',ntm1_g,t_g,ierr)
-        if (ierr.ne.0) go to 100
+        if (ierr.ne.0) goto 100
         call wrrsh5_1d ('p',np_g,p_g,ierr)
-        if (ierr.ne.0) go to 100
+        if (ierr.ne.0) goto 100
       end if
   100 continue
       call check_error_on_p0 (ierr)
@@ -51298,7 +51405,7 @@ subroutine write_restart (iseq)
           call wrrsh5_2d ('wtd_ofzm',nt_g,np_g,atp_g0,ierr)
           deallocate (atp_g0)
         end if
-      endif
+      end if
 !
 ! ****** Write the 3D fields.
 !
@@ -51380,7 +51487,7 @@ subroutine read_fcs_restart
 !-----------------------------------------------------------------------
 !
       allocate (f8(nr_g,nt_g,np_g))
-      s_dims(:)=(/nr_g,nt_g,np_g/)
+      s_dims(:)=[nr_g,nt_g,np_g]
 !
 ! ****** Initialize hdf5 interface.
 !
@@ -51486,7 +51593,7 @@ subroutine write_fcs_restart (ch_seq)
             trim(runid)// &
             trim(ch_seq)//'.h5'
       allocate (f8(nr_g,nt_g,np_g))
-      s_dims(:)=(/nr_g,nt_g,np_g/)
+      s_dims(:)=[nr_g,nt_g,np_g]
       if (iamp0)  then
 !
 ! ****** Initialize hdf5 interface.
@@ -51638,15 +51745,15 @@ subroutine write_restart_header (ipart)
       if (iamp0) then
         do i=1,ncvars
           call wrrsh5_c (cvars(i)%name,cvars(i)%value,ierr)
-          if (ierr.ne.0) go to 100
+          if (ierr.ne.0) goto 100
         enddo
         do i=1,nivars
           call wrrsh5_i (ivars(i)%name,ivars(i)%value,ierr)
-          if (ierr.ne.0) go to 100
+          if (ierr.ne.0) goto 100
         enddo
         do i=1,nrvars
           call wrrsh5_r (rvars(i)%name,rvars(i)%value,ierr)
-          if (ierr.ne.0) go to 100
+          if (ierr.ne.0) goto 100
         enddo
       end if
   100 continue
@@ -51677,7 +51784,7 @@ subroutine open_restart_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -51751,7 +51858,7 @@ subroutine get_restart_file_type (fname,rs_type,rs_code)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       character(*) :: rs_type
       character(*) :: rs_code
 !
@@ -51773,14 +51880,14 @@ subroutine get_restart_file_type (fname,rs_type,rs_code)
         do i=1,2
           if (rs_var_present(cvars(i)%name)) then
             call rdrsh5_c (cvars(i)%name,cvars(i)%value,ierr)
-            if (ierr.ne.0) go to 100
+            if (ierr.ne.0) goto 100
           else
             ierr=1
-            go to 100
+            goto 100
           end if
         enddo
       end if
-      go to 200
+      goto 200
 !
   100 continue
 !
@@ -51885,7 +51992,7 @@ subroutine create_restart_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -51939,7 +52046,7 @@ subroutine wrrsh5_c (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name,value
+      character(*), intent(in) :: name,value
       integer :: ierr
 !
 !-----------------------------------------------------------------------
@@ -51957,7 +52064,7 @@ subroutine wrrsh5_c (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      integer(HSIZE_T), dimension(1) :: adims=(/1/)
+      integer(HSIZE_T), dimension(1) :: adims=[1]
       integer(HSIZE_T), dimension(1) :: data_dims
 !
 !-----------------------------------------------------------------------
@@ -52014,7 +52121,7 @@ subroutine wrrsh5_i (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: value
       integer :: ierr
 !
@@ -52024,7 +52131,7 @@ subroutine wrrsh5_i (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      integer(HSIZE_T), dimension(1) :: adims=(/1/)
+      integer(HSIZE_T), dimension(1) :: adims=[1]
       integer(HSIZE_T), dimension(1) :: data_dims
       integer(HID_T) :: aspace_id     ! Attribute space identifier
       integer(HID_T) :: attr_id       ! Attribute dentifier
@@ -52073,7 +52180,7 @@ subroutine wrrsh5_r (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       real(r_typ) :: value
       integer :: ierr
 !
@@ -52083,7 +52190,7 @@ subroutine wrrsh5_r (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      integer(HSIZE_T), dimension(1) :: adims=(/1/)
+      integer(HSIZE_T), dimension(1) :: adims=[1]
       integer(HSIZE_T), dimension(1) :: data_dims
       integer(HID_T) :: aspace_id     ! Attribute space identifier
       integer(HID_T) :: attr_id       ! Attribute dentifier
@@ -52130,7 +52237,7 @@ subroutine wrrsh5_1d (name,nx,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: nx
       real(r_typ), dimension(nx) :: f
       integer :: ierr
@@ -52148,7 +52255,7 @@ subroutine wrrsh5_1d (name,nx,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      dims=(/nx/)
+      dims=[nx]
 !
 ! ****** Create the dataspace.
 !
@@ -52203,7 +52310,7 @@ subroutine wrrsh5_2d (name,nx,ny,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: nx,ny
       real(r_typ), dimension(nx,ny) :: f
       integer :: ierr
@@ -52221,7 +52328,7 @@ subroutine wrrsh5_2d (name,nx,ny,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      dims=(/nx,ny/)
+      dims=[nx,ny]
 !
 ! ****** Create the dataspace.
 !
@@ -52276,7 +52383,7 @@ subroutine wrrsh5_3d (name,nx,ny,nz,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: nx,ny,nz
       real(r_typ), dimension(nx,ny,nz) :: f
       integer :: ierr
@@ -52294,7 +52401,7 @@ subroutine wrrsh5_3d (name,nx,ny,nz,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      dims=(/nx,ny,nz/)
+      dims=[nx,ny,nz]
 !
 ! ****** Create the dataspace.
 !
@@ -52348,7 +52455,8 @@ subroutine rdrsh5_c (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name,value
+      character(*), intent(in) :: name
+      character(64), intent(out) :: value
       integer :: ierr
 !
 !-----------------------------------------------------------------------
@@ -52360,7 +52468,7 @@ subroutine rdrsh5_c (name,value,ierr)
       integer(HID_T) :: atype_id      ! Attribute type identifier
       integer(HID_T) :: attr_id       ! Attribute dentifier
       integer(HSIZE_T) :: attrlen,vallen
-      integer(HSIZE_T), dimension(1) :: adims=(/1/)
+      integer(HSIZE_T), dimension(1) :: adims=[1]
       integer(HSIZE_T) :: i
 !
 !-----------------------------------------------------------------------
@@ -52416,7 +52524,7 @@ subroutine rdrsh5_i (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: value
       integer :: ierr
 !
@@ -52428,7 +52536,7 @@ subroutine rdrsh5_i (name,value,ierr)
 !
       integer(HID_T) :: atype_id      ! Attribute type identifier
       integer(HID_T) :: attr_id       ! Attribute dentifier
-      integer(HSIZE_T), dimension(1) :: adims=(/1/)
+      integer(HSIZE_T), dimension(1) :: adims=[1]
 !
 !-----------------------------------------------------------------------
 !
@@ -52467,7 +52575,7 @@ subroutine rdrsh5_r (name,value,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       real(r_typ) :: value
       integer :: ierr
 !
@@ -52479,7 +52587,7 @@ subroutine rdrsh5_r (name,value,ierr)
 !
       integer(HID_T) :: atype_id      ! Attribute type identifier
       integer(HID_T) :: attr_id       ! Attribute dentifier
-      integer(HSIZE_T), dimension(1) :: adims=(/1/)
+      integer(HSIZE_T), dimension(1) :: adims=[1]
 !
 !-----------------------------------------------------------------------
 !
@@ -52520,7 +52628,7 @@ subroutine rdrsh5_1d (name,nx,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: nx
       real(r_typ), dimension(nx) :: f
       integer :: ierr
@@ -52548,7 +52656,7 @@ subroutine rdrsh5_1d (name,nx,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      dims=(/nx/)
+      dims=[nx]
 !
       call h5Dopen_f (rsfile_id,trim(name),dset_id,ierr)
 !
@@ -52559,7 +52667,7 @@ subroutine rdrsh5_1d (name,nx,f,ierr)
       call h5Sget_simple_extent_ndims_f (dspace_id,ndim_in,ierr)
       if (ndim_in.ne.ndim) then
         ierr=4
-        go to 900
+        goto 900
       end if
 !
       allocate(dims_in(ndim_in))
@@ -52569,7 +52677,7 @@ subroutine rdrsh5_1d (name,nx,f,ierr)
       do i=1,ndim
         if (dims_in(i).ne.dims(i)) then
           ierr=5
-          go to 900
+          goto 900
         end if
       enddo
 !
@@ -52593,7 +52701,7 @@ subroutine rdrsh5_1d (name,nx,f,ierr)
         deallocate (f8)
       else
         ierr=7
-        go to 900
+        goto 900
       end if
 !
       call h5Tclose_f(datatype_id,ierr)
@@ -52602,7 +52710,7 @@ subroutine rdrsh5_1d (name,nx,f,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        goto 900
       end if
 !
       ierr=0
@@ -52636,7 +52744,7 @@ subroutine rdrsh5_2d (name,nx,ny,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: nx,ny
       real(r_typ), dimension(nx*ny) :: f
       integer :: ierr
@@ -52664,7 +52772,7 @@ subroutine rdrsh5_2d (name,nx,ny,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      dims=(/nx,ny/)
+      dims=[nx,ny]
 !
       call h5Dopen_f (rsfile_id,trim(name),dset_id,ierr)
 !
@@ -52675,7 +52783,7 @@ subroutine rdrsh5_2d (name,nx,ny,f,ierr)
       call h5Sget_simple_extent_ndims_f (dspace_id,ndim_in,ierr)
       if (ndim_in.ne.ndim) then
         ierr=4
-        go to 900
+        goto 900
       end if
 !
       allocate(dims_in(ndim_in))
@@ -52685,7 +52793,7 @@ subroutine rdrsh5_2d (name,nx,ny,f,ierr)
       do i=1,ndim
         if (dims_in(i).ne.dims(i)) then
           ierr=5
-          go to 900
+          goto 900
         end if
       enddo
 !
@@ -52709,7 +52817,7 @@ subroutine rdrsh5_2d (name,nx,ny,f,ierr)
         deallocate (f8)
       else
         ierr=7
-        go to 900
+        goto 900
       end if
 !
       call h5Tclose_f(datatype_id,ierr)
@@ -52718,7 +52826,7 @@ subroutine rdrsh5_2d (name,nx,ny,f,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        goto 900
       end if
 !
       ierr=0
@@ -52752,7 +52860,7 @@ subroutine rdrsh5_3d (name,nx,ny,nz,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       integer :: nx,ny,nz
       real(r_typ), dimension(nx*ny*nz) :: f
       integer :: ierr
@@ -52780,7 +52888,7 @@ subroutine rdrsh5_3d (name,nx,ny,nz,f,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      dims=(/nx,ny,nz/)
+      dims=[nx,ny,nz]
 !
       call h5Dopen_f (rsfile_id,trim(name),dset_id,ierr)
 !
@@ -52791,7 +52899,7 @@ subroutine rdrsh5_3d (name,nx,ny,nz,f,ierr)
       call h5Sget_simple_extent_ndims_f (dspace_id,ndim_in,ierr)
       if (ndim_in.ne.ndim) then
         ierr=4
-        go to 900
+        goto 900
       end if
 !
       allocate(dims_in(ndim_in))
@@ -52801,7 +52909,7 @@ subroutine rdrsh5_3d (name,nx,ny,nz,f,ierr)
       do i=1,ndim
         if (dims_in(i).ne.dims(i)) then
           ierr=5
-          go to 900
+          goto 900
         end if
       enddo
 !
@@ -52825,7 +52933,7 @@ subroutine rdrsh5_3d (name,nx,ny,nz,f,ierr)
         deallocate (f8)
       else
         ierr=7
-        go to 900
+        goto 900
       end if
 !
       call h5Tclose_f(datatype_id,ierr)
@@ -52834,7 +52942,7 @@ subroutine rdrsh5_3d (name,nx,ny,nz,f,ierr)
 !
       if (ierr.lt.0) then
         ierr=1
-        go to 900
+        goto 900
       end if
 !
       ierr=0
@@ -52862,8 +52970,8 @@ subroutine wrrs_error_text (name,sub,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
-      character(*) :: sub
+      character(*), intent(in) :: name
+      character(*), intent(in) :: sub
       integer :: ierr
 !
 !-----------------------------------------------------------------------
@@ -52890,8 +52998,8 @@ subroutine rdrs_error_text (name,sub,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
-      character(*) :: sub
+      character(*), intent(in) :: name
+      character(*), intent(in) :: sub
       integer :: ierr
 !
 !-----------------------------------------------------------------------
@@ -52926,7 +53034,7 @@ function rs_var_present (name)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       logical :: rs_var_present
 !
 !-----------------------------------------------------------------------
@@ -52968,7 +53076,7 @@ function rs_array_present (name)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: name
+      character(*), intent(in) :: name
       logical :: rs_array_present
 !
 !-----------------------------------------------------------------------
@@ -53056,7 +53164,7 @@ subroutine timer (id)
           write (*,*) 'File name: ',trim(fname)
           call endrun (.true.)
         end if
-      elseif (timer_log) then
+      else if (timer_log) then
         call ffopen (IO_TEMP,fname,'a',ierr)
       end if
 !
@@ -53523,8 +53631,8 @@ subroutine ffopen (iun,fname,mode,ierr)
 !-----------------------------------------------------------------------
 !
       integer :: iun
-      character(*) :: fname
-      character(*) :: mode
+      character(*), intent(in) :: fname
+      character(*), intent(in) :: mode
       integer :: ierr
       logical :: ex
 !
@@ -53538,7 +53646,7 @@ subroutine ffopen (iun,fname,mode,ierr)
         open (iun,file=fname,form="FORMATTED",status='replace',err=900)
       else if (mode.eq.'w') then
         open (iun,file=fname,form="FORMATTED",status='new',err=900)
-      elseif (mode.eq.'a') then
+      else if (mode.eq.'a') then
         inquire(file=fname, exist=ex)
         if (ex) then
           open (iun,file=fname,form="FORMATTED", &
@@ -53585,7 +53693,7 @@ function hdfname (root,seq)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: root
+      character(*), intent(in) :: root
       integer :: seq
       character(256) :: hdfname
 !
@@ -53624,7 +53732,7 @@ function hdf_tpslice_name (root,seq1,seq2)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: root
+      character(*), intent(in) :: root
       integer :: seq1,seq2
       character(512) :: hdf_tpslice_name
 !
@@ -53813,16 +53921,14 @@ subroutine wrhdf_1d (fname,scale,nx,f,x,hdf32,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       character(512) :: fname_new
-      logical :: scale
-      integer :: nx
-      real(r_typ), dimension(nx,1,1) :: f
-      real(r_typ), dimension(nx) :: x
-      logical :: hdf32
-      integer :: ierr
-      intent(in) :: scale,nx,f,x,hdf32
-      intent(out) :: ierr
+      logical, intent(in) :: scale
+      integer, intent(in) :: nx
+      real(r_typ), intent(in), dimension(nx,1,1) :: f
+      real(r_typ), intent(in), dimension(nx) :: x
+      logical, intent(in) :: hdf32
+      integer, intent(out) :: ierr
 !
 !-----------------------------------------------------------------------
 !
@@ -53888,7 +53994,7 @@ subroutine wrhdf_2d (fname,scale,nx,ny,f,x,y,hdf32,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       character(512) :: fname_new
       logical, intent(in) :: scale
       integer, intent(in) :: nx,ny
@@ -53963,7 +54069,7 @@ subroutine wrhdf_3d (fname,scale,nx,ny,nz,f,x,y,z,hdf32,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       logical, intent(in) :: scale
       integer, intent(in) :: nx,ny,nz
       real(r_typ), dimension(nx,ny,nz), intent(in) :: f
@@ -54134,11 +54240,9 @@ subroutine rdhdf (fname,s,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
-      type(sds) :: s
-      integer :: ierr
-      intent(in) :: fname
-      intent(out) :: s,ierr
+      character(*), intent(in) :: fname
+      type(sds),intent(out) :: s
+      integer,intent(out) :: ierr
 !
 !-----------------------------------------------------------------------
 !
@@ -54232,7 +54336,7 @@ subroutine rdh5 (fname,s,ierr)
 !-----------------------------------------------------------------------
 !
       type(sds) :: s
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -54333,7 +54437,7 @@ subroutine rdh5 (fname,s,ierr)
 !
       if (prec.eq.32) then
         s%hdf32=.true.
-      elseif (prec.eq.64) then
+      else if (prec.eq.64) then
         s%hdf32=.false.
       end if
 !
@@ -54440,7 +54544,7 @@ subroutine rdh5 (fname,s,ierr)
               s%scales(i)%f(j)=REAL(f4dim(j),r_typ)
             end do
             deallocate (f4dim)
-          elseif (prec.eq.64) then
+          else if (prec.eq.64) then
             allocate (f8dim(s_dims_i(1)))
             call h5Dread_f (dim_id,datatype_id,f8dim,s_dims_i,ierr)
             s%scales(i)%f(:)=f8dim(:)
@@ -54621,11 +54725,9 @@ subroutine wrh5 (fname,s,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
-      type(sds) :: s
-      integer :: ierr
-      intent(in) :: fname,s
-      intent(out) :: ierr
+      character(*),intent(in) :: fname
+      type(sds),intent(in) :: s
+      integer, intent(out) :: ierr
 !
 !-----------------------------------------------------------------------
 !
@@ -54658,7 +54760,7 @@ subroutine wrh5 (fname,s,ierr)
            s_dims(i)=INT(s%dims(i),HSIZE_T)
          else
            s_dims(i)=1
-         endif
+         end if
       end do
 !
 ! ****** Initialize hdf5 interface.
@@ -54712,9 +54814,9 @@ subroutine wrh5 (fname,s,ierr)
         do i=1,s%ndim
           if (i.eq.1) then
             dimname='dim1'
-          elseif (i.eq.2) then
+          else if (i.eq.2) then
             dimname='dim2'
-          elseif (i.eq.3) then
+          else if (i.eq.3) then
             dimname='dim3'
           end if
           s_dims_i=s_dims(i)
@@ -54910,7 +55012,7 @@ subroutine advtce
           call set_bc_temp_e (temp_e,one)
           call seam_scalar (temp_e,nr,nt,np)
 !
-        elseif (use_sts_tc) then
+        else if (use_sts_tc) then
 !
 ! ****** Explicit Super Time Stepping
 !
@@ -54918,9 +55020,9 @@ subroutine advtce
           call pack_scalar (temp_e,x_cg)
           if (sts_type.eq.3) then
             call take_sts_step_rk2 (x_cg,dtime_local2)
-          elseif (sts_type.eq.2) then
+          else if (sts_type.eq.2) then
             call take_sts_step_rk2 (x_cg,dtime_local2)
-          elseif(sts_type.eq.1) then
+          else if(sts_type.eq.1) then
             call take_sts_step_rkl1 (x_cg,dtime_local2)
           end if
           call unpack_scalar (temp_e,x_cg)
@@ -55187,7 +55289,7 @@ subroutine advtcp
           call set_bc_temp_e (temp_p,one)
           call seam_scalar (temp_p,nr,nt,np)
 !
-        elseif (use_sts_tc) then
+        else if (use_sts_tc) then
 !
 ! ****** Explicit Super Time Stepping
 !
@@ -55195,9 +55297,9 @@ subroutine advtcp
           call pack_scalar (temp_p,x_cg)
           if (sts_type.eq.3) then
             call take_sts_step_rk2 (x_cg,dtime_local2)
-          elseif (sts_type.eq.2) then
+          else if (sts_type.eq.2) then
             call take_sts_step_rk2 (x_cg,dtime_local2)
-          elseif(sts_type.eq.1) then
+          else if(sts_type.eq.1) then
             call take_sts_step_rkl1 (x_cg,dtime_local2)
           end if
           call unpack_scalar (temp_p,x_cg)
@@ -56358,7 +56460,7 @@ subroutine read_rtp_interp_hhh_internal (fname,f_g,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(nr_g,nt_g,np_g) :: f_g
       integer :: ierr
 !
@@ -56811,7 +56913,7 @@ subroutine load_heat_from_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -56965,7 +57067,7 @@ subroutine load_heat_mask_from_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -58962,7 +59064,7 @@ subroutine initialize_from_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), allocatable ::  rt(:),rhot(:),vrt(:),pt(:),pwt(:)
       real(r_typ) ::  alpha,fac,fac2
       integer :: ierr,np1d,ir,irp1,i,j,k
@@ -60656,7 +60758,7 @@ subroutine advzw
 !
       if (wtd_use_open_field_cutoff) then
         call compute_open_field_flux_cutoff
-      endif
+      end if
 !
       call setbczw (zp,zm,vwpv,vwmv)
 !
@@ -61194,7 +61296,7 @@ subroutine init_zw
               write (9,*) '###   pw0: ', pw0
           end if
           call check_error_on_p0 (ierr_config)
-        endif
+        end if
 !
         if (iamp0) then
               write (9,*)
@@ -61204,7 +61306,7 @@ subroutine init_zw
               write (9,*) '###   maxflux [erg cm-2 s-1]:', &
                                  wtd_open_cutoff_maxflux
               write (9,*) '###   eq time [s]:', wtd_open_cutoff_dt_eq_s
-        endif
+        end if
 !
         allocate (wtd_open_flux_zmult(nt,np))
         allocate (wtd_mask_open(nt,np))
@@ -61220,10 +61322,10 @@ subroutine init_zw
 !
         if (restart_run) then
           call read_open_cutoff_from_restart (rs_i(1)%fname)
-        endif
+        end if
 !
 !$acc enter data copyin(wtd_open_flux_zmult,wtd_mask_open,wtd_net_pflux)
-      endif
+      end if
 !
 ! ****** Check the flux-limiter type.
 ! ****** Use integers to avoid string manipulation inside loops.
@@ -61367,7 +61469,7 @@ subroutine setbczw (zpt,zmt,vawp,vawm)
               end if
               if (wtd_use_open_field_cutoff) then
                 zpbcr0=zpbcr0*wtd_open_flux_zmult(j,k)
-              endif
+              end if
             else
               zpbcr0=zpex
             end if
@@ -61382,7 +61484,7 @@ subroutine setbczw (zpt,zmt,vawp,vawm)
               end if
               if (wtd_use_open_field_cutoff) then
                 zmbcr0=zmbcr0*wtd_open_flux_zmult(j,k)
-              endif
+              end if
             else
               zmbcr0=zmex
             end if
@@ -61412,11 +61514,13 @@ subroutine setbczw (zpt,zmt,vawp,vawm)
 ! ****** Apply Reflective BCs
 !
             if (IRBC_TYPE .eq. IRBC_CONS) then
-              if (vawm%r(1,j,k).lt.zero) &
-                           zpbcr0= sqrt(zpbcr0**2+zmbcr0**2)
-              if (vawp%r(1,j,k).lt.zero) &
-                           zmbcr0=-sqrt(zpbcr0**2+zmbcr0**2)
-            elseif (IRBC_TYPE .eq. IRBC_AMPL) then
+              if (vawm%r(1,j,k).lt.zero) then
+                zpbcr0= sqrt(zpbcr0**2+zmbcr0**2)
+              end if
+              if (vawp%r(1,j,k).lt.zero) then
+                zmbcr0=-sqrt(zpbcr0**2+zmbcr0**2)
+              end if
+            else if (IRBC_TYPE .eq. IRBC_AMPL) then
               if (vawm%r(1,j,k).lt.zero) zpbcr0=zpbcr0+zmbcr0
               if (vawp%r(1,j,k).lt.zero) zmbcr0=zpbcr0+zmbcr0
             end if
@@ -62064,7 +62168,7 @@ subroutine read_zw_limit_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), allocatable ::  rt(:), zwt(:)
       real(r_typ) ::  alpha,fac,fac2
       integer :: ierr,np1d,ir,irp1,i,j,k
@@ -62165,7 +62269,7 @@ subroutine read_zw_profile (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), allocatable ::  rt(:), zpt(:), zmt(:)
       real(r_typ) ::  alpha,fac,fac2, avbr, zin, zout
       integer :: ierr,np1d,ir,irp1,i,j,k
@@ -62355,7 +62459,7 @@ subroutine compute_open_field_flux_cutoff
         if (weighted_flux_ratio.gt.one) then
           flux_multiplier = one/weighted_flux_ratio*(mask_open_now) &
                             + (one-mask_open_now)
-        endif
+        end if
 !
 ! ****** Take the square root for applying flux reduction to z0.
 !
@@ -62396,10 +62500,10 @@ subroutine compute_open_field_flux_cutoff
             write (9,*) '  cutoff_maxflux:', wtd_open_cutoff_maxflux
             write (9,*) '  eq time [s]:', wtd_open_cutoff_dt_eq_s
             write (9,*) '  eq time [MAS]:', equilibration_time_mas
-          endif
+          end if
           called_once=.true.
-        endif
-      endif
+        end if
+      end if
 !
 end subroutine
 !#######################################################################
@@ -62428,7 +62532,7 @@ subroutine read_open_cutoff_from_restart (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ix,nodes,i,j,k,ierr
       real(r_typ), dimension(:,:), allocatable :: atp_g
       logical :: field_present
@@ -62562,12 +62666,14 @@ subroutine newflux
 !-----------------------------------------------------------------------
 !
       integer :: j,k
-      integer :: ierr=0
+      integer :: ierr
       real(r_typ) :: dv
 !
       logical, save :: first=.true.
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** If this is not an emerging flux run of the second kind
 ! ****** (i.e. one reading Br from files), copy bt and bp and return
@@ -62600,7 +62706,7 @@ subroutine newflux
         allocate (vt_pbv (ntm,np))
         allocate (vp_pbv (nt,npm))
 !$acc enter data create(bt_pbv,bp_pbv,vr_pbv,vt_pbv,vp_pbv)
-      endif
+      end if
 !
       do concurrent (k=1:np, j=1:nt)
         eflux_er(j,k)=0.
@@ -62884,7 +62990,7 @@ subroutine newflux
           do concurrent (k=1:np, j=1:nt)
             phi(j,k)=phi(j,k)+phi_tdc(j,k)*tdc_phi
           enddo
-        endif
+        end if
 !
         do concurrent (k=1:np, j=1:nt)
           phi_tdc(j,k)=phi(j,k)
@@ -63247,7 +63353,7 @@ subroutine get_flux (targ,brnew)
 !
       real(r_typ), dimension(ntm,npm) :: brnew
       real(r_typ) :: targ
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,nodes,i
       logical, save :: first=.true.
       logical :: exists
@@ -63270,6 +63376,7 @@ subroutine get_flux (targ,brnew)
 !
 !-----------------------------------------------------------------------
 !
+      ierr=0
       b0_save=b0
       b0=0.
 !
@@ -63472,7 +63579,7 @@ subroutine get_flux_pchip (targ,brnew)
       real(r_typ), dimension(ntm,npm) :: brnew
       real(r_typ) :: targ
       real(r_typ) :: wk(8),t_ef(1),dval_ef(1),val_ef(1)
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,nodes,i
       logical, save :: first=.true.
       logical :: exists,if_outside
@@ -63487,7 +63594,7 @@ subroutine get_flux_pchip (targ,brnew)
 !
       integer :: ifilem,ifile0,ifile1,ifilep
       integer :: j,k,nbr_ef,i_case
-      logical :: skip=.true.
+      logical :: skip
       real(r_typ) :: file_no
       character(256) :: fname
       real(r_typ) :: b0_save
@@ -63496,6 +63603,8 @@ subroutine get_flux_pchip (targ,brnew)
 !
 !-----------------------------------------------------------------------
 !
+      ierr=0
+      skip=.true.
       b0_save=b0
       b0=0.
 !
@@ -63978,7 +64087,7 @@ subroutine delsq_divb (ps,q)
                   +a_dia(5,i,j,k)*ps(i+1,j  ,k  ) &
                   +a_dia(6,i,j,k)*ps(i  ,j+1,k  ) &
                   +a_dia(7,i,j,k)*ps(i  ,j  ,k+1)
-        elseif (rb1.and.i.eq.nrm1) then
+        else if (rb1.and.i.eq.nrm1) then
           q(i,j,k)=a_dia(1,i,j,k)*ps(i  ,j  ,k-1) &
                   +a_dia(2,i,j,k)*ps(i  ,j-1,k  ) &
                   +a_dia(3,i,j,k)*ps(i-1,j  ,k  ) &
@@ -64083,7 +64192,7 @@ subroutine read_rtp_interp_mmm (fname,f_g,pole_bc,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(nrm1_g,ntm1_g,npm1_g) :: f_g
       integer :: pole_bc
       integer :: ierr
@@ -64644,7 +64753,7 @@ subroutine get_ip_boundaries
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,nodes,i,j,k
       logical, save :: first_rb0=.true.
       logical :: exists
@@ -64684,6 +64793,8 @@ subroutine get_ip_boundaries
       real(r_typ) :: frame_corr_fac
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Interpolate to time
 !
@@ -65069,7 +65180,7 @@ subroutine get_ip_boundaries
           if (boundary_frame.eq."FAKE_COROTATING") then
             if (calculation_frame.eq."INERTIAL") then
               frame_corr_fac=one
-            elseif (calculation_frame.eq."COROTATING") then
+            else if (calculation_frame.eq."COROTATING") then
               frame_corr_fac=two
             end if
           else
@@ -65539,7 +65650,7 @@ subroutine bc_vcrossb_interplanetary (v,b,vxb,vxb_b)
         if (boundary_frame.eq."FAKE_COROTATING") then
           if (calculation_frame.eq."INERTIAL") then
             frame_corr_fac=one
-          elseif (calculation_frame.eq."COROTATING") then
+          else if (calculation_frame.eq."COROTATING") then
             frame_corr_fac=two
           end if
         else
@@ -66104,7 +66215,7 @@ subroutine read_tp_hh_g (fname,field_g,pole_bc)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       real(r_typ), dimension(nt_g,np_g) :: field_g
       integer :: pole_bc
 !
@@ -66161,7 +66272,7 @@ subroutine read_tp_mh_g (fname,field_g,pole_bc)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -66218,7 +66329,7 @@ subroutine read_tp_hm_g (fname,field_g,pole_bc)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -66275,7 +66386,7 @@ subroutine read_tp_mm_g (fname,field_g,pole_bc)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
 !
 !-----------------------------------------------------------------------
 !
@@ -66998,7 +67109,7 @@ subroutine setup_ip_boundaries
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,nodes,i,j,k
       logical :: exists
 !
@@ -67012,6 +67123,8 @@ subroutine setup_ip_boundaries
       character(6) :: seq
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Check that the specified flux files exist.
 !
@@ -67289,8 +67402,8 @@ subroutine set_pole_bc_bvec_tp (bt,bp)
         end if
       end if
 !
-      buf0=(/sums0,sumc0/)
-      buf1=(/sums1,sumc1/)
+      buf0=[sums0,sumc0]
+      buf1=[sums1,sumc1]
 !
 ! ****** Sum over all processors.
 !
@@ -67454,7 +67567,7 @@ subroutine read_a_file (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: j0,i0,i,j,ierr,nrelax,k
       real(r_typ) :: rr, theta, psi,norm_j
       real(r_typ), allocatable, dimension(:,:) :: atr,apr,jpr,brav
@@ -67775,7 +67888,7 @@ subroutine setup_pbv_boundaries (helper_pbv)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,nodes,i,j,k
       logical :: exists
 !
@@ -67793,6 +67906,8 @@ subroutine setup_pbv_boundaries (helper_pbv)
       character(6) :: seq
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Check that the specified flux files exist.
 !
@@ -68067,13 +68182,15 @@ subroutine setup_fcs
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0,i,j,k,ichemi,natom,jelem,jj,ln1,ln2,ii,jcs
+      integer :: ierr,i,j,k,ichemi,natom,jelem,jj,ln1,ln2,ii,jcs
       real(r_typ), dimension(max_atom,max_atom):: conce_ini,conce_nei
       real(r_typ), dimension(2):: te_arr, ne_arr
       real(r_typ), parameter :: two=2._r_typ, half=0.5_r_typ, &
        one=1._r_typ
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Setup array to modify vr in advfcs
 !
@@ -68254,7 +68371,7 @@ subroutine advfcs
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0,i,j,k,ichemi,natom,jelem,jj,ln1,ln2,ii,jcs
+      integer :: ierr,i,j,k,ichemi,natom,jelem,jj,ln1,ln2,ii,jcs
       real(r_typ), parameter :: two=2._r_typ,one=1._r_typ
       real(r_typ), dimension(max_atom,max_atom):: conce_ini,conce_nei
       real(r_typ), dimension(2):: te_arr, ne_arr
@@ -68266,6 +68383,8 @@ subroutine advfcs
 !
 !-----------------------------------------------------------------------
 !$acc enter data create(vdg,divv,fcsstar)
+!
+      ierr=0
 !
 ! ****** Dynamical advancement
 !
@@ -68386,9 +68505,11 @@ subroutine sub_read_eigen_matrix (path_eigen)
 !
       character(150) :: datafile,path_eigen
       integer :: ichemi, natom
-      integer :: ierr=0
+      integer :: ierr
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
       do ichemi=1,n_element
         natom=index_element(ichemi)
@@ -68537,7 +68658,7 @@ subroutine func_equilibrium_eigen (ichemi,natom,te,ft)
 !-----------------------------------------------------------------------
 !
       integer :: natom,ichemi,index_te
-      real(r_typ) te,ft(natom+1)
+      real(r_typ) :: te,ft(natom+1)
 !
 !-----------------------------------------------------------------------
 !
@@ -68606,7 +68727,7 @@ pure subroutine func_solveionization_eigen (ichemi,natom,te,rho, &
       enddo
 !
       do j=1,natom+1
-        f2(j)=dexp(eigen(ichemi)%evalues(j,index_te)*dt*rho)*f1(j)
+        f2(j)=exp(eigen(ichemi)%evalues(j,index_te)*dt*rho)*f1(j)
       enddo
 !
       do j=1,natom+1
@@ -68635,7 +68756,7 @@ subroutine read_fcs_g (fname,field_g,ncs,pole_bc)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ncs
       real(r_typ) :: field_g(nt_g,np_g,ncs)
       integer :: pole_bc
@@ -68702,7 +68823,7 @@ subroutine read_fcs_interp (fname,f_g,ncs,pole_bc,ierr)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: pole_bc,ncs
       real(r_typ) :: f_g(nt_g,np_g,ncs)
       integer :: ierr
@@ -68905,7 +69026,7 @@ subroutine read_vbr0_from_restart (fname)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: fname
+      character(*), intent(in) :: fname
       integer :: ix,nodes,i,j,k,ierr
       real(r_typ), dimension(:,:), allocatable :: atp_g
       logical :: field_present
@@ -69052,7 +69173,7 @@ subroutine get_all_pchip (targin,brnew,vtnew,vpnew,phinew)
       real(r_typ), dimension(nt ,np ) :: phinew
       real(r_typ) :: targ,targin
       real(r_typ) :: wk(8),t_ef(1),dval_ef(1),val_ef(1)
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,i
       integer, save :: nodes
       logical, save :: first=.true.
@@ -69068,7 +69189,7 @@ subroutine get_all_pchip (targin,brnew,vtnew,vpnew,phinew)
 !
       integer :: ifilem,ifile0,ifile1,ifilep
       integer :: j,k,nbr_ef,i_case
-      logical :: skip=.true.
+      logical :: skip
       real(r_typ) :: file_no
       character(256) :: fname
       character(6) :: seq
@@ -69078,6 +69199,8 @@ subroutine get_all_pchip (targin,brnew,vtnew,vpnew,phinew)
 !
 !-----------------------------------------------------------------------
 !
+      ierr=0
+      skip=.true.
       b0_save=b0
       b0=0.
 !
@@ -69615,7 +69738,7 @@ subroutine check_tdc_from_files (nodes)
 !
 !-----------------------------------------------------------------------
 !
-      integer :: ierr=0
+      integer :: ierr
       integer :: ix,nodes,i,j,k
       logical :: exists
 !
@@ -69627,6 +69750,8 @@ subroutine check_tdc_from_files (nodes)
       character(6) :: seq
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Check that the specified flux files exist.
 !
@@ -69650,7 +69775,7 @@ subroutine check_tdc_from_files (nodes)
           write (*,*) '### You have specified more nodes than times.'
           ierr=1
         end if
-      endif
+      end if
 !
       if (iamp0.and.check_tdc_files) then
         do i=1,n_tdcff_seq
@@ -69708,7 +69833,7 @@ subroutine read_tdc_from_files (seq,vt0,vp0,phi0)
 !
 !-----------------------------------------------------------------------
 !
-      character(*) :: seq
+      character(*), intent(in) :: seq
       character(256) :: fname
       real(r_typ), dimension(ntm,np ) :: vt0
       real(r_typ), dimension(nt ,npm) :: vp0
@@ -69719,9 +69844,11 @@ subroutine read_tdc_from_files (seq,vt0,vp0,phi0)
       real(r_typ), dimension(ntm1_g,np_g) :: vt0_g
       real(r_typ), dimension(nt_g,npm1_g) :: vp0_g
       real(r_typ), dimension(nt_g,np_g) :: phi0_g
-      integer :: ierr=0
+      integer :: ierr
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Read the Vt file
 !
@@ -73458,5 +73585,8 @@ end subroutine
 ! ### Version 0.9.9.1, 07/30/2026, modified by RC:
 !      - Fixed bug in checking interp bounds inside outside_interval().
 !        This was causing some remesh runs to crash.
+!
+! ### Version 0.9.9.2, 09/04/2026, modified by RC:
+!      - Cleaned up code with the help of Fortitude.
 !
 !#######################################################################
