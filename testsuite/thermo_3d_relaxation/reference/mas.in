@@ -76,10 +76,10 @@
   g0 = 0.823
   br00 = 0.0
   rho0 = 20000.0
-  tbc0    = 20000.
-  tchromo = 20000.
+  tbc0 = 20000.0
+  tchromo = 20000.0
   iftfloor = .true.
-  tfloor  = 10000.
+  tfloor  = 10000.0
   char_bc0 = .true.
   char_bc1 = .true.
   ubzero = .true.
@@ -90,7 +90,10 @@
   t_cutoff1 = 250000.0
   nfilt_kappa = 0
   alpha_nocoll = 1.0
+  tc_r = 10.0
   tc_dr = 0.5
+  tc_fac0 = 1.0
+  tc_fac1 = 0
   tc_nocoll_dr = 0.5
 ! *** Radiative loss:
   radloss = 1.0
@@ -127,11 +130,15 @@
   heatsource(3)%t_profile%active = .false.
   heatsource(3)%r_profile%active = .false.
   heatsource(3)%b_profile%active = .false.
+  heating_flat_topped = .false.
+  heat_mask_file = ' '
+  add_ohmic_heating = .false.
 !
 ! *** Initial condition.
 !
   initial_field = 'POTENTIAL_FIELD'
   bnfile = 'br_input.h5'
+  b_in_gauss = .true.
   initial_plasma = '1dfile'
   onedfile = 'initial_plasma_1d_r.dat'
 !

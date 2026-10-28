@@ -8,53 +8,53 @@
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Time: start-up                     0.075               1           0.075382
- Time: advrho                       0.020              55           0.000365
- Time: advte                        1.206              55           0.021931
+ Time: start-up                     0.119               1           0.118852
+ Time: advrho                       0.023              55           0.000427
+ Time: advte                        1.076              55           0.019562
  Time: advtp                        0.000               0           0.000000
- Time: advtce                       0.785              55           0.014280
+ Time: advtce                       0.733              55           0.013334
  Time: advtcp                       0.000               0           0.000000
- Time: adva                         0.189              55           0.003445
- Time: advv                         5.166              55           0.093933
- Time: advvisc                      1.982              55           0.036028
+ Time: adva                         0.187              55           0.003396
+ Time: advv                         4.566              55           0.083020
+ Time: advvisc                      1.734              55           0.031534
  Time: advpw                        0.000               0           0.000000
- Time: advzw                        0.634              55           0.011519
+ Time: advzw                        0.702              55           0.012760
  Time: advparticles                 0.000               0           0.000000
- Time: v_solver                     1.616             110           0.014692
- Time: solve                        1.579             167           0.009454
- Time: cgdot                        0.075            2626           0.000028
- Time: pot_2d                       0.001               1           0.000621
- Time: pot_3d                       0.028               1           0.028294
+ Time: v_solver                     1.397             110           0.012696
+ Time: solve                        1.406             167           0.008417
+ Time: cgdot                        0.141            2630           0.000054
+ Time: pot_2d                       0.002               1           0.001856
+ Time: pot_3d                       0.062               1           0.061641
  Time: pot_2dh                      0.000               0           0.000000
- Time: i/o                          0.028              40           0.000707
- Time: other                        0.118               1           0.118094
- Total time                         7.432
+ Time: i/o                          0.025              41           0.000598
+ Time: other                        0.133               1           0.133452
+ Total time                         6.825
 
  Communication time for tracked tasks:
  -------------------------------------
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Comm. time: seam                   0.235           19334           0.000012
- Comm. time: global sum             0.004            2793           0.000001
- Comm. time: min/max                0.007            1764           0.000004
- Comm. time: sumphi                 0.025           11581           0.000002
- Comm. time: i/o                    0.003              39           0.000084
- Total communication time           0.274
+ Comm. time: seam                   0.492           19336           0.000025
+ Comm. time: global sum             0.078            2797           0.000028
+ Comm. time: min/max                0.034            1764           0.000019
+ Comm. time: sumphi                 0.038           11583           0.000003
+ Comm. time: i/o                    0.005              40           0.000121
+ Total communication time           0.646
 
  Summary timing information:
  ---------------------------
 
- Time: start-up                     0.075
- Time: advrho                       0.020
- Time: advte                        1.206
- Time: adva                         0.189
- Time: advv                         5.166
- Time: advzw                        0.634
- Time: i/o                          0.023
- Time: other                        0.118
+ Time: start-up                     0.119
+ Time: advrho                       0.023
+ Time: advte                        1.076
+ Time: adva                         0.187
+ Time: advv                         4.566
+ Time: advzw                        0.702
+ Time: i/o                          0.018
+ Time: other                        0.133
  ----------------------------------------
- Total time                         7.432
+ Total time                         6.825
  ----------------------------------------
 
 ================================================================================
@@ -66,52 +66,52 @@
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Time: start-up                     0.075               1           0.075351
- Time: advrho                       0.020              55           0.000364
- Time: advte                        1.206              55           0.021932
+ Time: start-up                     0.119               1           0.118790
+ Time: advrho                       0.023              55           0.000427
+ Time: advte                        1.076              55           0.019564
  Time: advtp                        0.000               0           0.000000
- Time: advtce                       0.785              55           0.014281
+ Time: advtce                       0.733              55           0.013335
  Time: advtcp                       0.000               0           0.000000
- Time: adva                         0.190              55           0.003450
- Time: advv                         5.166              55           0.093932
- Time: advvisc                      1.982              55           0.036028
+ Time: adva                         0.187              55           0.003402
+ Time: advv                         4.566              55           0.083021
+ Time: advvisc                      1.734              55           0.031534
  Time: advpw                        0.000               0           0.000000
- Time: advzw                        0.634              55           0.011523
+ Time: advzw                        0.702              55           0.012763
  Time: advparticles                 0.000               0           0.000000
- Time: v_solver                     1.629             110           0.014809
- Time: solve                        1.581             167           0.009469
- Time: cgdot                        0.122            2626           0.000046
- Time: pot_2d                       0.001               1           0.000621
- Time: pot_3d                       0.028               1           0.028298
+ Time: v_solver                     1.409             110           0.012811
+ Time: solve                        1.406             167           0.008419
+ Time: cgdot                        0.140            2630           0.000053
+ Time: pot_2d                       0.002               1           0.001853
+ Time: pot_3d                       0.062               1           0.061527
  Time: pot_2dh                      0.000               0           0.000000
  Time: i/o                          0.000               0           0.000000
- Time: other                        0.140               1           0.140193
- Total time                         7.432
+ Time: other                        0.151               1           0.150996
+ Total time                         6.824
 
  Communication time for tracked tasks:
  -------------------------------------
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Comm. time: seam                   0.256           19334           0.000013
- Comm. time: global sum             0.054            2793           0.000019
- Comm. time: min/max                0.017            1764           0.000010
- Comm. time: sumphi                 0.132           11581           0.000011
- Comm. time: i/o                    0.002              39           0.000048
- Total communication time           0.462
+ Comm. time: seam                   0.502           19336           0.000026
+ Comm. time: global sum             0.075            2797           0.000027
+ Comm. time: min/max                0.042            1764           0.000024
+ Comm. time: sumphi                 0.133           11583           0.000011
+ Comm. time: i/o                    0.002              40           0.000051
+ Total communication time           0.753
 
  Summary timing information:
  ---------------------------
 
- Time: start-up                     0.075
- Time: advrho                       0.020
- Time: advte                        1.206
- Time: adva                         0.190
- Time: advv                         5.166
- Time: advzw                        0.634
- Time: other                        0.140
+ Time: start-up                     0.119
+ Time: advrho                       0.023
+ Time: advte                        1.076
+ Time: adva                         0.187
+ Time: advv                         4.566
+ Time: advzw                        0.702
+ Time: other                        0.151
  ----------------------------------------
- Total time                         7.432
+ Total time                         6.824
  ----------------------------------------
 
 ================================================================================
@@ -123,53 +123,52 @@
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Time: start-up                     0.075               1           0.075373
- Time: advrho                       0.020              55           0.000364
- Time: advte                        1.206              55           0.021932
+ Time: start-up                     0.119               1           0.118773
+ Time: advrho                       0.024              55           0.000430
+ Time: advte                        1.076              55           0.019562
  Time: advtp                        0.000               0           0.000000
- Time: advtce                       0.785              55           0.014281
+ Time: advtce                       0.734              55           0.013344
  Time: advtcp                       0.000               0           0.000000
- Time: adva                         0.190              55           0.003458
- Time: advv                         5.164              55           0.093888
- Time: advvisc                      1.982              55           0.036028
+ Time: adva                         0.188              55           0.003413
+ Time: advv                         4.568              55           0.083055
+ Time: advvisc                      1.738              55           0.031597
  Time: advpw                        0.000               0           0.000000
- Time: advzw                        0.633              55           0.011515
+ Time: advzw                        0.702              55           0.012755
  Time: advparticles                 0.000               0           0.000000
- Time: v_solver                     1.627             110           0.014790
- Time: solve                        1.587             167           0.009502
- Time: cgdot                        0.168            2626           0.000064
- Time: pot_2d                       0.001               1           0.000612
- Time: pot_3d                       0.028               1           0.028298
+ Time: v_solver                     1.401             110           0.012733
+ Time: solve                        1.404             167           0.008404
+ Time: cgdot                        0.120            2630           0.000046
+ Time: pot_2d                       0.002               1           0.001876
+ Time: pot_3d                       0.062               1           0.061645
  Time: pot_2dh                      0.000               0           0.000000
- Time: i/o                          0.019              56           0.000338
- Time: other                        0.125               1           0.124517
- Total time                         7.432
+ Time: i/o                          0.000               0           0.000000
+ Time: other                        0.149               1           0.148844
+ Total time                         6.824
 
  Communication time for tracked tasks:
  -------------------------------------
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Comm. time: seam                   0.513           18949           0.000027
- Comm. time: global sum             0.099            2793           0.000036
- Comm. time: min/max                0.014            1764           0.000008
- Comm. time: sumphi                 0.024           11361           0.000002
- Comm. time: i/o                    0.003              91           0.000031
- Total communication time           0.653
+ Comm. time: seam                   0.555           18951           0.000029
+ Comm. time: global sum             0.055            2797           0.000019
+ Comm. time: min/max                0.016            1764           0.000009
+ Comm. time: sumphi                 0.033           11363           0.000003
+ Comm. time: i/o                    0.003              35           0.000072
+ Total communication time           0.660
 
  Summary timing information:
  ---------------------------
 
- Time: start-up                     0.075
- Time: advrho                       0.020
- Time: advte                        1.206
- Time: adva                         0.190
- Time: advv                         5.164
- Time: advzw                        0.633
- Time: i/o                          0.018
- Time: other                        0.125
+ Time: start-up                     0.119
+ Time: advrho                       0.024
+ Time: advte                        1.076
+ Time: adva                         0.188
+ Time: advv                         4.568
+ Time: advzw                        0.702
+ Time: other                        0.149
  ----------------------------------------
- Total time                         7.432
+ Total time                         6.824
  ----------------------------------------
 
 ================================================================================
@@ -181,52 +180,167 @@
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Time: start-up                     0.075               1           0.075359
- Time: advrho                       0.020              55           0.000364
- Time: advte                        1.206              55           0.021932
+ Time: start-up                     0.119               1           0.118775
+ Time: advrho                       0.024              55           0.000430
+ Time: advte                        1.076              55           0.019561
  Time: advtp                        0.000               0           0.000000
- Time: advtce                       0.785              55           0.014281
+ Time: advtce                       0.734              55           0.013344
  Time: advtcp                       0.000               0           0.000000
- Time: adva                         0.190              55           0.003456
- Time: advv                         5.164              55           0.093887
- Time: advvisc                      1.982              55           0.036028
+ Time: adva                         0.188              55           0.003411
+ Time: advv                         4.568              55           0.083055
+ Time: advvisc                      1.738              55           0.031598
  Time: advpw                        0.000               0           0.000000
- Time: advzw                        0.634              55           0.011518
+ Time: advzw                        0.702              55           0.012759
  Time: advparticles                 0.000               0           0.000000
- Time: v_solver                     1.649             110           0.014990
- Time: solve                        1.589             167           0.009515
- Time: cgdot                        0.211            2626           0.000080
- Time: pot_2d                       0.001               1           0.000612
- Time: pot_3d                       0.028               1           0.028283
+ Time: v_solver                     1.504             110           0.013672
+ Time: solve                        1.405             167           0.008413
+ Time: cgdot                        0.168            2630           0.000064
+ Time: pot_2d                       0.002               1           0.001877
+ Time: pot_3d                       0.062               1           0.061632
  Time: pot_2dh                      0.000               0           0.000000
  Time: i/o                          0.000               0           0.000000
- Time: other                        0.143               1           0.142555
- Total time                         7.432
+ Time: other                        0.149               1           0.148775
+ Total time                         6.824
 
  Communication time for tracked tasks:
  -------------------------------------
 
  Task                           Time Used         # Calls      Time per call
  ----                           ---------         -------      -------------
- Comm. time: seam                   0.531           18949           0.000028
- Comm. time: global sum             0.145            2793           0.000052
- Comm. time: min/max                0.023            1764           0.000013
- Comm. time: sumphi                 0.139           11361           0.000012
- Comm. time: i/o                    0.004              91           0.000045
- Total communication time           0.842
+ Comm. time: seam                   0.591           18951           0.000031
+ Comm. time: global sum             0.103            2797           0.000037
+ Comm. time: min/max                0.033            1764           0.000019
+ Comm. time: sumphi                 0.347           11363           0.000031
+ Comm. time: i/o                    0.004              35           0.000103
+ Total communication time           1.078
 
  Summary timing information:
  ---------------------------
 
- Time: start-up                     0.075
- Time: advrho                       0.020
- Time: advte                        1.206
- Time: adva                         0.190
- Time: advv                         5.164
- Time: advzw                        0.634
- Time: other                        0.143
+ Time: start-up                     0.119
+ Time: advrho                       0.024
+ Time: advte                        1.076
+ Time: adva                         0.188
+ Time: advv                         4.568
+ Time: advzw                        0.702
+ Time: other                        0.149
  ----------------------------------------
- Total time                         7.432
+ Total time                         6.824
+ ----------------------------------------
+
+================================================================================
+
+ Rank ID =      4
+
+ COMP time for tracked tasks:
+ ---------------------------
+
+ Task                           Time Used         # Calls      Time per call
+ ----                           ---------         -------      -------------
+ Time: start-up                     0.119               1           0.118822
+ Time: advrho                       0.024              55           0.000428
+ Time: advte                        1.076              55           0.019565
+ Time: advtp                        0.000               0           0.000000
+ Time: advtce                       0.736              55           0.013383
+ Time: advtcp                       0.000               0           0.000000
+ Time: adva                         0.188              55           0.003410
+ Time: advv                         4.563              55           0.082955
+ Time: advvisc                      1.738              55           0.031602
+ Time: advpw                        0.000               0           0.000000
+ Time: advzw                        0.702              55           0.012758
+ Time: advparticles                 0.000               0           0.000000
+ Time: v_solver                     1.405             110           0.012777
+ Time: solve                        1.400             167           0.008385
+ Time: cgdot                        0.139            2630           0.000053
+ Time: pot_2d                       0.001               1           0.000978
+ Time: pot_3d                       0.062               1           0.061703
+ Time: pot_2dh                      0.000               0           0.000000
+ Time: i/o                          0.020              56           0.000364
+ Time: other                        0.135               1           0.134977
+ Total time                         6.825
+
+ Communication time for tracked tasks:
+ -------------------------------------
+
+ Task                           Time Used         # Calls      Time per call
+ ----                           ---------         -------      -------------
+ Comm. time: seam                   0.420           18951           0.000022
+ Comm. time: global sum             0.079            2797           0.000028
+ Comm. time: min/max                0.024            1764           0.000013
+ Comm. time: sumphi                 0.031           11363           0.000003
+ Comm. time: i/o                    0.005              91           0.000049
+ Total communication time           0.558
+
+ Summary timing information:
+ ---------------------------
+
+ Time: start-up                     0.119
+ Time: advrho                       0.024
+ Time: advte                        1.076
+ Time: adva                         0.188
+ Time: advv                         4.563
+ Time: advzw                        0.702
+ Time: i/o                          0.019
+ Time: other                        0.135
+ ----------------------------------------
+ Total time                         6.825
+ ----------------------------------------
+
+================================================================================
+
+ Rank ID =      5
+
+ COMP time for tracked tasks:
+ ---------------------------
+
+ Task                           Time Used         # Calls      Time per call
+ ----                           ---------         -------      -------------
+ Time: start-up                     0.119               1           0.118806
+ Time: advrho                       0.024              55           0.000428
+ Time: advte                        1.076              55           0.019565
+ Time: advtp                        0.000               0           0.000000
+ Time: advtce                       0.736              55           0.013384
+ Time: advtcp                       0.000               0           0.000000
+ Time: adva                         0.188              55           0.003410
+ Time: advv                         4.563              55           0.082956
+ Time: advvisc                      1.738              55           0.031604
+ Time: advpw                        0.000               0           0.000000
+ Time: advzw                        0.702              55           0.012764
+ Time: advparticles                 0.000               0           0.000000
+ Time: v_solver                     1.416             110           0.012871
+ Time: solve                        1.402             167           0.008393
+ Time: cgdot                        0.169            2630           0.000064
+ Time: pot_2d                       0.001               1           0.000979
+ Time: pot_3d                       0.062               1           0.061664
+ Time: pot_2dh                      0.000               0           0.000000
+ Time: i/o                          0.000               0           0.000000
+ Time: other                        0.154               1           0.154020
+ Total time                         6.825
+
+ Communication time for tracked tasks:
+ -------------------------------------
+
+ Task                           Time Used         # Calls      Time per call
+ ----                           ---------         -------      -------------
+ Comm. time: seam                   0.448           18951           0.000024
+ Comm. time: global sum             0.111            2797           0.000040
+ Comm. time: min/max                0.033            1764           0.000019
+ Comm. time: sumphi                 0.138           11363           0.000012
+ Comm. time: i/o                    0.006              91           0.000068
+ Total communication time           0.736
+
+ Summary timing information:
+ ---------------------------
+
+ Time: start-up                     0.119
+ Time: advrho                       0.024
+ Time: advte                        1.076
+ Time: adva                         0.188
+ Time: advv                         4.563
+ Time: advzw                        0.702
+ Time: other                        0.154
+ ----------------------------------------
+ Total time                         6.825
  ----------------------------------------
 
 ================================================================================
@@ -236,44 +350,44 @@
 
                                    Avg          Min          Max       S. Dev
                                    ---          ---          ---       ------
- Comm. time: seam                0.384        0.235        0.531        0.139
- Comm. time: global sum          0.075        0.004        0.145        0.052
- Comm. time: min/max             0.015        0.007        0.023        0.006
- Comm. time: sumphi              0.080        0.024        0.139        0.056
- Comm. time: i/o                 0.003        0.002        0.004        0.001
- Time: start-up                  0.075        0.075        0.075        0.000
- Time: advrho                    0.020        0.020        0.020        0.000
- Time: advte                     1.206        1.206        1.206        0.000
+ Comm. time: seam                0.501        0.420        0.591        0.058
+ Comm. time: global sum          0.083        0.055        0.111        0.019
+ Comm. time: min/max             0.030        0.016        0.042        0.008
+ Comm. time: sumphi              0.120        0.031        0.347        0.111
+ Comm. time: i/o                 0.004        0.002        0.006        0.001
+ Time: start-up                  0.119        0.119        0.119        0.000
+ Time: advrho                    0.024        0.023        0.024        0.000
+ Time: advte                     1.076        1.076        1.076        0.000
  Time: advtp                     0.000        0.000        0.000        0.000
- Time: advtce                    0.785        0.785        0.785        0.000
+ Time: advtce                    0.734        0.733        0.736        0.001
  Time: advtcp                    0.000        0.000        0.000        0.000
- Time: adva                      0.190        0.189        0.190        0.000
- Time: advv                      5.165        5.164        5.166        0.001
- Time: advvisc                   1.982        1.982        1.982        0.000
+ Time: adva                      0.187        0.187        0.188        0.000
+ Time: advv                      4.566        4.563        4.568        0.002
+ Time: advvisc                   1.737        1.734        1.738        0.002
  Time: advpw                     0.000        0.000        0.000        0.000
- Time: advzw                     0.634        0.633        0.634        0.000
+ Time: advzw                     0.702        0.702        0.702        0.000
  Time: advparticles              0.000        0.000        0.000        0.000
- Time: v_solver                  1.630        1.616        1.649        0.012
- Time: solve                     1.584        1.579        1.589        0.004
- Time: cgdot                     0.144        0.075        0.211        0.051
- Time: pot_2d                    0.001        0.001        0.001        0.000
- Time: pot_3d                    0.028        0.028        0.028        0.000
+ Time: v_solver                  1.422        1.397        1.504        0.037
+ Time: solve                     1.404        1.400        1.406        0.002
+ Time: cgdot                     0.146        0.120        0.169        0.017
+ Time: pot_2d                    0.002        0.001        0.002        0.000
+ Time: pot_3d                    0.062        0.062        0.062        0.000
  Time: pot_2dh                   0.000        0.000        0.000        0.000
- Time: i/o                       0.012        0.000        0.028        0.012
- Time: other                     0.131        0.118        0.143        0.010
- Total time                      7.432        7.432        7.432        0.000
+ Time: i/o                       0.007        0.000        0.025        0.011
+ Time: other                     0.145        0.133        0.154        0.008
+ Total time                      6.825        6.824        6.825        0.000
 
- Average total time per processor =            7.432
- Average comm. time per processor =            0.558
- Average comp. time per processor =            6.874
+ Average total time per processor =            6.825
+ Average comm. time per processor =            0.739
+ Average comp. time per processor =            6.086
 
- Average ratio of communication time to total time =   7.51%
+ Average ratio of communication time to total time =  10.82%
 
- Normalized COMP time used:          4.9 micro-sec/mesh-point/time-step
-                                  533.1 micro-sec/mesh-point/normalized-time
-                                 0.0252 micro-sec/mesh-point/vsolve-iter
-                                 0.0064 micro-sec/mesh-point/tsolve-iter
-                                 0.0231 micro-sec/mesh-point/weighted-CG-iter
+ Normalized COMP time used:          6.8 micro-sec/mesh-point/time-step
+                                  734.3 micro-sec/mesh-point/normalized-time
+                                 0.0329 micro-sec/mesh-point/vsolve-iter
+                                 0.0090 micro-sec/mesh-point/tsolve-iter
+                                 0.0318 micro-sec/mesh-point/weighted-CG-iter
 
 ================================================================================
 

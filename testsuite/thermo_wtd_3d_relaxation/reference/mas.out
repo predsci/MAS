@@ -303,16 +303,17 @@
 
 
 Code: MAS
-Version: 0.9.2.1git
-Updated on: 04/23/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run started on: 04/28/2025
-Run started at: 16:04:45
+Run ID: thermo_wtd_3d_relaxation
+Run started on: 10/26/2026
+Run started at: 12:46:26
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ------------------------------------------------------------------------
@@ -541,7 +542,6 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  UPWIND_AR =    1.0000000000000000     
  UPWIND_AT =    1.0000000000000000     
  UPWIND_AP =    1.0000000000000000     
- UPWIND_A_R0 =    0.0000000000000000     
 
  ### COMMENT from LOAD_POT2D_SOLVE:
  ### pot2d preconditioner activated.
@@ -586,6 +586,42 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  Writing BR0 to file: br_photo.h5
 
+ ### Starting POT2D solver.
+
+ ### COMMENT from POT2D_SOLVER:
+ ### CG solution of Initial boundary potential:
+ NTIME =            0
+ TIME =    0.0000000000000000     
+
+ ### Comment from ERR_NORM:
+ ### Convergence information:
+ Iteration:        0   Residual:   1.000000000000000E+00
+
+ ### Comment from ERR_NORM:
+ ### The CG solver has converged.
+ Iteration:       83   Residual:   7.994994857067204E-10
+
+ ### Potential field [Initial boundary potential]: N=   83 |B|= 7.36E-01 |R|= 5.88E-10
+
+ ### Starting POT3D solver.
+
+ ### COMMENT from POT3D_SOLVER:
+ NTIME =            0
+ TIME =    0.0000000000000000     
+
+ ### Comment from ERR_NORM:
+ ### Convergence information:
+ Iteration:        0   Residual:   1.000000000000000E+00
+ Iteration:      100   Residual:   6.896923479957803E-04
+ Iteration:      200   Residual:   5.645463627281986E-06
+ Iteration:      300   Residual:   9.654102228222112E-09
+
+ ### Comment from ERR_NORM:
+ ### The CG solver has converged.
+ Iteration:      327   Residual:   9.436611871781149E-10
+
+ ### Potential field 3D: N=  327 |B|= 2.60E+01 |R|= 2.45E-08
+
  ### COMMENT from LOAD_RHO_FROM_FILE:
  ### Reading the density from file: rho3d_initial_1au_rho40k.h5
 
@@ -597,9 +633,9 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### COMMENT from LOAD_V_ADVANCE:
  ### Velocity preconditioner activated.
- Matrix size per node (NxN) N:             77400
- Matrix # of non-zeros per node M:       1121096
- Estimated memory usage per node:    39.83 MB
+ Matrix size per node (NxN) N:             51600
+ Matrix # of non-zeros per node M:        743426
+ Estimated memory usage per node:    26.46 MB
 
  ### COMMENT from CHECK_TIME_PROFILES:
  ### The following time profiles are active:
@@ -645,10 +681,10 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  zw limit is the following on p0
  i, rh, zwlimit           1    0.99870617033743914          1.6000000000000001     
  i, rh, zwlimit           2     1.0012938296625609         0.13099387353561859     
- i, rh, zwlimit           3     1.0038435385303615         0.13638874689682765     
+ i, rh, zwlimit           3     1.0038435385303615         0.13638874689682767     
  i, rh, zwlimit           4     1.0063141137877067         0.23552188321676035     
  i, rh, zwlimit           5     1.0087464455447979         0.43848156690634171     
- i, rh, zwlimit           6     1.0112614208815873         0.62046071240697442     
+ i, rh, zwlimit           6     1.0112614208815873         0.62046071240697453     
  i, rh, zwlimit           7     1.0140184725423955         0.67833484001864397     
  i, rh, zwlimit           8     1.0171714062299011         0.71462318539382708     
  i, rh, zwlimit           9     1.0208507940125546         0.73280566650836620     
@@ -658,23 +694,13 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  i, rh, zwlimit          13     1.0432785860661566         0.76812044081818143     
  i, rh, zwlimit          14     1.0515604719210363         0.79662068994990676     
  i, rh, zwlimit          15     1.0613049493711819         0.85983225634578941     
- i, rh, zwlimit          16     1.0727703139560418         0.91175432634341080     
+ i, rh, zwlimit          16     1.0727703139560418         0.91175432634341091     
  i, rh, zwlimit          17     1.0862604765364687         0.97073001270162218     
  i, rh, zwlimit          18     1.1021330190186027          1.0492534095865653     
  i, rh, zwlimit          19     1.1208082158861441          1.1292628635445765     
  i, rh, zwlimit          20     1.1427731503901650          1.2124672933909484     
- i, rh, zwlimit          21     1.1685523770720367          1.3127413672983357     
- i, rh, zwlimit          22     1.1985895708151260          1.4338128629631608     
- i, rh, zwlimit          23     1.2330377837396647          1.5542285459977148     
- i, rh, zwlimit          24     1.2716331802044596          1.6000000000000001     
- i, rh, zwlimit          25     1.3139051113976958          1.6000000000000001     
- i, rh, zwlimit          26     1.3596810584926848          1.6000000000000001     
- i, rh, zwlimit          27     1.4094522143466617          1.6000000000000001     
- i, rh, zwlimit          28     1.4642704299035190          1.6000000000000001     
- i, rh, zwlimit          29     1.5253645042699295          1.6000000000000001     
- i, rh, zwlimit          30     1.5938821692228622          1.6000000000000001     
- i, rh, zwlimit          31     1.6708882645820169          1.6000000000000001     
- i, rh, zwlimit          32     1.7574724564386239          1.6000000000000001     
+ i, rh, zwlimit          21     1.1685523770720370          1.3127413672983366     
+ i, rh, zwlimit          22     1.1985895708151264          1.6000000000000001     
 
  ### COMMENT from INITIALIZE_RADIATIVE_LOSS:
  ### Activated radiative loss function.
@@ -731,6 +757,8 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  ### Activated chromospheric heating:
  ### chromo_heat_t_zqc_0:    10000.000000000000     
  ### chromo_heat_t_zqc_1:    40000.000000000000     
+
+ Writing Br being used at lower boundary (code units) to br_r0_init.h5
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
@@ -1303,16 +1331,17 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Wrote time histories to file: mas_history_b.out
 
 Code: MAS
-Version: 0.9.2.1git
-Updated on: 04/23/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run ended on: 04/28/2025
-Run ended at: 16:04:52
+Run ID: thermo_wtd_3d_relaxation
+Run ended on: 10/26/2026
+Run ended at: 12:46:33
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ### End of run ...
@@ -1321,10 +1350,10 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  TIME =  5.0789281794E-01
 
  ### Time advance information:
- Average time step used =    9.2344148716570311E-003
+ Average time step used =    9.2344148716570346E-003
 
  ### WTD advance information:
- Average time step for zp,zm advance =    1.6732584092645408E-003
+ Average time step for zp,zm advance =    1.6732584092645391E-003
 
  -----------------------------------------
  ### Field solver convergence information:
@@ -1347,7 +1376,7 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### Semi-implicit advance (predictor):
  Total number of solves =           55
- Total number of iterations =          325
+ Total number of iterations =          327
  Average number of iterations per solve =            5
 
  ### Semi-implicit advance (corrector):
@@ -1385,5 +1414,5 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Total number of iterations =            0
  Average number of iterations per solve =            0
 
- ### CPU time used (on IPROC0):         7.43 seconds
+ ### CPU time used (on IPROC0):         6.82 seconds
 

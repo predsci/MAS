@@ -69,7 +69,7 @@
   br00 = 1.0
   rho0 = 1.0
   tbc0    = 20000.
-  tchromo = 20000.
+  iftfloor = .false.
   tfloor  = 20000.
   char_bc0 = .false.
   char_bc1 = .false.
@@ -81,6 +81,7 @@
   alpha_nocoll = 0.0
   t_cutoff1 = 500000.0
   nfilt_kappa = 0
+  tchromo = 20000.
 !
 ! *** Initial condition.
 !
@@ -111,10 +112,6 @@
   ncgmax = 100000
 !
 /
-! -----------------------
+!
 ! Zero-beta Rotated Alfven Wave P
-! -----------------------
 !
-! Description goes here.
-!
-! -----------------------

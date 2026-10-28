@@ -72,7 +72,7 @@
   br00 = 1.0
   rho0 = 1.0
   tbc0    = 20000.
-  tchromo = 20000.
+  iftfloor = .false.
   tfloor  = 20000.
   char_bc0 = .false.
   char_bc1 = .false.
@@ -84,6 +84,7 @@
   alpha_nocoll = 0.0
   t_cutoff1 = 500000.0
   nfilt_kappa = 0
+  tchromo = 20000.
 !
 ! *** Initial condition.
 !
@@ -114,26 +115,23 @@
   ncgmax = 100000
 !
 /
-! -----------------------
+!
 ! Zero-beta Rotated Alfven Wave P
-! -----------------------
 !
-! Description goes here.
-!
-! -----------------------
 
 
 Code: MAS
-Version: 0.9.2.0git
-Updated on: 04/07/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run started on: 04/09/2025
-Run started at: 14:01:56
+Run ID: zb_3d_alfven_wave_p_rot
+Run started on: 10/26/2026
+Run started at: 12:45:57
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ------------------------------------------------------------------------
@@ -373,20 +371,19 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  UPWIND_AR =    1.0000000000000000     
  UPWIND_AT =    1.0000000000000000     
  UPWIND_AP =    1.0000000000000000     
- UPWIND_A_R0 =    0.0000000000000000     
 
  ### COMMENT from LOAD_POT2D_SOLVE:
  ### pot2d preconditioner activated.
- Matrix size per node (NxN) N:              1225
- Matrix # of non-zeros per node M:          5783
- Estimated memory usage per node:     0.36 MB
+ Matrix size per node (NxN) N:               825
+ Matrix # of non-zeros per node M:          3879
+ Estimated memory usage per node:     0.24 MB
 
 
  ### COMMENT from LOAD_POT2DH_SOLVE:
  ### pot2dh preconditioners activated.
- Matrix size per node (NxN) N:              1176
- Matrix # of non-zeros per node M:          5734
- Estimated memory usage per node:     0.35 MB
+ Matrix size per node (NxN) N:               792
+ Matrix # of non-zeros per node M:          3846
+ Estimated memory usage per node:     0.23 MB
 
  ### COMMENT from INIT_ALFVEN_WAVE2_rotated:
  ### Alfven wave (type 2) parameters:
@@ -411,28 +408,31 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### COMMENT from LOAD_V_ADVANCE:
  ### Velocity preconditioner activated.
- Matrix size per node (NxN) N:             79968
- Matrix # of non-zeros per node M:       1155556
- Estimated memory usage per node:    41.09 MB
+ Matrix size per node (NxN) N:             53856
+ Matrix # of non-zeros per node M:        775747
+ Estimated memory usage per node:    27.62 MB
 
  ### COMMENT from CHECK_TIME_PROFILES:
  ### There are no active time profiles.
+
+ Writing Br being used at lower boundary (code units) to br_r0_init.h5
 
  ### COMMENT from DUMPHIST:
  Wrote time histories to file: mas_history_a.out
  Wrote time histories to file: mas_history_b.out
 
 Code: MAS
-Version: 0.9.2.0git
-Updated on: 04/07/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run ended on: 04/09/2025
-Run ended at: 14:02:05
+Run ID: zb_3d_alfven_wave_p_rot
+Run ended on: 10/26/2026
+Run ended at: 12:46:05
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ### End of run ...
@@ -441,7 +441,7 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  TIME =  3.0500000000E+00
 
  ### Time advance information:
- Average time step used =    5.0000000000000031E-002
+ Average time step used =    4.9999999999999961E-002
 
  -----------------------------------------
  ### Field solver convergence information:
@@ -464,12 +464,12 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### Semi-implicit advance (predictor):
  Total number of solves =           61
- Total number of iterations =         1413
+ Total number of iterations =         1409
  Average number of iterations per solve =           23
 
  ### Semi-implicit advance (corrector):
  Total number of solves =           61
- Total number of iterations =         1490
+ Total number of iterations =         1489
  Average number of iterations per solve =           24
 
  ### Viscosity advance:
@@ -502,5 +502,5 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Total number of iterations =            0
  Average number of iterations per solve =            0
 
- ### CPU time used (on IPROC0):         9.05 seconds
+ ### CPU time used (on IPROC0):         8.02 seconds
 

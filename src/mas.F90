@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.9.2'
-      character(*), parameter :: update='09/04/2026'
+      character(*), parameter :: vers='0.9.10.0'
+      character(*), parameter :: update='10/22/2026'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -126,6 +126,12 @@ module ident
 !
       character(1024) :: compiler=''
       character(1024) :: compiler_flags=''
+!
+!-----------------------------------------------------------------------
+! ****** User name.
+!-----------------------------------------------------------------------
+!
+      character(512) :: username=''
 !
 !-----------------------------------------------------------------------
 ! ****** Run ID.
@@ -7163,6 +7169,7 @@ subroutine setup
                       'Run ID: ',trim(runid), &
                       'Run started on: ',chdate, &
                       'Run started at: ',chtime, &
+                      'Run started by: ',trim(username), &
                       'Ran on machine: ',trim(machname), &
                       'Machine type: ',trim(machtype), &
                       'Compiler: ',trim(compiler), &
@@ -7174,11 +7181,12 @@ subroutine setup
                       'Run ID: ',trim(runid), &
                       'Run started on: ',chdate, &
                       'Run started at: ',chtime, &
+                      'Run started by: ',trim(username), &
                       'Ran on machine: ',trim(machname), &
                       'Machine type: ',trim(machtype), &
                       'Compiler: ',trim(compiler), &
                       'Compiler Flags: ',trim(compiler_flags)
-  300   format (11(/,a,a),/)
+  300   format (12(/,a,a),/)
       end if
 !
 ! ****** Create the file dump output files.
@@ -7263,6 +7271,25 @@ subroutine get_system_info
           end if
         end if
 !
+! ****** Get username.
+!
+        call EXECUTE_COMMAND_LINE('whoami > tmp.txt',wait=.true., &
+                                  exitstat=ierr,cmdstat=ierrc, &
+                                  cmdmsg=errmsg)
+        if (ierr==0) then
+          open(unit=10,file="tmp.txt",status="old")
+          read(10, '(A)') username
+          close(10, status="delete")
+        else
+          write(*,*) "WARNING:  Failed to retrieve username"
+          write(*,*) " ERRMSG:  "//trim(errmsg)
+          username = 'Unknown'
+          if (ierrc==0) then
+            open(unit=10,file="tmp.txt",status='old')
+            close(10, status="delete")
+          end if
+        end if
+!
 ! ****** Get compiler and compiler flags.
 !
         compiler=compiler_version()
@@ -7275,6 +7302,8 @@ subroutine get_system_info
       call MPI_Bcast(machname,len(machname),MPI_CHARACTER, &
                      0,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(machtype,len(machtype),MPI_CHARACTER, &
+                     0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(username,len(username),MPI_CHARACTER, &
                      0,MPI_COMM_WORLD,ierr)
       call MPI_Bcast(compiler,len(compiler),MPI_CHARACTER, &
                      0,MPI_COMM_WORLD,ierr)
@@ -7400,6 +7429,7 @@ subroutine finish
                       'Run ID: ',trim(runid), &
                       'Run ended on: ',chdate, &
                       'Run ended at: ',chtime, &
+                      'Run started by: ',trim(username), &
                       'Ran on machine: ',trim(machname), &
                       'Machine type: ',trim(machtype), &
                       'Compiler: ',trim(compiler), &
@@ -7411,11 +7441,12 @@ subroutine finish
                       'Run ID: ',trim(runid), &
                       'Run ended on: ',chdate, &
                       'Run ended at: ',chtime, &
+                      'Run started by: ',trim(username), &
                       'Ran on machine: ',trim(machname), &
                       'Machine type: ',trim(machtype), &
                       'Compiler: ',trim(compiler), &
                       'Compiler Flags: ',trim(compiler_flags)
-  100   format (11(/,a,a),/)
+  100   format (12(/,a,a),/)
       end if
 !
       if (iamp0) then
@@ -9756,13 +9787,14 @@ subroutine parse_cl (narg,arg,ierr)
 !
       if (iamp0) then
         write (*,*)
-        write (*,*) 'Code: ',idcode
-        write (*,*) 'Version: ',vers//branch_vers
-        write (*,*) 'Updated on: ',update
-        write (*,*) 'Source file: ',source
-        write (*,*) 'Machine name: ',trim(machname)
-        write (*,*) 'Machine type: ',trim(machtype)
-        write (*,*) 'Compiler: ',trim(compiler)
+        write (*,*) 'Code:           ',idcode
+        write (*,*) 'Version:        ',vers//branch_vers
+        write (*,*) 'Updated on:     ',update
+        write (*,*) 'Source file:    ',source
+        write (*,*) 'Machine name:   ',trim(machname)
+        write (*,*) 'Machine type:   ',trim(machtype)
+        write (*,*) 'Username:       ',trim(username)
+        write (*,*) 'Compiler:       ',trim(compiler)
         write (*,*) 'Compiler Flags: ',trim(compiler_flags)
         write (*,*)
         write (*,*) '### ERROR in MAS:'
@@ -10117,6 +10149,25 @@ subroutine check_inputs
             write (*,*)
             write (*,*) '### WARNING in CHECK_INPUTS:'
             write (*,*) '### You are not advancing tc but tcond>0!'
+          end if
+!
+          if (.not.advance_tc.and.ifimplrad.eq.1.and.radloss>0) then
+            ierr=1
+            write (*,*)
+            write (*,*) '### ERROR in CHECK_INPUTS:'
+            write (*,*) '### You are using implicit radiative loss'
+            write (*,*) '### without TC (advance_tc=.false.).'
+          end if
+!
+          if (ifimplrad.eq.1.and.advance_tc.and..not.use_exp_tc.and. &
+              .not.use_sts_tc.and.radloss>0.and. &
+              (tc_auto_subcycle.or.tc_subcycles.gt.1)) then
+            ierr=1
+            write (*,*)
+            write (*,*) '### ERROR in CHECK_INPUTS:'
+            write (*,*) '### You are using implicit radiative loss'
+            write (*,*) '### and implicit TC, AND subcycling TC.'
+            write (*,*) '### This is not supported.'
           end if
         end if
 !
@@ -26925,6 +26976,8 @@ subroutine cgsolve (x,r,ierr)
       use number_types
       use cgcom
       use types
+      use, intrinsic :: ieee_arithmetic
+      use mpidefs, ONLY : iamp0
 !
 !-----------------------------------------------------------------------
 !
@@ -26947,6 +27000,7 @@ subroutine cgsolve (x,r,ierr)
 !-----------------------------------------------------------------------
 !
       real(r_typ), external :: cgdot
+      real(r_typ), parameter :: eps=1.0e-256
 !
 !-----------------------------------------------------------------------
 !
@@ -26977,7 +27031,7 @@ subroutine cgsolve (x,r,ierr)
 !
 ! ****** If the RHS is zero, return with a zero solution.
 !
-      if (bdotb.eq.0.) then
+      if (abs(bdotb)<=eps) then
         do concurrent (i=1:N_CG)
           x(i)=0.
         enddo
@@ -27039,6 +27093,18 @@ subroutine cgsolve (x,r,ierr)
         call ax (p_cg,ap_cg)
 !
         pdotap=cgdot(p_cg,ap_cg)
+!
+        if (ieee_is_nan(pdotap).or.abs(pdotap)<=eps) then
+          ierr=1
+          if (iamp0) then
+            write (*,*)
+            write (*,*) '### ERROR in SOLVE:'
+            write (*,*) '### The dot product p*Ap is near-0, 0, or NaN.'
+            write (*,*) 'PDOTAP:' ,pdotap
+          end if
+          return
+        end if
+!
         alphai=rdotr/pdotap
 !
         do concurrent (i=1:N_CG)
@@ -41211,6 +41277,7 @@ subroutine limit_alfven_speed_rho_mod
       use vars
       use seam_interface
       use mpidefs
+      use mesh
 !
 !-----------------------------------------------------------------------
 !
@@ -41233,7 +41300,8 @@ subroutine limit_alfven_speed_rho_mod
 !
 !$acc parallel loop collapse(3) default(present) &
 !$acc              reduction(+:rho_added) copy(rho_added)
-!$omp parallel do collapse(3) default(shared) reduction(+:rho_added)
+!$omp parallel do collapse(3) default(shared) reduction(+:rho_added) &
+!$omp private(brav,btav,bpav,bsq,va,rho_added_tmp,rho_new)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -41265,7 +41333,8 @@ subroutine limit_alfven_speed_rho_mod
 !
             end if
 !
-            rho_added=rho_added+rho_added_tmp
+            rho_added=rho_added+ &
+              rho_added_tmp*rh(i)**2*drh(i)*dth(j)*dph(k)*sth(j)
 !
           enddo
         enddo
@@ -41283,7 +41352,7 @@ subroutine limit_alfven_speed_rho_mod
           write (13,*)
           write (13,*) '### WARNING: The density was ', &
                       ' modified by requested max alfven speed.'
-          write (13,'(A,E23.3E3)') ' ### Total density added = ' &
+          write (13,'(A,E23.3E3)') ' ### Total mass added = ' &
                                                       ,rho_added
           write (13,'(A,I23)') ' ### NTIME               = ',ntime
           write (13,'(A,E23.3E3)') ' ### TIME                = ',time
@@ -42100,7 +42169,8 @@ subroutine floor_field (field,n1,n2,n3,fname,call_loc,floor_val)
 !$acc parallel loop collapse(3) present(field) &
 !$acc          reduction(+:number_of_floors) copy(number_of_floors)
 !$omp parallel do collapse(3) default(shared) &
-!$omp   reduction(+:number_of_floors)
+!$omp   reduction(+:number_of_floors) &
+!$omp   private(did_floor_happen)
         do k=2,n3-1
           do j=2,n2-1
             do i=2,n1-1
@@ -43571,6 +43641,7 @@ subroutine setdt
       real(r_typ), dimension(6) :: buf
 !
       real(r_typ), dimension(:,:,:), allocatable :: qrad,temp_ek,dqrad
+      logical, save :: first=.true.
 !
 !-----------------------------------------------------------------------
 !
@@ -43602,6 +43673,17 @@ subroutine setdt
 !
 ! ****** Find the explicit time step limit.
 !
+        if (first .and. radloss.ne.0) then
+          first=.false.
+          if (iamp0) then
+            write (*,*)
+            write (*,*) '### WARNING from SETDT:'
+            write (*,*) '### Running fully explicit and radiative loss'
+            write (*,*) '### is on.  Current mas verions does not check'
+            write (*,*) '### radloss time step for explicit mode yet. '
+            write (*,*) '### Solution may have temperature go negative.'
+          end if
+        end if
         vasq_max=0.
         cssq_max=0.
         vsq_max=0.
@@ -43613,7 +43695,10 @@ subroutine setdt
 !$acc                vasq_max,cssq_max,vsq_max)
 !$omp parallel do collapse(3) default(shared) &
 !$omp reduction(max:flow_cfl_max,wave_cfl_max,total_cfl_max) &
-!$omp reduction(max:vasq_max,cssq_max,vsq_max)
+!$omp reduction(max:vasq_max,cssq_max,vsq_max) &
+!$omp private(avp,avrho,avvr,avvt,avvp,avbr,avbt,avbp, &
+!$omp         bsq,vsq,cssq,vasq,st_inv,k1dotv,k2sq, &
+!$omp         flow_cfl,wave_cfl,total_cfl)
         do k=1,npm1
           do j=1,ntm1
             do i=1,nrm1
@@ -43714,7 +43799,8 @@ subroutine setdt
 !$acc parallel loop collapse(3) default(present) &
 !$acc  reduction(max:flow_cfl_max,vsq_max)
 !$omp parallel do collapse(3) default(shared) &
-!$omp reduction(max:flow_cfl_max,vsq_max)
+!$omp reduction(max:flow_cfl_max,vsq_max) &
+!$omp private(avvr,avvt,avvp,vsq,st_inv,k1dotv,flow_cfl)
         do k=1,npm1
           do j=1,ntm1
             do i=1,nrm1
@@ -43783,7 +43869,8 @@ subroutine setdt
 !
 !$acc parallel loop collapse(3) default(present) &
 !$acc  reduction(min:dt_rad)
-!$omp parallel do collapse(3) default(shared) reduction(min:dt_rad)
+!$omp parallel do collapse(3) default(shared) reduction(min:dt_rad) &
+!$omp private(fne,radterm,dqdtemp,dummy)
           do k=2,npm1
             do j=2,ntm1
               do i=2,nrm1
@@ -43819,7 +43906,9 @@ subroutine setdt
 !$acc parallel loop collapse(3) default(present) &
 !$acc  reduction(max:wave_cfl_max)
 !$omp parallel do collapse(3) default(shared) &
-!$omp reduction(max:wave_cfl_max)
+!$omp reduction(max:wave_cfl_max) &
+!$omp private(avp,avrho,avbr,avbt,avbp,bsq,cssq,vasq, &
+!$omp         st_inv,k2sq,wave_cfl)
         do k=1,npm1
           do j=1,ntm1
             do i=1,nrm1
@@ -43917,7 +44006,9 @@ subroutine setdt
 !$acc parallel loop collapse(3) default(present) &
 !$acc  reduction(max:wave_cfl_max,si_max,vasq_max,cssq_max)
 !$omp parallel do collapse(3) default(shared) &
-!$omp reduction(max:wave_cfl_max,si_max,vasq_max,cssq_max)
+!$omp reduction(max:wave_cfl_max,si_max,vasq_max,cssq_max) &
+!$omp private(avp,avrho,avbr,avbt,avbp,bsq,cssq,vasq, &
+!$omp         st_inv,k2sq,wave_cfl,ffac)
         do k=1,npm1
           do j=1,ntm1
             do i=1,nrm1
@@ -49210,7 +49301,8 @@ subroutine magnetic_energy (b,wr,wt,wp)
       wt=0.
       wp=0.
 !$acc parallel loop collapse(3) default(present) reduction(+:wr,wt,wp)
-!$omp parallel do collapse(3) default(shared) reduction(+:wr,wt,wp)
+!$omp parallel do collapse(3) default(shared) reduction(+:wr,wt,wp) &
+!$omp private(avbr,avbt,avbp,dv)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -49279,7 +49371,8 @@ subroutine kinetic_energy (rho,v,kr,kt,kp)
       kt=0.
       kp=0.
 !$acc parallel loop collapse(3) default(present) reduction(+:kr,kt,kp)
-!$omp parallel do collapse(3) default(shared) reduction(+:kr,kt,kp)
+!$omp parallel do collapse(3) default(shared) reduction(+:kr,kt,kp) &
+!$omp private(avrho,avvr,avvt,avvp,dv)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -49364,7 +49457,9 @@ subroutine kinetic_energy_pp (rho,v,b, &
 !$acc parallel loop collapse(3) default(present) &
 !$acc          reduction(+:kparr,kpart,kparp,kperpr,kperpt,kperpp)
 !$omp parallel do collapse(3) default(shared) &
-!$omp          reduction(+:kparr,kpart,kparp,kperpr,kperpt,kperpp)
+!$omp          reduction(+:kparr,kpart,kparp,kperpr,kperpt,kperpp) &
+!$omp private(avrho,avvr,avvt,avvp,avbr,avbt,avbp,bsq,vdotb, &
+!$omp         vparr,vpart,vparp,vperpr,vperpt,vperpp,dv)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -49446,7 +49541,8 @@ subroutine thermal_energy (pres,gamma,etherm)
 !
       etherm=0.
 !$acc parallel loop collapse(3) default(present) reduction(+:etherm)
-!$omp parallel do collapse(3) default(shared) reduction(+:etherm)
+!$omp parallel do collapse(3) default(shared) reduction(+:etherm) &
+!$omp private(avp,dv)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -49505,7 +49601,8 @@ subroutine volint_jb (b,fj,jdotb,jxb)
       jdotb=0.
       jxb=0.
 !$acc parallel loop collapse(3) default(present) reduction(+:jdotb,jxb)
-!$omp parallel do collapse(3) default(shared) reduction(+:jdotb,jxb)
+!$omp parallel do collapse(3) default(shared) reduction(+:jdotb,jxb) &
+!$omp private(avbr,avbt,avbp,avjr,avjt,avjp,jdb,jxbr,jxbt,jxbp,jxbmag,dv)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -54351,6 +54448,7 @@ subroutine rdh5 (fname,s,ierr)
       integer(HID_T) :: dspace_id     ! Dataspace identifier
       integer(HID_T) :: dim_id        ! Dimension identifiers
       integer(HID_T) :: datatype_id   ! Datatype identifiers
+      integer :: class
 !
       integer(SIZE_T) :: prec
 !
@@ -54368,6 +54466,8 @@ subroutine rdh5 (fname,s,ierr)
       logical :: is_scale
 !
 !-----------------------------------------------------------------------
+!
+      ierr=0
 !
 ! ****** Initialize dimension count and arrays.
 !
@@ -54393,6 +54493,7 @@ subroutine rdh5 (fname,s,ierr)
         write (*,*) '### ERROR in ',cname,':'
         write (*,*) '### Input file contains too few/many datasets.'
         write (*,*) 'File name: ',trim(fname)
+        ierr=1
         return
       end if
 !
@@ -54412,6 +54513,7 @@ subroutine rdh5 (fname,s,ierr)
         write (*,*) '### ERROR in ',cname,':'
         write (*,*) '### Input file Dataset at index 0 is a scale.'
         write (*,*) 'File name: ',trim(fname)
+        ierr=2
         return
       end if
 !
@@ -54419,6 +54521,15 @@ subroutine rdh5 (fname,s,ierr)
 !
       call h5Dget_space_f (dset_id,dspace_id,ierr)
       call h5Sget_simple_extent_ndims_f (dspace_id,s%ndim,ierr)
+!
+      if (s%ndim>3 .or. s%ndim<1) then
+        write(*,*) '### ERROR in RDH5:'
+        write(*,*) '### Dataset has too many or too few dimensions!'
+        write(*,*) 'File name: ', trim(fname)
+        write(*,*) 'Num Dimensions: ', s%ndim
+        ierr = 3
+        return
+      end if
 !
       allocate(s_dims(s%ndim))
 !
@@ -54433,6 +54544,16 @@ subroutine rdh5 (fname,s,ierr)
 ! ****** Get the floating-point precision of the data and set flag.
 !
       call h5Dget_type_f (dset_id,datatype_id,ierr)
+      call h5Tget_class_f(datatype_id, class, ierr)
+!
+      if (class /= H5T_FLOAT_F) then
+        write(*,*) '### ERROR in RDH5:'
+        write(*,*) '### Dataset is not floating-point.'
+        write(*,*) 'File name: ', trim(fname)
+        ierr = 4
+        return
+      end if
+!
       call h5Tget_precision_f (datatype_id,prec,ierr)
 !
       if (prec.eq.32) then
@@ -54450,7 +54571,7 @@ subroutine rdh5 (fname,s,ierr)
 !
       if (s%hdf32) then
         allocate (f4(s%dims(1),s%dims(2),s%dims(3)))
-        call h5Dread_f (dset_id,datatype_id,f4,s_dims,ierr)
+        call h5Dread_f (dset_id,H5T_NATIVE_REAL,f4,s_dims,ierr)
         do k=1,s%dims(3)
           do j=1,s%dims(2)
             do i=1,s%dims(1)
@@ -54461,7 +54582,7 @@ subroutine rdh5 (fname,s,ierr)
         deallocate (f4)
       else
         allocate (f8(s%dims(1),s%dims(2),s%dims(3)))
-        call h5Dread_f (dset_id,datatype_id,f8,s_dims,ierr)
+        call h5Dread_f (dset_id,H5T_NATIVE_DOUBLE,f8,s_dims,ierr)
         s%f(:,:,:)=f8(:,:,:)
         deallocate (f8)
       end if
@@ -54474,7 +54595,7 @@ subroutine rdh5 (fname,s,ierr)
         write (*,*) '### Error while reading the dataset.'
         write (*,*) 'File name: ',trim(fname)
         write (*,*) '[Error return (from H5DREAD_F) = ',ierr,']'
-        ierr=4
+        ierr=5
         return
       end if
 !
@@ -54493,6 +54614,7 @@ subroutine rdh5 (fname,s,ierr)
           write (*,*) '### ERROR in RDH5:'
           write (*,*) '### # scales does not match # dims.'
           write (*,*) 'File name: ',trim(fname)
+          ierr=6
           return
         end if
 !
@@ -54519,6 +54641,7 @@ subroutine rdh5 (fname,s,ierr)
             write (*,*) '### ERROR in RDH5:'
             write (*,*) '### Scale is not a scale.'
             write (*,*) 'File name: ',trim(fname)
+            ierr=7
             return
           end if
 !
@@ -54533,20 +54656,30 @@ subroutine rdh5 (fname,s,ierr)
 ! ****** Get the floating-point precision of the scale.
 !
           call h5Dget_type_f (dim_id,datatype_id,ierr)
+          call h5Tget_class_f(datatype_id, class, ierr)
+!
+            if (class /= H5T_FLOAT_F) then
+              write(*,*) '### ERROR in RDH5:'
+              write(*,*) '### Dataset is not floating-point.'
+              write(*,*) 'File name: ', trim(fname)
+              ierr = 8
+              return
+            end if
+!
           call h5Tget_precision_f (datatype_id,prec,ierr)
 !
 ! ****** Read in the scale data.
 !
           if (prec.eq.32) then
             allocate (f4dim(s_dims_i(1)))
-            call h5Dread_f (dim_id,datatype_id,f4dim,s_dims_i,ierr)
+            call h5Dread_f (dim_id,H5T_NATIVE_REAL,f4dim,s_dims_i,ierr)
             do j=1,s%dims(i)
               s%scales(i)%f(j)=REAL(f4dim(j),r_typ)
             end do
             deallocate (f4dim)
           else if (prec.eq.64) then
             allocate (f8dim(s_dims_i(1)))
-            call h5Dread_f (dim_id,datatype_id,f8dim,s_dims_i,ierr)
+            call h5Dread_f (dim_id,H5T_NATIVE_DOUBLE,f8dim,s_dims_i,ierr)
             s%scales(i)%f(:)=f8dim(:)
             deallocate (f8dim)
           end if
@@ -60769,7 +60902,8 @@ subroutine advzw
 !$acc parallel loop collapse(3) default(present) &
 !$acc  reduction(max:fkdotvmx)
 !$omp parallel do collapse(3) default(shared) &
-!$omp reduction(max:fkdotvmx)
+!$omp reduction(max:fkdotvmx) &
+!$omp private(avvr,avvt,avvp,fkr2,fkt2,fkp2,fkdotv)
       do k=2,npm1
         do j=2,ntm1
           do i=2,nrm1
@@ -61785,6 +61919,7 @@ subroutine get_steepness_indicator (qq,rr,fl_cp,fl_cm)
 !
       real(r_typ), parameter :: zero=0.0_r_typ
       real(r_typ), parameter :: half=0.5_r_typ
+      real(r_typ), parameter :: eps=1.0e-256_r_typ
 !
 !-----------------------------------------------------------------------
 !
@@ -61801,8 +61936,13 @@ subroutine get_steepness_indicator (qq,rr,fl_cp,fl_cm)
       call seam_scalar_xd (diffp,nr,nt,np,.true.,.false.,.false.)
 !
       do concurrent (k=2:npm1,j=2:ntm1,i=2:nrm-1)
-        rp=MAX(diffp(i-1,j,k)/diffp(i,j,k),zero)
-        rm=MAX(diffp(i+1,j,k)/diffp(i,j,k),zero)
+        if (abs(diffp(i,j,k)) > eps) then
+          rp = MAX(diffp(i-1,j,k)/diffp(i,j,k), zero)
+          rm = MAX(diffp(i+1,j,k)/diffp(i,j,k), zero)
+        else
+          rp = zero
+          rm = zero
+        end if
         rr%r(i,j,k)=half*(fl_cp%r(i,j,k)*rp+fl_cm%r(i,j,k)*rm)
       enddo
       call seam_scalar_xd (rr%r,nrm,nt,np,.true.,.false.,.false.)
@@ -61815,8 +61955,13 @@ subroutine get_steepness_indicator (qq,rr,fl_cp,fl_cm)
       call seam_scalar_xd (diffp,nr,nt,np,.false.,.true.,.false.)
 !
       do concurrent (k=2:npm1,j=2:ntm-1,i=2:nrm1)
-        rp=MAX(diffp(i,j-1,k)/diffp(i,j,k),zero)
-        rm=MAX(diffp(i,j+1,k)/diffp(i,j,k),zero)
+        if (abs(diffp(i,j,k)) > eps) then
+          rp = MAX(diffp(i,j-1,k)/diffp(i,j,k), zero)
+          rm = MAX(diffp(i,j+1,k)/diffp(i,j,k), zero)
+        else
+          rp = zero
+          rm = zero
+        end if
         rr%t(i,j,k)=half*(fl_cp%t(i,j,k)*rp+fl_cm%t(i,j,k)*rm)
       enddo
       call seam_scalar_xd (rr%t,nr,ntm,np,.false.,.true.,.false.)
@@ -61829,8 +61974,13 @@ subroutine get_steepness_indicator (qq,rr,fl_cp,fl_cm)
       call seam_scalar_xd (diffp,nr,nt,np,.false.,.false.,.true.)
 !
       do concurrent (k=2:npm-1, j=2:ntm1,i=2:nrm1)
-        rp=MAX(diffp(i,j,k-1)/diffp(i,j,k),zero)
-        rm=MAX(diffp(i,j,k+1)/diffp(i,j,k),zero)
+        if (abs(diffp(i,j,k)) > eps) then
+          rp = MAX(diffp(i,j,k-1)/diffp(i,j,k), zero)
+          rm = MAX(diffp(i,j,k+1)/diffp(i,j,k), zero)
+        else
+          rp = zero
+          rm = zero
+        end if
         rr%p(i,j,k)=half*(fl_cp%p(i,j,k)*rp+fl_cm%p(i,j,k)*rm)
       enddo
       call seam_scalar_xd (rr%p,nr,nt,npm,.false.,.false.,.true.)
@@ -65557,8 +65707,9 @@ subroutine add_inertial_force (jxb,vec)
       do concurrent (k=2:npm1, j=2:ntm-1, i=2:nrm1)
         avrho=AVGT(rho,i,j+1,k)
         av_vecp=AVGTP(vec%p,i  ,j+1,k  )
-        jxb%t(i,j,k)= jxb%t(i,j,k)+avrho* &
-        two*omega_corotate*ct (j)*av_vecp
+        jxb%t(i,j,k)= jxb%t(i,j,k)+avrho*( &
+        two*omega_corotate*ct(j)*av_vecp &
+        +rh(i)*omega_corotate*omega_corotate*st(j)*ct(j))
       enddo
 !
 ! ****** Phi component.
@@ -73588,5 +73739,14 @@ end subroutine
 !
 ! ### Version 0.9.9.2, 09/04/2026, modified by RC:
 !      - Cleaned up code with the help of Fortitude.
+!
+! ### Version 0.9.10.0, 10/22/2026, modified by RC+RL+AR:
+!      - Corrected co-rotating force term (was missing a term in theta).
+!      - Made steepness indicator in zp/zm advance more robust
+!        to zero values.
+!      - Added username to run output.
+!      - Added more robust checking to rdh5.
+!      - Added more error checking.
+!      - Fixed some OpenMP race conditions.
 !
 !#######################################################################

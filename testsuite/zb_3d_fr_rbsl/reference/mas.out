@@ -80,7 +80,7 @@
   char_bc1 = .false.
   ubzero = .false.
   filter_poles = .false.
-  zero_v_parallel=.true.
+  zero_v_parallel = .true.
 ! *** Thermal conduction:
   advance_tc = .false.
   tcond = 0.0
@@ -215,16 +215,17 @@
 
 
 Code: MAS
-Version: 0.9.2.1git
-Updated on: 04/23/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run started on: 04/24/2025
-Run started at: 13:20:12
+Run ID: zb_3d_fr_rbsl
+Run started on: 10/26/2026
+Run started at: 12:46:08
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ------------------------------------------------------------------------
@@ -434,20 +435,19 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  UPWIND_AR =    1.0000000000000000     
  UPWIND_AT =    1.0000000000000000     
  UPWIND_AP =    1.0000000000000000     
- UPWIND_A_R0 =    0.0000000000000000     
 
  ### COMMENT from LOAD_POT2D_SOLVE:
  ### pot2d preconditioner activated.
- Matrix size per node (NxN) N:               900
- Matrix # of non-zeros per node M:          4144
- Estimated memory usage per node:     0.26 MB
+ Matrix size per node (NxN) N:               600
+ Matrix # of non-zeros per node M:          2744
+ Estimated memory usage per node:     0.17 MB
 
 
  ### COMMENT from LOAD_POT2DH_SOLVE:
  ### pot2dh preconditioners activated.
- Matrix size per node (NxN) N:               870
- Matrix # of non-zeros per node M:          4232
- Estimated memory usage per node:     0.26 MB
+ Matrix size per node (NxN) N:               580
+ Matrix # of non-zeros per node M:          2802
+ Estimated memory usage per node:     0.17 MB
 
  ### Adding the TDM flux rope with index =            1
 
@@ -583,12 +583,14 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### COMMENT from LOAD_V_ADVANCE:
  ### Velocity preconditioner activated.
- Matrix size per node (NxN) N:             51600
- Matrix # of non-zeros per node M:        743426
- Estimated memory usage per node:    26.46 MB
+ Matrix size per node (NxN) N:             34400
+ Matrix # of non-zeros per node M:        492957
+ Estimated memory usage per node:    17.58 MB
 
  ### COMMENT from CHECK_TIME_PROFILES:
  ### There are no active time profiles.
+
+ Writing Br being used at lower boundary (code units) to br_r0_init.h5
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
@@ -661,16 +663,17 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Wrote time histories to file: mas_history_b.out
 
 Code: MAS
-Version: 0.9.2.1git
-Updated on: 04/23/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run ended on: 04/24/2025
-Run ended at: 13:20:13
+Run ID: zb_3d_fr_rbsl
+Run ended on: 10/26/2026
+Run ended at: 12:46:09
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ### End of run ...
@@ -702,17 +705,17 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### Semi-implicit advance (predictor):
  Total number of solves =           10
- Total number of iterations =           40
- Average number of iterations per solve =            4
+ Total number of iterations =           28
+ Average number of iterations per solve =            2
 
  ### Semi-implicit advance (corrector):
  Total number of solves =           10
- Total number of iterations =           42
- Average number of iterations per solve =            4
+ Total number of iterations =           30
+ Average number of iterations per solve =            3
 
  ### Viscosity advance:
  Total number of solves =           10
- Total number of iterations =           43
+ Total number of iterations =           41
  Average number of iterations per solve =            4
 
  ### Initial boundary potential field (2D):
@@ -740,5 +743,5 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Total number of iterations =            0
  Average number of iterations per solve =            0
 
- ### CPU time used (on IPROC0):         0.96 seconds
+ ### CPU time used (on IPROC0):         0.99 seconds
 

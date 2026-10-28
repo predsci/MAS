@@ -94,7 +94,7 @@
   bnfile = 'br_map_input.h5'
   zb_rho_profile = 'READ_FROM_FILE'
   zb_rho_file = 'rho_bastille_test_reduced.h5'
-  tdm_preserve_br0 = .true.
+  fluxrope_preserve_br0 = .true.
 ! *** FR1: along E-W segment of PIL
   tdm_fluxrope(1)%add = .true.
   tdm_fluxrope(1)%rope_type = 'hollow_nonff'
@@ -173,16 +173,17 @@
 
 
 Code: MAS
-Version: 0.9.2.0git
-Updated on: 04/07/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run started on: 04/09/2025
-Run started at: 14:35:45
+Run ID: zb_3d_tdm_3rope
+Run started on: 10/26/2026
+Run started at: 12:46:06
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ------------------------------------------------------------------------
@@ -386,20 +387,19 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  UPWIND_AR =    1.0000000000000000     
  UPWIND_AT =    1.0000000000000000     
  UPWIND_AP =    1.0000000000000000     
- UPWIND_A_R0 =    0.0000000000000000     
 
  ### COMMENT from LOAD_POT2D_SOLVE:
  ### pot2d preconditioner activated.
- Matrix size per node (NxN) N:               900
- Matrix # of non-zeros per node M:          4144
- Estimated memory usage per node:     0.26 MB
+ Matrix size per node (NxN) N:               600
+ Matrix # of non-zeros per node M:          2744
+ Estimated memory usage per node:     0.17 MB
 
 
  ### COMMENT from LOAD_POT2DH_SOLVE:
  ### pot2dh preconditioners activated.
- Matrix size per node (NxN) N:               870
- Matrix # of non-zeros per node M:          4232
- Estimated memory usage per node:     0.26 MB
+ Matrix size per node (NxN) N:               580
+ Matrix # of non-zeros per node M:          2802
+ Estimated memory usage per node:     0.17 MB
 
  ### Adding the TDM flux rope with index =            1
 
@@ -412,7 +412,7 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Flag to Add:  T
  Rope Type = hollow_nonff
  Flag to use the user specified major radius: F
- Major radius =    8.3266666666666683E-002
+ Major radius =    8.3266666666666669E-002
  Minor radius =    2.3000000000000000E-002
  Apex height =    2.9999999999999999E-002
  Footpoint separation =   0.12800000000000000     
@@ -458,7 +458,7 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Flag to Add:  T
  Rope Type = parabolic
  Flag to use the user specified major radius: F
- Major radius =    4.2919999999999993E-002
+ Major radius =    4.2920000000000007E-002
  Minor radius =    1.7999999999999999E-002
  Apex height =    2.5000000000000001E-002
  Footpoint separation =    7.8000000000000000E-002
@@ -484,13 +484,13 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  ### COMMENT from BALANCE_FLUX:
  ### Computed flux balance:
 
- Positive flux =    27.160518439987911     
- Negative flux =   -31.537299929441250     
+ Positive flux =    27.160518439987914     
+ Negative flux =   -31.537299929441243     
 
  ### COMMENT from BALANCE_FLUX:
  ### Flux balance correction:
 
- Monopole Br field magnitude =  -0.34205966767230128     
+ Monopole Br field magnitude =  -0.34205966767230050     
 
  ### COMMENT from POTFLD:
  ### Boundary condition type used at r=R1:
@@ -507,6 +507,45 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  ### distribution that was at r=R0 before calculating
  ### the potential field.
 
+ ### Starting POT2D solver.
+
+ ### COMMENT from POT2D_SOLVER:
+ ### CG solution of Initial boundary potential:
+ NTIME =            0
+ TIME =    0.0000000000000000     
+
+ ### Comment from ERR_NORM:
+ ### Convergence information:
+ Iteration:        0   Residual:   1.000000000000000E+00
+ Iteration:      100   Residual:   4.079760143221415E-07
+
+ ### Comment from ERR_NORM:
+ ### The CG solver has converged.
+ Iteration:      121   Residual:   6.779403220299028E-10
+
+ ### Potential field [Initial boundary potential]: N=  121 |B|= 3.75E+00 |R|= 2.54E-09
+
+ ### Starting POT3D solver.
+
+ ### COMMENT from POT3D_SOLVER:
+ NTIME =            0
+ TIME =    0.0000000000000000     
+
+ ### Comment from ERR_NORM:
+ ### Convergence information:
+ Iteration:        0   Residual:   1.000000000000000E+00
+ Iteration:      100   Residual:   2.217084614788089E-04
+ Iteration:      200   Residual:   1.730019126853630E-05
+ Iteration:      300   Residual:   8.219906759614080E-07
+ Iteration:      400   Residual:   6.502956681215852E-08
+ Iteration:      500   Residual:   2.456635716651694E-09
+
+ ### Comment from ERR_NORM:
+ ### The CG solver has converged.
+ Iteration:      533   Residual:   9.855494113632514E-10
+
+ ### Potential field 3D: N=  533 |B|= 2.92E+01 |R|= 2.88E-08
+
  ### COMMENT from LOAD_RHO_FROM_FILE:
  ### Reading the density from file: rho_bastille_test_reduced.h5
 
@@ -518,12 +557,14 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### COMMENT from LOAD_V_ADVANCE:
  ### Velocity preconditioner activated.
- Matrix size per node (NxN) N:             51600
- Matrix # of non-zeros per node M:        743426
- Estimated memory usage per node:    26.46 MB
+ Matrix size per node (NxN) N:             34400
+ Matrix # of non-zeros per node M:        492957
+ Estimated memory usage per node:    17.58 MB
 
  ### COMMENT from CHECK_TIME_PROFILES:
  ### There are no active time profiles.
+
+ Writing Br being used at lower boundary (code units) to br_r0_init.h5
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
@@ -541,140 +582,141 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  ### Wrote out the requested fields.
  File sequence number =            3
  NTIME =            2
- TIME =    1.3753391675244294E-003
+ TIME =    1.3753391670044534E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =            4
  NTIME =            3
- TIME =    1.6749688627792946E-003
+ TIME =    1.6749688621653638E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =            5
  NTIME =            4
- TIME =    1.9872277303489934E-003
+ TIME =    1.9872277297322727E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =            6
  NTIME =            5
- TIME =    2.3150995412971769E-003
+ TIME =    2.3150995406775272E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =            7
  NTIME =            6
- TIME =    2.6593649427927696E-003
+ TIME =    2.6593649421700442E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =            8
  NTIME =            7
- TIME =    3.0208436143631420E-003
+ TIME =    3.0208436137371874E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =            9
  NTIME =            8
- TIME =    3.4003962195120331E-003
+ TIME =    3.4003962188826876E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           10
  NTIME =            9
- TIME =    3.7989264549183688E-003
+ TIME =    3.7989264542854628E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           11
  NTIME =           10
- TIME =    4.2173832020950212E-003
+ TIME =    4.2173832014583768E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           12
  NTIME =           11
- TIME =    4.6567627866305064E-003
+ TIME =    4.6567627859899364E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           13
  NTIME =           12
- TIME =    5.1181113503927659E-003
+ TIME =    5.1181113497480741E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           14
  NTIME =           13
- TIME =    5.6025273423431386E-003
+ TIME =    5.6025273416941187E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           15
  NTIME =           14
- TIME =    6.1111641338910299E-003
+ TIME =    6.1111641332374650E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           16
  NTIME =           15
- TIME =    6.6452327650163151E-003
+ TIME =    6.6452327643579789E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           17
  NTIME =           16
- TIME =    7.2060048276978653E-003
+ TIME =    7.2060048270345184E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           18
  NTIME =           17
- TIME =    7.7948154935134932E-003
+ TIME =    7.7948154928448848E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           19
  NTIME =           18
- TIME =    8.4130666926199027E-003
+ TIME =    8.4130666919457701E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           20
  NTIME =           19
- TIME =    9.0622304516816323E-003
+ TIME =    9.0622304510016988E-003
 
  ### COMMENT from PLOT_DUMP:
  ### Wrote out the requested fields.
  File sequence number =           21
  NTIME =           20
- TIME =    9.7438523986964481E-003
+ TIME =    9.7438523980104240E-003
 
  ### COMMENT from DUMPHIST:
  Wrote time histories to file: mas_history_a.out
  Wrote time histories to file: mas_history_b.out
 
 Code: MAS
-Version: 0.9.2.0git
-Updated on: 04/07/2025
+Version: 0.9.10.0
+Updated on: 10/22/2026
 Source file: mas.F90
-Run ID: mas
-Run ended on: 04/09/2025
-Run ended at: 14:35:46
+Run ID: zb_3d_tdm_3rope
+Run ended on: 10/26/2026
+Run ended at: 12:46:07
+Run started by: sumseq
 Ran on machine: PREDSCI-GPU2
 Machine type: x86_64
-Compiler: GCC version 12.3.0
-Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -march=alderlake -mmmx -mpopcnt -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mno-sse4a -mno-fma4 -mno-xop -mfma -mno-avx512f -mbmi -mbmi2 -maes -mpclmul -mno-avx512vl -mno-avx512bw -mno-avx512dq -mno-avx512cd -mno-avx512er -mno-avx512pf -mno-avx512vbmi -mno-avx512ifma -mno-avx5124vnniw -mno-avx5124fmaps -mno-avx512vpopcntdq -mno-avx512vbmi2 -mgfni -mvpclmulqdq -mno-avx512vnni -mno-avx512bitalg -mno-avx512bf16 -mno-avx512vp2intersect -mno-3dnow -madx -mabm -mno-cldemote -mclflushopt -mclwb -mno-clzero -mcx16 -mno-enqcmd -mf16c -mfsgsbase -mfxsr -mno-hle -msahf -mno-lwp -mlzcnt -mmovbe -mmovdir64b -mmovdiri -mno-mwaitx -mno-pconfig -mpku -mno-prefetchwt1 -mprfchw -mptwrite -mrdpid -mrdrnd -mrdseed -mno-rtm -mserialize -mno-sgx -msha -mshstk -mno-tbm -mno-tsxldtrk -mvaes -mwaitpkg -mno-wbnoinvd -mxsave -mxsavec -mxsaveopt -mxsaves -mno-a
+Compiler: GCC version 14.2.0
+Compiler Flags: -I /opt/psi/gcc/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-linux-gnu/openmpi/lib/../../fortran/gfortran-mod-15/openmpi -I /usr/lib/x86_64-linux-gnu/openmpi/lib -mtune=generic -march=x86-64 -O3 -fallow-argument-mismatch -fpre-include=/usr/include/finclude/x86_64-linux-gnu/math-vector-fortran.h
 
 
  ### End of run ...
 
  NTIME =         20
- TIME =  9.7438523987E-03
+ TIME =  9.7438523980E-03
 
  ### Time advance information:
- Average time step used =    4.8719261993482223E-004
+ Average time step used =    4.8719261990052122E-004
 
  -----------------------------------------
  ### Field solver convergence information:
@@ -697,23 +739,23 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
 
  ### Semi-implicit advance (predictor):
  Total number of solves =           20
- Total number of iterations =          196
- Average number of iterations per solve =            9
+ Total number of iterations =          200
+ Average number of iterations per solve =           10
 
  ### Semi-implicit advance (corrector):
  Total number of solves =           20
- Total number of iterations =          201
+ Total number of iterations =          208
  Average number of iterations per solve =           10
 
  ### Viscosity advance:
  Total number of solves =           20
- Total number of iterations =           48
+ Total number of iterations =           51
  Average number of iterations per solve =            2
 
  ### Initial boundary potential field (2D):
  Total number of solves =            1
- Total number of iterations =           97
- Average number of iterations per solve =           97
+ Total number of iterations =          121
+ Average number of iterations per solve =          121
 
  ### Initial potential field (3D):
  Total number of solves =            1
@@ -735,5 +777,5 @@ Compiler Flags: -I /opt/psi/gnu/ext_deps/deps/hdf5/include -I /usr/lib/x86_64-li
  Total number of iterations =            0
  Average number of iterations per solve =            0
 
- ### CPU time used (on IPROC0):         1.32 seconds
+ ### CPU time used (on IPROC0):         1.31 seconds
 

@@ -77,7 +77,7 @@
   char_bc1 = .false.
   ubzero = .false.
   filter_poles = .false.
-  zero_v_parallel=.true.
+  zero_v_parallel = .true.
 ! *** Thermal conduction:
   advance_tc = .false.
   tcond = 0.0
