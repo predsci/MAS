@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.10.0'
-      character(*), parameter :: update='10/22/2026'
+      character(*), parameter :: vers='0.9.10.1'
+      character(*), parameter :: update='11/04/2026'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -117,21 +117,21 @@ module ident
 ! ****** Machine name and type.
 !-----------------------------------------------------------------------
 !
-      character(512) :: machname=''
-      character(512) :: machtype=''
+      character(len=:), allocatable :: machname
+      character(len=:), allocatable :: machtype
 !
 !-----------------------------------------------------------------------
 ! ****** Compiler and flags.
 !-----------------------------------------------------------------------
 !
-      character(1024) :: compiler=''
-      character(1024) :: compiler_flags=''
+      character(len=:), allocatable :: compiler
+      character(len=:), allocatable :: compiler_flags
 !
 !-----------------------------------------------------------------------
 ! ****** User name.
 !-----------------------------------------------------------------------
 !
-      character(512) :: username=''
+      character(len=:), allocatable :: username
 !
 !-----------------------------------------------------------------------
 ! ****** Run ID.
@@ -7227,6 +7227,8 @@ subroutine get_system_info
 !-----------------------------------------------------------------------
 !
       integer :: ierr,ierrc
+      integer :: machname_len,machtype_len,compiler_len
+      integer :: compiler_flags_len,username_len
       character(512) :: errmsg
 !
 !-----------------------------------------------------------------------
@@ -7295,20 +7297,47 @@ subroutine get_system_info
         compiler=compiler_version()
         compiler_flags=compiler_options()
 !
+! ****** Get length of strings for broadcast.
+!
+        machname_len=len(machname)
+        machtype_len=len(machtype)
+        username_len=len(username)
+        compiler_len=len(compiler)
+        compiler_flags_len=len(compiler_flags)
+!
       end if
 !
 ! ****** Broadcast to all other ranks.
 !
-      call MPI_Bcast(machname,len(machname),MPI_CHARACTER, &
-                     0,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(machtype,len(machtype),MPI_CHARACTER, &
-                     0,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(username,len(username),MPI_CHARACTER, &
-                     0,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(compiler,len(compiler),MPI_CHARACTER, &
-                     0,MPI_COMM_WORLD,ierr)
-      call MPI_Bcast(compiler_flags,len(compiler_flags),MPI_CHARACTER, &
-                     0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(machname_len,1,MPI_INTEGER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(machtype_len,1,MPI_INTEGER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(username_len,1,MPI_INTEGER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(compiler_len,1,MPI_INTEGER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(compiler_flags_len,1,MPI_INTEGER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+!
+      if (.not. iamp0) then
+        allocate(character(len=machname_len) :: machname)
+        allocate(character(len=machtype_len) :: machtype)
+        allocate(character(len=username_len) :: username)
+        allocate(character(len=compiler_len) :: compiler)
+        allocate(character(len=compiler_flags_len) :: compiler_flags)
+      end if
+!
+      call MPI_Bcast(machname,machname_len,MPI_CHARACTER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(machtype,machtype_len,MPI_CHARACTER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(username,username_len,MPI_CHARACTER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(compiler,compiler_len,MPI_CHARACTER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
+      call MPI_Bcast(compiler_flags,compiler_flags_len,MPI_CHARACTER, &
+                     iproc0,MPI_COMM_WORLD,ierr)
 !
 end subroutine
 !#######################################################################
@@ -27000,7 +27029,7 @@ subroutine cgsolve (x,r,ierr)
 !-----------------------------------------------------------------------
 !
       real(r_typ), external :: cgdot
-      real(r_typ), parameter :: eps=1.0e-256
+      real(r_typ), parameter :: eps=1.0e-256_r_typ
 !
 !-----------------------------------------------------------------------
 !
@@ -73748,5 +73777,8 @@ end subroutine
 !      - Added more robust checking to rdh5.
 !      - Added more error checking.
 !      - Fixed some OpenMP race conditions.
+!
+! ### Version 0.9.10.1, 11/04/2026, modified by RC:
+!      - Made system info strings arbitrary size instead of 1024.
 !
 !#######################################################################
