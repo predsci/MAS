@@ -108,8 +108,8 @@ module ident
 !-----------------------------------------------------------------------
 !
       character(*), parameter :: idcode='MAS'
-      character(*), parameter :: vers='0.9.10.1'
-      character(*), parameter :: update='11/04/2026'
+      character(*), parameter :: vers='0.9.10.2'
+      character(*), parameter :: update='11/06/2026'
       character(*), parameter :: branch_vers=''
       character(*), parameter :: source='mas.F90'
 !
@@ -54294,8 +54294,7 @@ subroutine rdhdf (fname,s,ierr)
 !
 !-----------------------------------------------------------------------
 !
-! ****** Read a 1D, 2D, or 3D scientific data set from an HDF file.
-! ****** This routine uses the standard SD API (not the old DFSD).
+! ****** Read a 1D, 2D, or 3D scientific data set from an HDF5 file.
 !
 !-----------------------------------------------------------------------
 !
@@ -54388,7 +54387,7 @@ subroutine rdh5 (fname,s,ierr)
 !
 ! ****** Read a 1D, 2D, or 3D scientific data set from an HDF5 file.
 ! ****** The HDF5 file is currently assumed to contain only one
-! ****** dataset (1D,2d,3D), with or without scales, in group "/",
+! ****** dataset (1D,2D,or 3D), with or without scales, in group "/",
 ! ****** and has no other data members.
 !
 !-----------------------------------------------------------------------
@@ -54481,7 +54480,7 @@ subroutine rdh5 (fname,s,ierr)
 !
       integer(SIZE_T) :: prec
 !
-      integer(HSIZE_T),dimension(:), allocatable :: s_dims,maxpts
+      integer(HSIZE_T),dimension(3) :: s_dims,maxpts
       integer(HSIZE_T),dimension(1) :: s_dims_i
 !
       real(KIND_REAL_4), dimension(:,:,:), allocatable :: f4
@@ -54560,11 +54559,7 @@ subroutine rdh5 (fname,s,ierr)
         return
       end if
 !
-      allocate(s_dims(s%ndim))
-!
-      allocate(maxpts(s%ndim))
       call h5Sget_simple_extent_dims_f (dspace_id,s_dims,maxpts,ierr)
-      deallocate(maxpts)
 !
       do j=1,s%ndim
         s%dims(j)=INT(s_dims(j))
@@ -54615,8 +54610,6 @@ subroutine rdh5 (fname,s,ierr)
         s%f(:,:,:)=f8(:,:,:)
         deallocate (f8)
       end if
-!
-      deallocate(s_dims)
 !
       if (ierr.ne.0) then
         write (*,*)
@@ -54860,7 +54853,7 @@ subroutine wrh5 (fname,s,ierr)
 ! ****** Input arguments:
 !
 !          FNAME   : [character(*)]
-!                    HDF data file name to write to.
+!                    HDF5 data file name to write to.
 !
 !          S       : [structure of type SDS]
 !                    A structure that holds the field, its
@@ -73780,5 +73773,8 @@ end subroutine
 !
 ! ### Version 0.9.10.1, 11/04/2026, modified by RC:
 !      - Made system info strings arbitrary size instead of 1024.
+!
+! ### Version 0.9.10.2, 11/06/2026, modified by RC:
+!      - Small fix in hdf5 reader (causing LFortran to not compile).
 !
 !#######################################################################
